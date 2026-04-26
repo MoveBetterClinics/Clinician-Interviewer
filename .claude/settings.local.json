@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "WebFetch(domain:movebetter.co)",
+      "WebFetch(domain:www.movebetter.co)",
+      "Bash(npm install *)",
+      "Read(//usr/local/bin/**)",
+      "Read(//Users/qbook/.nvm/versions/**)",
+      "Read(//Users/qbook/**)",
+      "Bash(command -v node)",
+      "Bash(/usr/local/bin/node --version)",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
+      "Bash(npm --version)",
+      "Bash(git add *)"
+    ]
+  }
+}
