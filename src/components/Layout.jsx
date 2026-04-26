@@ -1,8 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Activity, Settings, Plus } from 'lucide-react'
+import { Settings, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 
 export default function Layout({ children, onOpenSettings }) {
   const location = useLocation()
@@ -10,11 +8,15 @@ export default function Layout({ children, onOpenSettings }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 shadow-sm">
         <div className="container flex h-14 items-center gap-4">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Activity className="h-5 w-5 text-primary" />
-            <span className="text-sm">Move Better <span className="text-muted-foreground font-normal">/ Clinician Interviewer</span></span>
+          <Link to="/" className="flex items-center gap-2">
+            {/* Move Better wordmark using brand colors */}
+            <span className="text-base font-semibold tracking-tight" style={{ fontFamily: "'Titillium Web', sans-serif" }}>
+              <span style={{ color: '#E36525' }}>Move Better</span>
+              <span className="text-muted-foreground font-light mx-1.5">/</span>
+              <span className="text-foreground font-light text-sm">Clinician Interviewer</span>
+            </span>
           </Link>
 
           <div className="flex-1" />
