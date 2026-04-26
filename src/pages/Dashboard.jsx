@@ -27,7 +27,7 @@ export default function Dashboard({ onOpenSettings }) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Welcome to the Move Better Interview</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Interview your clinicians and generate on-brand content.
           </p>
