@@ -65,12 +65,31 @@ export default function InterviewSession() {
     }
   }, [])
 
+  function getBestVoice() {
+    const voices = window.speechSynthesis.getVoices()
+    // Prefer Google's neural voices (Chrome), then Apple enhanced, then any English
+    const priority = [
+      v => v.name === 'Google US English',
+      v => v.name.startsWith('Google') && v.lang.startsWith('en'),
+      v => v.name.includes('Samantha') && v.localService,
+      v => v.name.includes('Enhanced') && v.lang.startsWith('en'),
+      v => v.lang === 'en-US' && v.localService,
+      v => v.lang.startsWith('en'),
+    ]
+    for (const test of priority) {
+      const match = voices.find(test)
+      if (match) return match
+    }
+    return null
+  }
+
   function speak(text) {
     if (!window.speechSynthesis) return
     window.speechSynthesis.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 0.92
-    utterance.pitch = 1.05
+    utterance.voice = getBestVoice()
+    utterance.rate = 1.1
+    utterance.pitch = 1.0
     setIsSpeaking(true)
     utterance.onend = () => {
       setIsSpeaking(false)
