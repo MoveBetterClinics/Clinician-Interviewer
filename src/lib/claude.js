@@ -1,35 +1,13 @@
-import { getApiKey } from './storage'
-
-const API_URL = 'https://api.anthropic.com/v1/messages'
-
-function headers() {
-  return {
-    'Content-Type': 'application/json',
-    'x-api-key': getApiKey(),
-    'anthropic-version': '2023-06-01',
-    'anthropic-dangerous-allow-browser': 'true',
-  }
-}
-
 export async function* streamMessage(messages, systemPrompt) {
-  const apiKey = getApiKey()
-  if (!apiKey) throw new Error('NO_API_KEY')
-
-  const response = await fetch(API_URL, {
+  const response = await fetch('/api/stream', {
     method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages,
-      stream: true,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, systemPrompt }),
   })
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
-    throw new Error(err.error?.message || `API error ${response.status}`)
+    throw new Error(err.error || `API error ${response.status}`)
   }
 
   const reader = response.body.getReader()
@@ -59,23 +37,15 @@ export async function* streamMessage(messages, systemPrompt) {
 }
 
 export async function generateContent(messages, systemPrompt) {
-  const apiKey = getApiKey()
-  if (!apiKey) throw new Error('NO_API_KEY')
-
-  const response = await fetch(API_URL, {
+  const response = await fetch('/api/generate', {
     method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, systemPrompt }),
   })
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
-    throw new Error(err.error?.message || `API error ${response.status}`)
+    throw new Error(err.error || `API error ${response.status}`)
   }
 
   const data = await response.json()

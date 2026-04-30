@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, MessageSquare, Clock, ChevronRight, Users, KeyRound } from 'lucide-react'
+import { Plus, MessageSquare, Clock, ChevronRight, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { getClinicians, getApiKey } from '@/lib/storage'
+import { getClinicians } from '@/lib/storage'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 
-export default function Dashboard({ onOpenSettings }) {
+export default function Dashboard() {
   const [clinicians, setClinicians] = useState([])
-  const hasApiKey = !!getApiKey()
 
   useEffect(() => {
     setClinicians(getClinicians())
@@ -40,21 +39,6 @@ export default function Dashboard({ onOpenSettings }) {
         </Button>
       </div>
 
-      {/* API Key warning */}
-      {!hasApiKey && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <KeyRound className="h-4 w-4 text-amber-600 shrink-0" />
-            <p className="text-sm text-amber-800">
-              Add your Anthropic API key to start interviewing clinicians.
-            </p>
-          </div>
-          <Button size="sm" variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100" onClick={onOpenSettings}>
-            Add Key
-          </Button>
-        </div>
-      )}
-
       {/* Stats */}
       {clinicians.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
@@ -66,7 +50,7 @@ export default function Dashboard({ onOpenSettings }) {
 
       {/* Clinician tiles */}
       {clinicians.length === 0 ? (
-        <EmptyState onOpenSettings={onOpenSettings} hasApiKey={hasApiKey} />
+        <EmptyState />
       ) : (
         <div>
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Clinicians</h2>
@@ -169,7 +153,7 @@ function NewClinicianTile() {
   )
 }
 
-function EmptyState({ hasApiKey, onOpenSettings }) {
+function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -179,19 +163,12 @@ function EmptyState({ hasApiKey, onOpenSettings }) {
       <p className="text-muted-foreground text-sm max-w-sm mb-6">
         Start by interviewing a clinician about a condition they treat. We'll help generate blog posts and social content from the conversation.
       </p>
-      {hasApiKey ? (
-        <Button asChild>
-          <Link to="/new">
-            <Plus className="h-4 w-4 mr-1.5" />
-            Start First Interview
-          </Link>
-        </Button>
-      ) : (
-        <Button onClick={onOpenSettings}>
-          <KeyRound className="h-4 w-4 mr-1.5" />
-          Add API Key to Get Started
-        </Button>
-      )}
+      <Button asChild>
+        <Link to="/new">
+          <Plus className="h-4 w-4 mr-1.5" />
+          Start First Interview
+        </Link>
+      </Button>
     </div>
   )
 }
