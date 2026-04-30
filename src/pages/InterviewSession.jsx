@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Send, Loader2, Sparkles, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import {
-  getClinician, getInterview, updateInterviewMessages, saveInterviewOutputs, getApiKey,
+  getClinician, getInterview, updateInterviewMessages, saveInterviewOutputs,
 } from '@/lib/storage'
 import { streamMessage, generateContent } from '@/lib/claude'
 import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialMediaSystemPrompt } from '@/lib/prompts'
@@ -22,15 +21,25 @@ export default function InterviewSession() {
   const [clinician, setClinician] = useState(null)
   const [interview, setInterview] = useState(null)
   const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingText, setStreamingText] = useState('')
   const [interviewComplete, setInterviewComplete] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const [transcript, setTranscript] = useState('')
+  const [isSpeaking, setIsSpeaking] = useState(false)
+
   const bottomRef = useRef(null)
-  const textareaRef = useRef(null)
   const hasStarted = useRef(false)
+  const recognitionRef = useRef(null)
+  const messagesRef = useRef([])
+  const transcriptRef = useRef('')
+  const autoListenRef = useRef(false)
+
+  // Keep messagesRef in sync
+  useEffect(() => { messagesRef.current = messages }, [messages])
+  useEffect(() => { transcriptRef.current = transcript }, [transcript])
 
   useEffect(() => {
     const c = getClinician(clinicianId)
@@ -44,20 +53,41 @@ export default function InterviewSession() {
     }
   }, [clinicianId, interviewId, navigate])
 
-  // Kick off the first AI message if session is brand new
-  useEffect(() => {
-    if (!clinician || !interview || hasStarted.current) return
-    if (messages.length === 0) {
-      hasStarted.current = true
-      sendToAI([])
-    } else {
-      hasStarted.current = true
-    }
-  }, [clinician, interview])
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingText])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel()
+      recognitionRef.current?.abort()
+    }
+  }, [])
+
+  function speak(text) {
+    if (!window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 0.92
+    utterance.pitch = 1.05
+    setIsSpeaking(true)
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      autoListenRef.current = true
+    }
+    utterance.onerror = () => setIsSpeaking(false)
+    window.speechSynthesis.speak(utterance)
+  }
+
+  // Auto-start listening after Claude finishes speaking
+  useEffect(() => {
+    if (!isSpeaking && autoListenRef.current && !isStreaming && !interviewComplete) {
+      autoListenRef.current = false
+      const timer = setTimeout(() => startListening(), 400)
+      return () => clearTimeout(timer)
+    }
+  }, [isSpeaking, isStreaming, interviewComplete])
 
   const sendToAI = useCallback(async (currentMessages) => {
     if (!clinician || !interview) return
@@ -66,7 +96,6 @@ export default function InterviewSession() {
     setError('')
 
     const systemPrompt = getInterviewSystemPrompt(clinician.name, interview.topic)
-    // Claude requires alternating roles; filter to ensure that
     const apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
 
     let fullText = ''
@@ -76,16 +105,11 @@ export default function InterviewSession() {
         setStreamingText(fullText)
       }
     } catch (err) {
-      if (err.message === 'NO_API_KEY') {
-        setError('No API key set. Click the Settings icon to add your Anthropic API key.')
-      } else {
-        setError(`Error: ${err.message}`)
-      }
+      setError(`Error: ${err.message}`)
       setIsStreaming(false)
       return
     }
 
-    // Detect and strip completion token
     const isComplete = fullText.includes(COMPLETE_TOKEN)
     const cleanText = fullText.replace(COMPLETE_TOKEN, '').trim()
 
@@ -96,23 +120,87 @@ export default function InterviewSession() {
     if (isComplete) setInterviewComplete(true)
     setStreamingText('')
     setIsStreaming(false)
+
+    // Speak the response
+    if (!isComplete) speak(cleanText)
   }, [clinician, interview, clinicianId, interviewId])
 
-  async function handleSend() {
-    const text = input.trim()
-    if (!text || isStreaming) return
-    setInput('')
+  // Kick off first AI message
+  useEffect(() => {
+    if (!clinician || !interview || hasStarted.current) return
+    hasStarted.current = true
+    if (messages.length === 0) {
+      sendToAI([])
+    } else {
+      // Resuming — speak the last assistant message
+      const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
+      if (lastAssistant && !interviewComplete) speak(lastAssistant.content)
+    }
+  }, [clinician, interview])
+
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) {
+      setError('Speech recognition is not supported. Please use Chrome.')
+      return
+    }
+    if (isListening) return
+
+    window.speechSynthesis?.cancel()
+    setIsSpeaking(false)
+    setTranscript('')
+    transcriptRef.current = ''
+
+    const recognition = new SR()
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+
+    recognition.onresult = (event) => {
+      let text = ''
+      for (const result of event.results) {
+        text += result[0].transcript
+      }
+      setTranscript(text)
+      transcriptRef.current = text
+    }
+
+    recognition.onend = () => setIsListening(false)
+
+    recognition.onerror = (e) => {
+      setIsListening(false)
+      if (e.error !== 'no-speech') setError(`Microphone error: ${e.error}`)
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsListening(true)
+  }
+
+  function stopListening() {
+    recognitionRef.current?.stop()
+  }
+
+  // Auto-submit when listening stops and we have a transcript
+  useEffect(() => {
+    if (isListening) return
+    const text = transcriptRef.current.trim()
+    if (!text) return
+
+    setTranscript('')
+    transcriptRef.current = ''
 
     const userMessage = { role: 'user', content: text }
-    const updated = [...messages, userMessage]
+    const updated = [...messagesRef.current, userMessage]
     setMessages(updated)
     updateInterviewMessages(clinicianId, interviewId, updated)
-    await sendToAI(updated)
-  }
+    sendToAI(updated)
+  }, [isListening, clinicianId, interviewId, sendToAI])
 
   async function handleGenerateContent() {
     setIsGenerating(true)
     setError('')
+    window.speechSynthesis?.cancel()
     try {
       const blogSystemPrompt = getBlogPostSystemPrompt(clinician.name, interview.topic)
       const apiMessages = messages.map((m) => ({ role: m.role, content: m.content }))
@@ -127,7 +215,6 @@ export default function InterviewSession() {
         socialSystemPrompt
       )
 
-      // Split instagram and facebook
       const igMatch = socialPosts.match(/INSTAGRAM CAPTION[:\s]*([\s\S]*?)(?=FACEBOOK POST|$)/i)
       const fbMatch = socialPosts.match(/FACEBOOK POST[:\s]*([\s\S]*?)$/i)
 
@@ -242,32 +329,44 @@ export default function InterviewSession() {
         </div>
       )}
 
-      {/* Input */}
+      {/* Voice input */}
       {!interviewComplete && (
-        <div className="flex gap-2 pt-3 shrink-0">
-          <Textarea
-            ref={textareaRef}
-            placeholder="Type your answer…"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSend()
-              }
-            }}
-            rows={2}
-            className="resize-none"
-            disabled={isStreaming}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isStreaming}
-            size="icon"
-            className="h-auto self-end mb-0.5"
+        <div className="pt-4 pb-1 shrink-0 flex flex-col items-center gap-3">
+          {/* Live transcript */}
+          {transcript && (
+            <div className="w-full rounded-xl bg-muted px-4 py-3 text-sm text-foreground/80 italic min-h-[44px]">
+              "{transcript}"
+            </div>
+          )}
+
+          {/* Status label */}
+          <p className="text-xs text-muted-foreground h-4">
+            {isStreaming ? '' : isSpeaking ? (
+              <span className="flex items-center gap-1.5">
+                <Volume2 className="h-3 w-3 animate-pulse" /> Speaking…
+              </span>
+            ) : isListening ? (
+              <span className="flex items-center gap-1.5 text-red-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Listening — tap to stop
+              </span>
+            ) : 'Tap to speak'}
+          </p>
+
+          {/* Mic button */}
+          <button
+            onClick={isListening ? stopListening : startListening}
+            disabled={isStreaming || isGenerating || isSpeaking}
+            className={`h-16 w-16 rounded-full flex items-center justify-center transition-all shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
+              ${isListening
+                ? 'bg-red-500 text-white scale-110'
+                : 'bg-primary text-primary-foreground hover:opacity-90 active:scale-95'
+              } disabled:opacity-30 disabled:cursor-not-allowed disabled:scale-100`}
           >
-            <Send className="h-4 w-4" />
-          </Button>
+            {isListening
+              ? <MicOff className="h-6 w-6" />
+              : <Mic className="h-6 w-6" />
+            }
+          </button>
         </div>
       )}
     </div>
