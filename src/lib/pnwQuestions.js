@@ -204,6 +204,49 @@ export const PNW_CONDITION_BANK = {
     ],
   },
 
+  // ── CHRONIC PAIN ─────────────────────────────────────────────────────────
+  'chronic pain': {
+    patientProfile:
+      'Patients who have been in pain for months or years — often told by other providers that nothing more can be done. They\'ve tried medication, injections, or surgery with limited relief. Many are active PNW adults whose quality of life has quietly shrunk around their pain.',
+    lifestyleStakes:
+      'Getting their life back — not just reducing pain but returning to hiking, sleeping through the night, playing with grandkids, and feeling like themselves again.',
+    pnwAngles: [
+      'Portland\'s health-conscious culture means many chronic pain patients have already tried acupuncture, massage, PT, and medication — and are skeptical but still hopeful',
+      'The PNW\'s active lifestyle makes chronic pain especially identity-threatening — patients define themselves by what they can do outdoors',
+      'Rainy, grey winters in Oregon can amplify pain sensitivity and depression, creating seasonal pain flares that are often misunderstood',
+      'Many chronic pain patients in the Portland area are drawn to Move Better because of the movement-first, root-cause philosophy — they\'re tired of being managed rather than fixed',
+      'Tech workers with years of desk posture pain have often normalized their suffering before finally seeking help',
+    ],
+    interviewTopics: [
+      'How is treating chronic pain fundamentally different from treating an acute injury?',
+      'What\'s happening in the nervous system with chronic pain that most patients don\'t understand?',
+      'Why do so many chronic pain patients fall through the cracks of conventional medicine?',
+      'What does a first visit look like for someone who has been in pain for years?',
+      'How does the Move Better movement-first approach address the root cause of chronic pain rather than just the symptoms?',
+      'What role does patient mindset and pain education play in recovery?',
+      'What does a realistic recovery timeline look like — and how do you manage expectations?',
+      'Can you share what a chronic pain success story looks like at Move Better?',
+    ],
+  },
+
+  'fibromyalgia': {
+    patientProfile:
+      'Predominantly women, often dismissed by prior providers. Active adults who have watched their world shrink as pain made everyday activities feel impossible.',
+    lifestyleStakes:
+      'Being believed, being understood, and finding any path back to the life they had before.',
+    pnwAngles: [
+      'Portland has a large population of fibromyalgia patients who feel underserved by conventional medicine',
+      'The rain and lack of sunlight in PNW winters can significantly worsen fibromyalgia symptoms — a local factor worth addressing',
+      'Many fibromyalgia patients arrive at Move Better after years of being told their pain isn\'t real',
+    ],
+    interviewTopics: [
+      'How do you approach a patient whose pain has been dismissed or labeled as purely psychological?',
+      'What does movement do for the nervous system in fibromyalgia that medication can\'t replicate?',
+      'What does early success look like for a fibromyalgia patient — and how do you celebrate it?',
+      'How do you pace treatment for someone whose pain can spike unpredictably?',
+    ],
+  },
+
   // ── GENERAL / MOVEMENT ───────────────────────────────────────────────────
   'movement assessment': {
     patientProfile:
@@ -272,6 +315,10 @@ export function getPNWContext(condition) {
     'ankle': 'ankle sprain',
     'headache': 'headaches',
     'migraine': 'headaches',
+    'chronic': 'chronic pain',
+    'fibromyalgia': 'fibromyalgia',
+    'fibro': 'fibromyalgia',
+    'persistent pain': 'chronic pain',
     'movement': 'movement assessment',
     'performance': 'sports performance',
     'athletic': 'sports performance',
@@ -305,9 +352,14 @@ export function getPNWContext(condition) {
 
 /**
  * Formats PNW context into a string block for injection into a system prompt.
+ * Always includes a chronic pain section because Move Better's ideal patient —
+ * regardless of the presenting condition — is often someone with persistent,
+ * long-standing pain that conventional care hasn't resolved.
  */
 export function formatPNWContextForPrompt(condition) {
   const ctx = getPNWContext(condition)
+  const isChronicTopic = condition.toLowerCase().includes('chronic') || condition.toLowerCase().includes('fibro')
+
   return `
 PACIFIC NORTHWEST PATIENT CONTEXT — use this to shape your questions:
 - Who walks through the door: ${ctx.patientProfile}
@@ -316,5 +368,13 @@ PACIFIC NORTHWEST PATIENT CONTEXT — use this to shape your questions:
 ${ctx.pnwAngles.map(a => `  • ${a}`).join('\n')}
 - Key interview areas specific to this condition and audience:
 ${ctx.interviewTopics.map(q => `  • ${q}`).join('\n')}
-`
-}
+${isChronicTopic ? '' : `
+CHRONIC PAIN ANGLE — always weave this into the interview:
+Move Better's ideal patient is often someone living with chronic, persistent pain — not just an acute injury. These patients have usually tried other treatments without lasting relief. Make sure to explore at least 2–3 of these areas during the interview:
+  • How does ${condition} become a chronic pain condition, and what changes in the body when pain persists for months or years?
+  • How is treating someone with long-standing ${condition} different from treating a fresh, acute case?
+  • Why do chronic ${condition} patients often fall through the cracks of conventional medicine (medication, injections, imaging)?
+  • What does the Move Better root-cause, movement-first approach offer that chronic pain patients haven't found elsewhere?
+  • What does realistic recovery look like for someone who has been hurting for a long time — and how do you rebuild their confidence?
+  • Can you share a story (anonymized) of a chronic pain patient with ${condition} who found relief at Move Better?
+`}
