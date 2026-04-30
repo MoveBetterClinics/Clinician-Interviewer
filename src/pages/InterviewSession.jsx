@@ -36,6 +36,7 @@ export default function InterviewSession() {
   const messagesRef = useRef([])
   const transcriptRef = useRef('')
   const autoListenRef = useRef(false)
+  const finalTranscriptRef = useRef('')
 
   // Keep messagesRef in sync
   useEffect(() => { messagesRef.current = messages }, [messages])
@@ -169,19 +170,26 @@ export default function InterviewSession() {
     setIsSpeaking(false)
     setTranscript('')
     transcriptRef.current = ''
+    finalTranscriptRef.current = ''
 
     const recognition = new SR()
-    recognition.continuous = false
+    recognition.continuous = true
     recognition.interimResults = true
     recognition.lang = 'en-US'
 
     recognition.onresult = (event) => {
-      let text = ''
-      for (const result of event.results) {
-        text += result[0].transcript
+      // Accumulate final segments; append interim for live display
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscriptRef.current += event.results[i][0].transcript + ' '
+        }
       }
-      setTranscript(text)
-      transcriptRef.current = text
+      const interim = event.results[event.results.length - 1].isFinal
+        ? ''
+        : event.results[event.results.length - 1][0].transcript
+      const display = (finalTranscriptRef.current + interim).trim()
+      setTranscript(display)
+      transcriptRef.current = finalTranscriptRef.current.trim()
     }
 
     recognition.onend = () => setIsListening(false)
@@ -366,7 +374,7 @@ export default function InterviewSession() {
               </span>
             ) : isListening ? (
               <span className="flex items-center gap-1.5 text-red-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Listening — tap to stop
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Listening — tap mic when done
               </span>
             ) : 'Tap to speak'}
           </p>
