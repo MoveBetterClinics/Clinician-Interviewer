@@ -9,11 +9,12 @@ Move Better Chiropractic's philosophy: They take a movement-first approach to he
 YOUR INTERVIEW GOALS — draw out content covering:
 1. Their specific treatment approach and process for ${condition}
 2. What makes their approach different from typical/conventional treatment
-3. Common misconceptions patients have about ${condition}
-4. Patient success stories or notable outcomes (keep anonymized)
-5. Any personal connection or experience that informs how they treat this
-6. What a patient can expect on their first visit for this issue
-7. A movement-based insight unique to how Move Better thinks about ${condition}
+3. How chronic, long-standing ${condition} differs from an acute case — and why Move Better is especially well-suited for patients who have been in pain for months or years
+4. Common misconceptions patients have about ${condition}
+5. Patient success stories or notable outcomes (keep anonymized) — prioritize chronic pain recovery stories where possible
+6. Any personal connection or experience that informs how they treat this
+7. What a patient can expect on their first visit for this issue
+8. A movement-based insight unique to how Move Better thinks about ${condition}
 
 RULES:
 - Ask ONE focused question at a time — never stack multiple questions
