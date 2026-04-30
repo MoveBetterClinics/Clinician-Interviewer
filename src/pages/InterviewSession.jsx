@@ -14,6 +14,34 @@ import { getInitials } from '@/lib/utils'
 
 const COMPLETE_TOKEN = 'INTERVIEW_COMPLETE'
 
+// Phrases the clinician can say to stop recording and submit their answer.
+// Returns the cleaned transcript (phrase stripped) if matched, null otherwise.
+const STOP_PHRASES = [
+  "that's all",
+  "that's it",
+  "i'm done",
+  "i am done",
+  "send it",
+  "send that",
+  "submit",
+  "next question",
+  "move on",
+  "done",
+]
+
+function detectAndStripStopPhrase(transcript) {
+  const normalized = transcript.trimEnd().toLowerCase()
+  for (const phrase of STOP_PHRASES) {
+    if (normalized.endsWith(phrase)) {
+      const stripped = transcript.trimEnd()
+      const cleaned = stripped.slice(0, stripped.length - phrase.length).trimEnd()
+      // Require some actual content before the stop phrase
+      return cleaned.length > 0 ? cleaned : ''
+    }
+  }
+  return null
+}
+
 export default function InterviewSession() {
   const { clinicianId, interviewId } = useParams()
   const navigate = useNavigate()
@@ -178,10 +206,11 @@ export default function InterviewSession() {
     recognition.lang = 'en-US'
 
     recognition.onresult = (event) => {
-      // Accumulate final segments; append interim for live display
+      let gotFinal = false
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           finalTranscriptRef.current += event.results[i][0].transcript + ' '
+          gotFinal = true
         }
       }
       const interim = event.results[event.results.length - 1].isFinal
@@ -190,6 +219,17 @@ export default function InterviewSession() {
       const display = (finalTranscriptRef.current + interim).trim()
       setTranscript(display)
       transcriptRef.current = finalTranscriptRef.current.trim()
+
+      // Check for stop phrases only after a final result lands
+      if (gotFinal) {
+        const cleaned = detectAndStripStopPhrase(finalTranscriptRef.current)
+        if (cleaned !== null) {
+          finalTranscriptRef.current = cleaned
+          transcriptRef.current = cleaned.trim()
+          setTranscript(cleaned.trim())
+          recognitionRef.current?.stop()
+        }
+      }
     }
 
     recognition.onend = () => setIsListening(false)
@@ -374,7 +414,7 @@ export default function InterviewSession() {
               </span>
             ) : isListening ? (
               <span className="flex items-center gap-1.5 text-red-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Listening — tap mic when done
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Listening — say "done" or tap mic to send
               </span>
             ) : 'Tap to speak'}
           </p>
