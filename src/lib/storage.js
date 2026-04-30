@@ -101,10 +101,3 @@ export function deleteClinician(clinicianId) {
   save(data)
 }
 
-export function getApiKey() {
-  return localStorage.getItem('mb_api_key') || ''
-}
-
-export function setApiKey(key) {
-  localStorage.setItem('mb_api_key', key.trim())
-}

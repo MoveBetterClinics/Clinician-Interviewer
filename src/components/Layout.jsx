@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Settings, Plus } from 'lucide-react'
+import { UserButton } from '@clerk/clerk-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export default function Layout({ children, onOpenSettings }) {
+export default function Layout({ children }) {
   const location = useLocation()
   const isHome = location.pathname === '/'
 
@@ -30,9 +31,7 @@ export default function Layout({ children, onOpenSettings }) {
             </Button>
           )}
 
-          <Button variant="ghost" size="icon" onClick={onOpenSettings} title="Settings">
-            <Settings className="h-4 w-4" />
-          </Button>
+          <UserButton afterSignOutUrl="/" />
         </div>
       </header>
 

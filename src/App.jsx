@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import {
   ClerkProvider,
@@ -8,7 +7,6 @@ import {
   useUser,
 } from '@clerk/clerk-react'
 import Layout from '@/components/Layout'
-import ApiKeyDialog from '@/components/ApiKeyDialog'
 import Dashboard from '@/pages/Dashboard'
 import NewInterview from '@/pages/NewInterview'
 import InterviewSession from '@/pages/InterviewSession'
@@ -45,22 +43,19 @@ function DomainGuard({ children }) {
 }
 
 function ProtectedApp() {
-  const [settingsOpen, setSettingsOpen] = useState(false)
-
   return (
     <>
       <SignedIn>
         <DomainGuard>
-          <Layout onOpenSettings={() => setSettingsOpen(true)}>
+          <Layout>
             <Routes>
-              <Route path="/" element={<Dashboard onOpenSettings={() => setSettingsOpen(true)} />} />
+              <Route path="/" element={<Dashboard />} />
               <Route path="/new" element={<NewInterview />} />
               <Route path="/interview/:clinicianId/:interviewId" element={<InterviewSession />} />
               <Route path="/output/:clinicianId/:interviewId" element={<InterviewOutput />} />
               <Route path="/clinician/:clinicianId" element={<ClinicianProfile />} />
             </Routes>
           </Layout>
-          <ApiKeyDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
         </DomainGuard>
       </SignedIn>
 
