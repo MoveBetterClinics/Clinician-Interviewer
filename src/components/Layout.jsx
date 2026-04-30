@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { UserButton } from '@clerk/clerk-react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -30,6 +31,7 @@ export default function Layout({ children }) {
             </Button>
           )}
 
+          <UserButton afterSignOutUrl="/" />
         </div>
       </header>
 
