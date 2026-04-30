@@ -6,16 +6,19 @@
  * Patients here tend to be active, health-conscious, skeptical of medication,
  * and highly motivated to maintain their outdoor lifestyle.
  *
- * Each category contains:
+ * Each entry contains:
  *   - patientProfile: who typically walks in with this condition
  *   - lifestyleStakes: what they're afraid of losing
  *   - pnwAngles: regional hooks that make content resonate locally
  *   - interviewTopics: specific areas to probe in the interview
+ *   - chronicRelevant: true when this condition commonly presents as chronic
+ *     or when the acute-vs-chronic distinction is clinically meaningful
  */
 
 export const PNW_CONDITION_BANK = {
   // ── BACK & SPINE ─────────────────────────────────────────────────────────
   'lower back pain': {
+    chronicRelevant: true,
     patientProfile:
       'Desk workers, hikers carrying heavy packs, cyclists in aggressive riding positions, and weekend warriors who overdo it on the trail.',
     lifestyleStakes:
@@ -36,6 +39,7 @@ export const PNW_CONDITION_BANK = {
   },
 
   'sciatica': {
+    chronicRelevant: true,
     patientProfile:
       'Cyclists with tight piriformis, long-haul commuters, desk workers, and trail runners with hip imbalances.',
     lifestyleStakes:
@@ -54,6 +58,7 @@ export const PNW_CONDITION_BANK = {
   },
 
   'disc herniation': {
+    chronicRelevant: true,
     patientProfile:
       'Weightlifters, CrossFitters, and hikers who\'ve had one too many heavy pack days.',
     lifestyleStakes:
@@ -72,6 +77,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── NECK & SHOULDERS ─────────────────────────────────────────────────────
   'neck pain': {
+    chronicRelevant: true,
     patientProfile:
       'Remote tech workers, cyclists in aggressive riding positions, climbers, and paddlers.',
     lifestyleStakes:
@@ -91,6 +97,7 @@ export const PNW_CONDITION_BANK = {
   },
 
   'shoulder pain': {
+    chronicRelevant: true,
     patientProfile:
       'Climbers, swimmers, paddlers, overhead athletes, and CrossFitters.',
     lifestyleStakes:
@@ -111,6 +118,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── KNEES ─────────────────────────────────────────────────────────────────
   'knee pain': {
+    chronicRelevant: true,
     patientProfile:
       'Trail runners, cyclists, skiers, hikers on steep descents, and aging athletes refusing to slow down.',
     lifestyleStakes:
@@ -131,6 +139,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── HIPS ─────────────────────────────────────────────────────────────────
   'hip pain': {
+    chronicRelevant: true,
     patientProfile:
       'Cyclists, runners, desk workers, and aging active adults.',
     lifestyleStakes:
@@ -150,6 +159,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── FOOT & ANKLE ─────────────────────────────────────────────────────────
   'plantar fasciitis': {
+    chronicRelevant: true,
     patientProfile:
       'Runners increasing mileage for spring races, hikers returning to the trail after winter, and people who stand all day.',
     lifestyleStakes:
@@ -169,6 +179,7 @@ export const PNW_CONDITION_BANK = {
   },
 
   'ankle sprain': {
+    chronicRelevant: false,
     patientProfile:
       'Trail runners on technical terrain, basketball players, and hikers on rooty PNW trails.',
     lifestyleStakes:
@@ -187,6 +198,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── HEAD & NEUROLOGICAL ──────────────────────────────────────────────────
   'headaches': {
+    chronicRelevant: true,
     patientProfile:
       'Tech workers, cyclists, and anyone dealing with chronic tension and screen time.',
     lifestyleStakes:
@@ -206,6 +218,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── CHRONIC PAIN ─────────────────────────────────────────────────────────
   'chronic pain': {
+    chronicRelevant: true,
     patientProfile:
       'Patients who have been in pain for months or years — often told by other providers that nothing more can be done. They\'ve tried medication, injections, or surgery with limited relief. Many are active PNW adults whose quality of life has quietly shrunk around their pain.',
     lifestyleStakes:
@@ -230,6 +243,7 @@ export const PNW_CONDITION_BANK = {
   },
 
   'fibromyalgia': {
+    chronicRelevant: true,
     patientProfile:
       'Predominantly women, often dismissed by prior providers. Active adults who have watched their world shrink as pain made everyday activities feel impossible.',
     lifestyleStakes:
@@ -249,6 +263,7 @@ export const PNW_CONDITION_BANK = {
 
   // ── GENERAL / MOVEMENT ───────────────────────────────────────────────────
   'movement assessment': {
+    chronicRelevant: false,
     patientProfile:
       'Athletes who want to prevent injury before it happens — proactive PNW types.',
     lifestyleStakes:
@@ -267,6 +282,7 @@ export const PNW_CONDITION_BANK = {
   },
 
   'sports performance': {
+    chronicRelevant: false,
     patientProfile:
       'Competitive runners, cyclists, climbers, and triathletes looking for an edge.',
     lifestyleStakes:
@@ -292,10 +308,8 @@ export const PNW_CONDITION_BANK = {
 export function getPNWContext(condition) {
   const lower = condition.toLowerCase()
 
-  // Direct match
   if (PNW_CONDITION_BANK[lower]) return PNW_CONDITION_BANK[lower]
 
-  // Keyword match
   const keywordMap = {
     'back': 'lower back pain',
     'lumbar': 'lower back pain',
@@ -318,7 +332,7 @@ export function getPNWContext(condition) {
     'chronic': 'chronic pain',
     'fibromyalgia': 'fibromyalgia',
     'fibro': 'fibromyalgia',
-    'persistent pain': 'chronic pain',
+    'persistent': 'chronic pain',
     'movement': 'movement assessment',
     'performance': 'sports performance',
     'athletic': 'sports performance',
@@ -329,8 +343,9 @@ export function getPNWContext(condition) {
     if (lower.includes(keyword)) return PNW_CONDITION_BANK[key]
   }
 
-  // Generic PNW fallback
+  // Generic PNW fallback — no chronic angle assumed
   return {
+    chronicRelevant: false,
     patientProfile:
       'Active Portland and Vancouver residents — trail runners, cyclists, climbers, hikers, desk workers — who want to stay active and avoid medication or surgery.',
     lifestyleStakes:
@@ -352,13 +367,10 @@ export function getPNWContext(condition) {
 
 /**
  * Formats PNW context into a string block for injection into a system prompt.
- * Always includes a chronic pain section because Move Better's ideal patient —
- * regardless of the presenting condition — is often someone with persistent,
- * long-standing pain that conventional care hasn't resolved.
+ * Includes a chronic pain angle only for conditions where it is clinically relevant.
  */
 export function formatPNWContextForPrompt(condition) {
   const ctx = getPNWContext(condition)
-  const isChronicTopic = condition.toLowerCase().includes('chronic') || condition.toLowerCase().includes('fibro')
 
   return `
 PACIFIC NORTHWEST PATIENT CONTEXT — use this to shape your questions:
@@ -368,13 +380,12 @@ PACIFIC NORTHWEST PATIENT CONTEXT — use this to shape your questions:
 ${ctx.pnwAngles.map(a => `  • ${a}`).join('\n')}
 - Key interview areas specific to this condition and audience:
 ${ctx.interviewTopics.map(q => `  • ${q}`).join('\n')}
-${isChronicTopic ? '' : `
-CHRONIC PAIN ANGLE — always weave this into the interview:
-Move Better's ideal patient is often someone living with chronic, persistent pain — not just an acute injury. These patients have usually tried other treatments without lasting relief. Make sure to explore at least 2–3 of these areas during the interview:
-  • How does ${condition} become a chronic pain condition, and what changes in the body when pain persists for months or years?
-  • How is treating someone with long-standing ${condition} different from treating a fresh, acute case?
-  • Why do chronic ${condition} patients often fall through the cracks of conventional medicine (medication, injections, imaging)?
-  • What does the Move Better root-cause, movement-first approach offer that chronic pain patients haven't found elsewhere?
-  • What does realistic recovery look like for someone who has been hurting for a long time — and how do you rebuild their confidence?
-  • Can you share a story (anonymized) of a chronic pain patient with ${condition} who found relief at Move Better?
-`}
+${ctx.chronicRelevant ? `
+CHRONIC VS. ACUTE ANGLE — explore this when it fits naturally:
+${condition} often presents as a chronic, long-standing problem rather than a fresh injury. Where relevant, draw out:
+  • How does treating someone with chronic ${condition} (months or years of pain) differ from an acute case?
+  • Why do chronic ${condition} patients often exhaust conventional options (medication, injections, imaging) before finding lasting relief?
+  • What does the Move Better root-cause, movement-first approach offer these patients?
+  • What does recovery realistically look like — and how do you manage a patient's expectations when they've been hurting for a long time?
+` : ''}`
+}
