@@ -391,6 +391,18 @@ export default function InterviewSession() {
             />
           </div>
 
+          <p className="text-xs text-muted-foreground text-center">
+            Want to understand how this content gets used after the interview?{' '}
+            <a
+              href="https://docs.google.com/document/d/1u5KPo76S_gahQbgV5bnOUtsiIkpwf7uPrTxhKwAixEg/edit?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-2 hover:opacity-80"
+            >
+              Read the Move Better Content Distribution Strategy
+            </a>
+          </p>
+
           <Button className="w-full" size="lg" onClick={() => setShowInstructions(false)}>
             <Mic className="h-4 w-4 mr-2" />
             I'm ready — start the interview
