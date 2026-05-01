@@ -453,8 +453,8 @@ export default function InterviewSession() {
 
           {isStreaming && !streamingText && (
             <div className="flex items-start gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
+              <div className="h-8 w-8 rounded-full bg-white border border-border flex items-center justify-center shrink-0 p-1">
+                <Loader2 className="h-4 w-4 text-primary animate-spin" />
               </div>
               <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1 items-center h-5">
@@ -577,8 +577,8 @@ function MessageBubble({ message, clinicianName, isStreaming }) {
   return (
     <div className={`flex items-start gap-3 ${!isAI ? 'flex-row-reverse' : ''}`}>
       {isAI ? (
-        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center shrink-0 text-xs font-bold text-primary-foreground">
-          MB
+        <div className="h-8 w-8 rounded-full bg-white border border-border flex items-center justify-center shrink-0 p-1">
+          <img src="/icon.svg" alt="Move Better" className="h-full w-full" />
         </div>
       ) : (
         <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center shrink-0 text-xs font-medium">

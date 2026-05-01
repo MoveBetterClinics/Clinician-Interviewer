@@ -421,13 +421,13 @@ function AboutPanel() {
           <div className="space-y-1.5">
             <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">What this is</p>
             <p className="text-sm leading-relaxed text-foreground/80">
-              A structured interview tool that captures how each Move Better clinician thinks about treating a specific condition — in their own words. That expertise is what patients and referring providers actually want to know, but it rarely makes it off the treatment table.
+              A structured interview tool that captures how each Move Better clinician practices Movement Based Medicine — in their own words. That clinical perspective is what patients and referring providers actually want to know, but it rarely makes it off the treatment table.
             </p>
           </div>
           <div className="space-y-1.5">
             <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">Why the interview format</p>
             <p className="text-sm leading-relaxed text-foreground/80">
-              Clinicians don't have time to write content — and generic health articles don't reflect Move Better's movement-first philosophy anyway. An interview takes 15–30 minutes of conversation. The AI does the writing. The result sounds like your clinic because it came directly from your clinicians.
+              Clinicians don't have time to write content — and generic health articles don't reflect Move Better's movement-first philosophy anyway. An interview takes 15–30 minutes of conversation. The AI does the writing. The result sounds like Move Better because it came directly from your clinicians.
             </p>
           </div>
           <div className="space-y-1.5">
