@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2, Mic2, FileText, Users } from 'lucide-react'
+import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2, Mic2, FileText, Users, PauseCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -267,6 +267,12 @@ export default function InterviewSession() {
     sendToAI(updated)
   }, [isListening, clinicianId, interviewId, sendToAI])
 
+  function handlePause() {
+    window.speechSynthesis?.cancel()
+    recognitionRef.current?.abort()
+    navigate(`/clinician/${clinicianId}`)
+  }
+
   async function handleGenerateContent() {
     setIsGenerating(true)
     setError('')
@@ -378,9 +384,15 @@ export default function InterviewSession() {
           <p className="font-medium text-sm leading-none">{clinician.name}</p>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{interview.topic}</p>
         </div>
-        {interviewComplete && (
-          <Badge variant="secondary" className="text-xs">Interview Complete</Badge>
-        )}
+        {interviewComplete
+          ? <Badge variant="secondary" className="text-xs">Interview Complete</Badge>
+          : (
+            <Button variant="outline" size="sm" onClick={handlePause} className="shrink-0 gap-1.5 text-muted-foreground">
+              <PauseCircle className="h-3.5 w-3.5" />
+              Pause
+            </Button>
+          )
+        }
       </div>
 
       {/* Messages */}
