@@ -1,8 +1,34 @@
 import { formatPNWContextForPrompt } from './pnwQuestions'
 
-export function getInterviewSystemPrompt(clinicianName, condition) {
+export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = []) {
+  let pastContext = ''
+  if (pastInterviews.length > 0) {
+    const formatted = pastInterviews.map((pi) => {
+      const who = pi.clinicians?.name || 'another clinician'
+      const date = new Date(pi.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const clinicianResponses = (pi.messages || [])
+        .filter((m) => m.role === 'user')
+        .slice(0, 8)
+        .map((m) => `- ${m.content}`)
+        .join('\n')
+      return `[${who} — ${date}]\n${clinicianResponses}`
+    }).join('\n\n')
+
+    pastContext = `
+
+PAST INTERVIEWS ON "${condition}" AT MOVE BETTER:
+The following clinicians have already been interviewed on this topic. Use their answers as a lens:
+${formatted}
+
+HOW TO USE THIS CONTEXT:
+- If ${clinicianName}'s approach or philosophy seems to differ from what past interviewees said, probe that difference specifically — ask why they see it differently
+- Surface any perspective or insight that past interviews did NOT capture
+- Don't re-tread well-covered ground unless ${clinicianName} seems to have a genuinely distinct take
+- If there's a contradiction or tension between what past clinicians said and what ${clinicianName} says, name it naturally and ask them to speak to it`
+  }
+
   return `You are an AI interviewer conducting a warm, professional interview with ${clinicianName}, a clinician at Move Better Chiropractic, about how they treat ${condition}.
-${formatPNWContextForPrompt(condition)}
+${formatPNWContextForPrompt(condition)}${pastContext}
 
 Move Better Chiropractic's philosophy: They take a movement-first approach to healthcare. They identify WHY pain exists rather than just treating symptoms. They use their proprietary Movement Paradigm Scoring system (breathing, bracing, hinging) and focus on teaching patients lifelong movement skills. Their goal is to help patients get off medication and restore function. They are warm, educational, patient-centered, and empowering — "like advice from a knowledgeable friend."
 

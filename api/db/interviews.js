@@ -27,13 +27,28 @@ export default async function handler(req) {
   const userId = req.headers.get('x-user-id')
 
   if (req.method === 'GET') {
-    if (!id) return err('Missing id')
-    const res = await sb(
-      `interviews?id=eq.${id}&select=id,clinician_id,topic,status,messages,outputs,owner_id,owner_email,created_at,updated_at`
-    )
+    if (id) {
+      const res = await sb(
+        `interviews?id=eq.${id}&select=id,clinician_id,topic,status,messages,outputs,owner_id,owner_email,created_at,updated_at`
+      )
+      if (!res.ok) return err('Database error', 500)
+      const data = await res.json()
+      return ok(data[0] ?? null)
+    }
+
+    // Search past completed interviews by topic (for cross-interview context)
+    const topic = searchParams.get('topic')
+    const excludeId = searchParams.get('excludeId')
+    if (!topic) return err('Missing id or topic')
+
+    let qs = `interviews?topic=ilike.${encodeURIComponent(topic)}&status=eq.completed`
+    qs += `&select=id,topic,messages,created_at,clinicians(name)`
+    if (excludeId) qs += `&id=neq.${excludeId}`
+    qs += `&order=created_at.desc&limit=3`
+
+    const res = await sb(qs)
     if (!res.ok) return err('Database error', 500)
-    const data = await res.json()
-    return ok(data[0] ?? null)
+    return ok(await res.json())
   }
 
   if (req.method === 'POST') {
