@@ -65,3 +65,17 @@ export function deleteInterview(id, userId) {
     headers: { 'x-user-id': userId },
   })
 }
+
+// ── Campaign Settings ────────────────────────────────────────────────────────
+
+export function fetchCampaign() {
+  return apiFetch('/api/db/settings')
+}
+
+export function updateCampaign(patch, userId) {
+  return apiFetch('/api/db/settings', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+    body: JSON.stringify(patch),
+  })
+}

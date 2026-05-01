@@ -144,7 +144,7 @@ BLOG POST FORMAT (write in Markdown):
 TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.`
 }
 
-export function getSocialBatchSystemPrompt(clinicianName, condition) {
+export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '') {
   const firstName = clinicianName.split(' ')[0]
   return `Based on the blog post provided, generate social media content for Move Better Chiropractic. The post is about ${condition} featuring ${firstName}.
 
@@ -191,10 +191,10 @@ Google Business Profile post:
 Create 3 Pinterest pin variations. For each:
 PIN TITLE: (max 100 characters, include keywords naturally)
 PIN DESCRIPTION: (200–400 characters, keyword-rich natural language, include https://www.movebetter.co/)
-BOARD: (Pain Relief & Recovery / Portland Wellness / Movement & Fitness / Chiropractic Care)`
+BOARD: (Pain Relief & Recovery / Portland Wellness / Movement & Fitness / Chiropractic Care)${campaignContext}`
 }
 
-export function getVideoScriptBatchSystemPrompt(clinicianName, condition) {
+export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '') {
   const firstName = clinicianName.split(' ')[0]
   return `Based on the blog post provided, write two video scripts for Move Better Chiropractic about ${condition} featuring ${firstName}.
 
@@ -246,10 +246,10 @@ One punchy sentence that stops the scroll. Lead with tension or a counterintuiti
 Soft CTA: "If you're dealing with ${condition} in Portland, follow for more — link in bio to book with us."
 
 CAPTION:
-50–80 word TikTok caption with 5–6 relevant hashtags.`
+50–80 word TikTok caption with 5–6 relevant hashtags.${campaignContext}`
 }
 
-export function getMarketingBatchSystemPrompt(clinicianName, condition) {
+export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '') {
   const firstName = clinicianName.split(' ')[0]
   const conditionSlug = condition.toLowerCase().replace(/\s+/g, '-').slice(0, 20)
   return `Based on the blog post provided, generate three marketing assets for Move Better Chiropractic about ${condition}. Use the blog post as your source of truth.
@@ -327,5 +327,5 @@ SITELINK EXTENSIONS — 4, with title and 2-line description each:
    Line 2: [line 2]
 [continue to 4]
 
-Mix brand terms (Move Better, Portland), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.`
+Mix brand terms (Move Better, Portland), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.${campaignContext}`
 }
