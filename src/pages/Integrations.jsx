@@ -51,7 +51,7 @@ const INTEGRATIONS = [
     ],
     setupSteps: [
       'Go to console.cloud.google.com → Create a project.',
-      'Enable the "My Business Business Information API" and "Business Profile Performance API".',
+      'Enable the "Business Information API" and "Profile Performance API".',
       'Create a Service Account under IAM & Admin → Service Accounts.',
       'Give it the "Editor" role. Download the JSON key.',
       'Share your Google Business Profile with the service account email.',
