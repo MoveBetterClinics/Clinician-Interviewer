@@ -406,10 +406,16 @@ export default function InterviewSession() {
         {interviewComplete
           ? <Badge variant="secondary" className="text-xs">Interview Complete</Badge>
           : isOwner && (
-            <Button variant="outline" size="sm" onClick={handlePause} className="shrink-0 gap-1.5 text-muted-foreground">
-              <PauseCircle className="h-3.5 w-3.5" />
-              Pause
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={() => setInterviewComplete(true)} className="gap-1.5 text-primary border-primary/40 hover:bg-primary/5">
+                <Sparkles className="h-3.5 w-3.5" />
+                Finish
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePause} className="gap-1.5 text-muted-foreground">
+                <PauseCircle className="h-3.5 w-3.5" />
+                Pause
+              </Button>
+            </div>
           )
         }
       </div>
