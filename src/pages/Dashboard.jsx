@@ -464,14 +464,12 @@ function AboutPanel() {
       <div className="px-5 py-3 border-t bg-muted/20 rounded-b-xl">
         <p className="text-xs text-muted-foreground">
           Want to understand how this content gets distributed across channels?{' '}
-          <a
-            href="https://docs.google.com/document/d/1u5KPo76S_gahQbgV5bnOUtsiIkpwf7uPrTxhKwAixEg/edit?usp=sharing"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/strategy"
             className="text-primary underline underline-offset-2 hover:opacity-80"
           >
             Read the Move Better Content Distribution Strategy
-          </a>
+          </Link>
         </p>
       </div>
     </div>

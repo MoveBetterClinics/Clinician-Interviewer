@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 export default function Layout({ children }) {
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const isStrategy = location.pathname === '/strategy'
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,6 +25,13 @@ export default function Layout({ children }) {
           </Link>
 
           <div className="flex-1" />
+
+          <Link
+            to="/strategy"
+            className={`text-xs font-medium transition-colors ${isStrategy ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Strategy
+          </Link>
 
           {isHome && (
             <Button asChild size="sm">
