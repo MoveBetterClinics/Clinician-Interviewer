@@ -40,7 +40,7 @@ const BUFFER_PLATFORMS = ['instagram', 'linkedin', 'pinterest']
 const DIRECT_PLATFORMS = { facebook: '/api/publish/facebook', gbp: '/api/publish/gbp' }
 
 export async function publishItem(item, { scheduledAt } = {}) {
-  const { platform, content, mediaUrls = [] } = item
+  const { platform, content, mediaUrls = [], locationIds } = item
   const results = {}
 
   if (BUFFER_PLATFORMS.includes(platform)) {
@@ -50,14 +50,20 @@ export async function publishItem(item, { scheduledAt } = {}) {
       body: JSON.stringify({ platform, content, mediaUrls, scheduledAt }),
     })
   } else if (DIRECT_PLATFORMS[platform]) {
+    const body = { content, mediaUrls, scheduledAt }
+    if (platform === 'gbp' && locationIds?.length) body.locationIds = locationIds
     results.direct = await apiFetch(DIRECT_PLATFORMS[platform], {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, mediaUrls, scheduledAt }),
+      body: JSON.stringify(body),
     })
   }
 
   return results
+}
+
+export function fetchGBPLocations() {
+  return apiFetch('/api/gbp/locations')
 }
 
 // Publish one item to all relevant platforms at once

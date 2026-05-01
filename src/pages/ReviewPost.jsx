@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { fetchContentItem, updateContentItem, publishAndTrack } from '@/lib/publish'
+import { fetchContentItem, updateContentItem, publishAndTrack, fetchGBPLocations } from '@/lib/publish'
 import { PLATFORM_META, STATUS_META } from './ContentHub'
 import MediaPicker from '@/components/MediaPicker'
 import { formatDate } from '@/lib/utils'
@@ -31,12 +31,27 @@ export default function ReviewPost() {
   const [copied, setCopied]           = useState(false)
   const [error, setError]             = useState('')
   const [success, setSuccess]         = useState('')
-  const [showPicker, setShowPicker]   = useState(false)
-  const [scheduledAt, setScheduledAt] = useState('')
+  const [showPicker, setShowPicker]       = useState(false)
+  const [scheduledAt, setScheduledAt]     = useState('')
+  const [gbpLocations, setGbpLocations]   = useState([])
+  const [selectedLocs, setSelectedLocs]   = useState([])
 
   useEffect(() => {
     fetchContentItem(itemId)
-      .then((i) => { setItem(i); setContent(i?.content || ''); setScheduledAt(i?.scheduled_at ? i.scheduled_at.slice(0, 16) : '') })
+      .then((i) => {
+        setItem(i)
+        setContent(i?.content || '')
+        setScheduledAt(i?.scheduled_at ? i.scheduled_at.slice(0, 16) : '')
+        // Fetch GBP locations if this is a GBP post
+        if (i?.platform === 'gbp') {
+          fetchGBPLocations()
+            .then(({ locations }) => {
+              setGbpLocations(locations)
+              setSelectedLocs(locations.map((l) => l.id)) // default: all selected
+            })
+            .catch(() => {})
+        }
+      })
       .catch(() => navigate('/hub'))
       .finally(() => setLoading(false))
   }, [itemId])
@@ -68,7 +83,7 @@ export default function ReviewPost() {
     try {
       // Save latest content first
       await save({ status: 'approved' })
-      const latest = { ...item, content, scheduledAt: scheduledAt || null, mediaUrls: item.media_urls || [] }
+      const latest = { ...item, content, scheduledAt: scheduledAt || null, mediaUrls: item.media_urls || [], locationIds: item.platform === 'gbp' ? selectedLocs : undefined }
       await publishAndTrack(latest, user?.primaryEmailAddress?.emailAddress)
       setSuccess(scheduledAt ? 'Scheduled successfully!' : 'Published successfully!')
       setTimeout(() => navigate('/hub'), 1500)
@@ -240,12 +255,34 @@ export default function ReviewPost() {
                 </Button>
               ) : null}
 
+              {/* GBP location picker */}
+              {item.platform === 'gbp' && gbpLocations.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Post to locations</label>
+                  <div className="space-y-1">
+                    {gbpLocations.map((loc) => (
+                      <label key={loc.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedLocs.includes(loc.id)}
+                          onChange={(e) => setSelectedLocs((prev) =>
+                            e.target.checked ? [...prev, loc.id] : prev.filter((id) => id !== loc.id)
+                          )}
+                          className="rounded"
+                        />
+                        {loc.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Publish */}
               <Button
                 size="sm"
                 className="w-full"
                 onClick={handlePublish}
-                disabled={publishing || (needsMedia && !hasMedia)}
+                disabled={publishing || (needsMedia && !hasMedia) || (item.platform === 'gbp' && selectedLocs.length === 0)}
               >
                 {publishing
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />

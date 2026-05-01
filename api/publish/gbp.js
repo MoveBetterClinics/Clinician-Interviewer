@@ -2,8 +2,8 @@ export const config = { runtime: 'edge' }
 
 // Google Business Profile posting via service account
 // Required env vars:
-//   GBP_ACCOUNT_ID   - e.g. accounts/123456789
-//   GBP_LOCATION_ID  - e.g. locations/987654321
+//   GBP_ACCOUNT_ID    - e.g. accounts/123456789
+//   GBP_LOCATION_IDS  - comma-separated, e.g. "locations/111,locations/222"
 //   GOOGLE_SERVICE_ACCOUNT_EMAIL
 //   GOOGLE_SERVICE_ACCOUNT_KEY  (private key — paste as-is with \n newlines)
 
@@ -54,15 +54,33 @@ async function getGoogleToken() {
   return tokenData.access_token
 }
 
-export default async function handler(req) {
-  const accountId  = process.env.GBP_ACCOUNT_ID
-  const locationId = process.env.GBP_LOCATION_ID
+async function postToLocation(token, accountId, locationId, post) {
+  const url = `https://mybusiness.googleapis.com/v4/${accountId}/${locationId}/localPosts`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(post),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error?.message || `GBP post failed for ${locationId}`)
+  return { locationId, name: data.name }
+}
 
-  if (!accountId || !locationId) return err('GBP not configured — add GBP_ACCOUNT_ID and GBP_LOCATION_ID to Vercel env vars', 503)
+export default async function handler(req) {
+  const accountId    = process.env.GBP_ACCOUNT_ID
+  const allLocationIds = (process.env.GBP_LOCATION_IDS || '').split(',').map((s) => s.trim()).filter(Boolean)
+
+  if (!accountId || !allLocationIds.length) return err('GBP not configured — add GBP_ACCOUNT_ID and GBP_LOCATION_IDS to Vercel env vars', 503)
   if (req.method !== 'POST') return err('Method not allowed', 405)
 
-  const { content, mediaUrls = [] } = await req.json()
+  const { content, mediaUrls = [], locationIds } = await req.json()
   if (!content) return err('Missing content')
+
+  // Use requested locationIds if provided, otherwise post to all configured locations
+  const targets = (locationIds?.length ? locationIds : allLocationIds)
+    .filter((id) => allLocationIds.includes(id)) // only allow configured locations
+
+  if (!targets.length) return err('No valid location IDs specified', 400)
 
   let token
   try { token = await getGoogleToken() }
@@ -82,14 +100,15 @@ export default async function handler(req) {
     }))
   }
 
-  const url = `https://mybusiness.googleapis.com/v4/${accountId}/${locationId}/localPosts`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(post),
-  })
-  const data = await res.json()
-  if (!res.ok) return err(data.error?.message || 'GBP post failed', 502)
+  // Post to all selected locations in parallel
+  const results = await Promise.allSettled(
+    targets.map((locationId) => postToLocation(token, accountId, locationId, post))
+  )
 
-  return ok({ success: true, name: data.name })
+  const succeeded = results.filter((r) => r.status === 'fulfilled').map((r) => r.value)
+  const failed    = results.filter((r) => r.status === 'rejected').map((r, i) => ({ locationId: targets[i], error: r.reason?.message }))
+
+  if (!succeeded.length) return err(`All GBP posts failed: ${failed.map((f) => f.error).join('; ')}`, 502)
+
+  return ok({ success: true, posted: succeeded, failed })
 }
