@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview } from '@/lib/api'
+import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview, fetchCampaign } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
 import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
+import { getCampaignPromptContext } from '@/lib/campaigns'
 import { getInitials } from '@/lib/utils'
 
 const COMPLETE_TOKEN = 'INTERVIEW_COMPLETE'
@@ -67,6 +68,7 @@ export default function InterviewSession() {
   const finalTranscriptRef = useRef('')
   const interviewRef = useRef(null)
   const pastInterviewsRef = useRef([])
+  const campaignRef = useRef({ mode: 'bookings', notes: '' })
 
   useEffect(() => { messagesRef.current = messages }, [messages])
   useEffect(() => { transcriptRef.current = transcript }, [transcript])
@@ -87,6 +89,10 @@ export default function InterviewSession() {
         // Fetch past completed interviews on the same topic for cross-interview context
         fetchSimilarInterviews(i.topic, interviewId)
           .then((past) => { pastInterviewsRef.current = past || [] })
+          .catch(() => {})
+        // Fetch current campaign focus to shape generated content
+        fetchCampaign()
+          .then((c) => { campaignRef.current = c })
           .catch(() => {})
       })
       .catch(() => navigate('/'))
@@ -305,10 +311,11 @@ export default function InterviewSession() {
 
       setGeneratingPhase('all')
       const blogInput = [{ role: 'user', content: blogPost }]
+      const campaignContext = getCampaignPromptContext(campaignRef.current)
       const [socialResult, videoResult, marketingResult] = await Promise.allSettled([
-        generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic)),
-        generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic)),
-        generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic)),
+        generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext)),
+        generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext)),
+        generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic, campaignContext)),
       ])
 
       const social = socialResult.status === 'fulfilled' ? socialResult.value : ''

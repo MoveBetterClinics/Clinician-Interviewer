@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
-import { Plus, MessageSquare, Clock, ChevronRight, Users, Loader2, LayoutGrid, User, Tag, TrendingUp, AlertCircle } from 'lucide-react'
+import { Plus, MessageSquare, Clock, ChevronRight, Users, Loader2, LayoutGrid, User, Tag, TrendingUp, AlertCircle, Target, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { fetchClinicians } from '@/lib/api'
+import { Textarea } from '@/components/ui/textarea'
+import { fetchClinicians, fetchCampaign, updateCampaign } from '@/lib/api'
+import { CAMPAIGN_MODES } from '@/lib/campaigns'
 import { getSuggestedTopics } from '@/lib/topicSuggestions'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 
@@ -16,13 +18,43 @@ export default function Dashboard() {
   const [clinicians, setClinicians] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [campaign, setCampaign] = useState({ mode: 'bookings', notes: '' })
+  const [campaignSaving, setCampaignSaving] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
+  const notesTimerRef = useRef(null)
 
   useEffect(() => {
     fetchClinicians()
       .then(setClinicians)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
+    fetchCampaign()
+      .then(setCampaign)
+      .catch(() => {})
   }, [])
+
+  async function handleModeChange(mode) {
+    const next = { ...campaign, mode }
+    setCampaign(next)
+    setCampaignSaving(true)
+    try {
+      await updateCampaign({ mode }, user?.id)
+    } catch {}
+    setCampaignSaving(false)
+  }
+
+  function handleNotesChange(notes) {
+    setCampaign((c) => ({ ...c, notes }))
+    setNotesSaved(false)
+    clearTimeout(notesTimerRef.current)
+    notesTimerRef.current = setTimeout(async () => {
+      try {
+        await updateCampaign({ notes }, user?.id)
+        setNotesSaved(true)
+        setTimeout(() => setNotesSaved(false), 2000)
+      } catch {}
+    }, 800)
+  }
 
   const allInterviews = clinicians.flatMap((c) =>
     (c.interviews || []).map((i) => ({ ...i, clinicianName: c.name, clinicianId: c.id }))
@@ -79,6 +111,15 @@ export default function Dashboard() {
           <StatCard label="Completed" value={completedCount} icon={<Clock className="h-4 w-4" />} />
         </div>
       )}
+
+      {/* Campaign Mode */}
+      <CampaignWidget
+        campaign={campaign}
+        saving={campaignSaving}
+        notesSaved={notesSaved}
+        onModeChange={handleModeChange}
+        onNotesChange={handleNotesChange}
+      />
 
       {/* Content gaps callout */}
       {topicGaps.length > 0 && allInterviews.length > 0 && (
@@ -305,6 +346,60 @@ function formatInterviewerName(email) {
     .split('.')
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join(' ')
+}
+
+function CampaignWidget({ campaign, saving, notesSaved, onModeChange, onNotesChange }) {
+  const currentMode = CAMPAIGN_MODES[campaign.mode] || CAMPAIGN_MODES.bookings
+  const showNotes = currentMode.showNotes
+
+  return (
+    <div className="rounded-xl border bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" />
+          <p className="text-sm font-semibold">Content Focus</p>
+        </div>
+        {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
+        {!saving && notesSaved && (
+          <span className="flex items-center gap-1 text-xs text-green-600">
+            <Check className="h-3 w-3" /> Saved
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {Object.entries(CAMPAIGN_MODES).map(([key, def]) => (
+          <button
+            key={key}
+            onClick={() => onModeChange(key)}
+            className={`text-left rounded-lg border p-3 transition-colors text-sm ${
+              campaign.mode === key
+                ? 'bg-primary/5 border-primary/40 text-primary'
+                : 'hover:bg-muted/50 text-foreground'
+            }`}
+          >
+            <p className="font-medium text-xs leading-snug">{def.label}</p>
+            <p className="text-[11px] text-muted-foreground mt-1 leading-snug line-clamp-2">{def.description}</p>
+          </button>
+        ))}
+      </div>
+
+      {showNotes && (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">{currentMode.notesPlaceholder}</p>
+          <Textarea
+            value={campaign.notes || ''}
+            onChange={(e) => onNotesChange(e.target.value)}
+            placeholder={currentMode.notesPlaceholder}
+            className="text-sm min-h-[72px] resize-none"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            These details are injected into every content generation for this condition. Update them whenever event or campaign details change.
+          </p>
+        </div>
+      )}
+    </div>
+  )
 }
 
 function StatCard({ label, value, icon }) {
