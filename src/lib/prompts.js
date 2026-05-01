@@ -144,31 +144,188 @@ BLOG POST FORMAT (write in Markdown):
 TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.`
 }
 
-export function getSocialMediaSystemPrompt(clinicianName, condition) {
-  return `Based on the blog post content provided, create social media posts for Move Better Chiropractic. The blog post is about ${condition} featuring ${clinicianName.split(' ')[0]}.
+export function getSocialBatchSystemPrompt(clinicianName, condition) {
+  const firstName = clinicianName.split(' ')[0]
+  return `Based on the blog post provided, generate social media content for Move Better Chiropractic. The post is about ${condition} featuring ${firstName}.
 
-Move Better's audience: active Pacific Northwesterners dealing with pain — Portland trail runners, cyclists, climbers, hikers, skiers, kayakers, tech desk workers, and aging athletes who refuse to slow down. They live near Forest Park, the Columbia River Gorge, Mt. Hood, and Smith Rock. They are skeptical of medication and quick fixes, and they respond to education and authenticity. They want to keep doing the outdoor activities that define their life.
+Move Better's audience: active Pacific Northwesterners — Portland trail runners, cyclists, climbers, hikers, skiers, kayakers, tech desk workers, aging athletes who refuse to slow down. They live near Forest Park, the Columbia River Gorge, Mt. Hood, and Smith Rock. Skeptical of medication and quick fixes. They respond to education and authenticity.
 
-Create BOTH posts below, clearly labeled with the headers shown:
+Output each section separated by the exact markers below. Include the marker line itself.
 
----
-INSTAGRAM CAPTION:
+---INSTAGRAM---
 - 150–200 words
-- Open with a scroll-stopping hook: a relatable question, bold statement, or surprising fact about ${condition}
-- Share the single most compelling insight from the blog post in an accessible, human way
-- Weave in Move Better's movement-first perspective naturally
-- Close with a soft, friendly CTA directing readers to the full blog post: "Full article at the link in bio 👆" or "Read the full post — link in bio"
-- Instagram doesn't support clickable links in captions, so do NOT include any URLs in the caption body itself
-- Skip a line, then add 8–10 hashtags: mix of condition-specific (#${condition.replace(/\s+/g, '')}Relief), movement (#FunctionalMovement #MoveWithoutPain #ChiropracticCare), Portland/PNW (#PortlandHealth #PDXWellness), and brand (#MoveBetter #MoveBetterChiropractic) tags
+- Open with a scroll-stopping hook (relatable question, bold statement, or surprising fact about ${condition})
+- Share the single most compelling insight from the blog in an accessible, human way
+- Weave in Move Better's movement-first perspective
+- Close with: "Full article at the link in bio 👆" or "Read the full post — link in bio"
+- Do NOT include any URLs in the caption body itself
+- Skip a line, then add 8–10 hashtags: condition-specific, movement, Portland/PNW, and brand tags
 
----
-FACEBOOK POST:
+---FACEBOOK---
 - 100–150 words
-- More personal and story-driven — written like ${clinicianName.split(' ')[0]} is sharing directly with the local community
-- Reference ${clinicianName.split(' ')[0]} by first name to keep it personal and credible
-- Include the full blog post URL (https://www.movebetter.co/) on its own line near the end so Facebook generates a rich link preview
-- End with an engagement question to spark comments (e.g. "Have you dealt with this? What helped — or didn't? Drop it in the comments 👇")
+- Personal and story-driven — written like ${firstName} is sharing directly with the local Portland community
+- Reference ${firstName} by first name for credibility
+- Include the full URL https://www.movebetter.co/ on its own line near the end for rich link preview
+- End with an engagement question to spark comments
 - 1–2 hashtags max
 
-Both posts should feel native — Instagram is polished and inspirational, Facebook is warm and community-rooted.`
+---GBP POST---
+Google Business Profile post:
+- 150–250 words
+- Start with one compelling insight or question about ${condition}
+- Share Move Better's key perspective — what makes the approach different
+- Include 1 anonymized patient result if available from the blog
+- Close with: "Book your assessment at Move Better — link in profile"
+- Conversational, no hashtags
+
+---LINKEDIN---
+- 150–250 words
+- Written from ${firstName}'s professional voice — for other clinicians, coaches, employers, and referring providers
+- Frame as clinical perspective: "In my experience treating ${condition}…"
+- Include what Move Better's approach gets right that others miss
+- Close with: "Happy to connect with colleagues or coaches working with patients dealing with ${condition}."
+- Include URL https://www.movebetter.co/ at end
+- No hashtags
+
+---PINTEREST---
+Create 3 Pinterest pin variations. For each:
+PIN TITLE: (max 100 characters, include keywords naturally)
+PIN DESCRIPTION: (200–400 characters, keyword-rich natural language, include https://www.movebetter.co/)
+BOARD: (Pain Relief & Recovery / Portland Wellness / Movement & Fitness / Chiropractic Care)`
+}
+
+export function getVideoScriptBatchSystemPrompt(clinicianName, condition) {
+  const firstName = clinicianName.split(' ')[0]
+  return `Based on the blog post provided, write two video scripts for Move Better Chiropractic about ${condition} featuring ${firstName}.
+
+Move Better's audience: active Pacific Northwesterners dealing with pain who want to keep doing what they love. Skeptical of generic advice. They respond to specific, honest, movement-based perspectives.
+
+Output each section separated by the exact markers below.
+
+---YOUTUBE SCRIPT---
+Write a 5–8 minute video script (~700–1000 words spoken at conversational pace).
+
+[HOOK — first 15 seconds]
+A direct, specific statement that stops a viewer from scrolling. Lead with the most surprising or counterintuitive thing ${firstName} knows about ${condition}. Not "today we're going to talk about…"
+
+[INTRO — 30 seconds]
+${firstName} introduces themselves naturally: name, role at Move Better, one sentence on their movement-first philosophy.
+
+[THE PROBLEM — 60–90 seconds]
+What conventional treatment gets wrong about ${condition}. Specific, not generic.
+
+[THE MOVE BETTER APPROACH — 2–3 minutes]
+${firstName}'s actual assessment and treatment process. Patient-friendly language. Add [B-ROLL: ...] notes in brackets where relevant footage would help.
+
+[PATIENT CASE — 60–90 seconds]
+Bring the anonymized patient story from the blog to life as a narrative. What changed, how fast, what they can do now.
+
+[KEY INSIGHT — 30–60 seconds]
+The single movement insight most ${condition} patients have never heard. Make it memorable and specific.
+
+[CTA — 30 seconds]
+Warm, direct close. Invite viewers to book a movement assessment at Move Better in Portland. Say the URL naturally: "You can book at MoveBetter.co" and tell viewers to check the description for the link.
+
+[VIDEO DESCRIPTION]
+Write a complete YouTube description (200–300 words):
+- Opening sentence mirroring the hook
+- 3–4 sentence summary of what the video covers
+- Book link: https://www.movebetter.co/
+- 5–8 keyword hashtags for YouTube (#${condition.replace(/\s+/g, '')} #PortlandChiropractor #MoveBetter etc.)
+
+---TIKTOK SCRIPT---
+Write a 45–60 second TikTok / Instagram Reels script (~120–150 words).
+
+[HOOK — first 3 seconds]
+One punchy sentence that stops the scroll. Lead with tension or a counterintuitive claim. Example: "Most people with ${condition} are doing this wrong — and it's making it worse."
+
+[BODY — 30–40 seconds]
+3–4 short punchy points from ${firstName}'s clinical perspective. 1–2 sentences each. Plain language, no jargon. Add [ON SCREEN TEXT: ...] for any text overlays.
+
+[CLOSE — 10 seconds]
+Soft CTA: "If you're dealing with ${condition} in Portland, follow for more — link in bio to book with us."
+
+CAPTION:
+50–80 word TikTok caption with 5–6 relevant hashtags.`
+}
+
+export function getMarketingBatchSystemPrompt(clinicianName, condition) {
+  const firstName = clinicianName.split(' ')[0]
+  const conditionSlug = condition.toLowerCase().replace(/\s+/g, '-').slice(0, 20)
+  return `Based on the blog post provided, generate three marketing assets for Move Better Chiropractic about ${condition}. Use the blog post as your source of truth.
+
+Output each section separated by the exact markers below.
+
+---EMAIL NEWSLETTER---
+Monthly patient newsletter section for GoHighLevel email delivery.
+
+SUBJECT LINE OPTIONS:
+Option A: (curiosity-driven)
+Option B: (benefit-driven)
+PREVIEW TEXT: (50–90 characters for inbox preview)
+
+BODY:
+Opening hook: 2–3 sentences that make the reader feel seen if they have ${condition}.
+Highlight: 2–3 paragraphs on ${firstName}'s key perspective — what makes Move Better different.
+Patient story: 2–3 sentences on the anonymized case from the blog (if available).
+Read more: "Read the full post on our website →" linking to https://www.movebetter.co/
+CTA: "Ready to move better? Book your assessment at Move Better Chiropractic → https://www.movebetter.co/"
+
+Tone: warm, educational, knowledgeable friend. No medical jargon. Plain text with line breaks — compatible with GoHighLevel email templates.
+
+---LANDING PAGE---
+Conversion-focused landing page copy for a condition-specific Move Better page about ${condition}.
+
+HEADLINE: (compelling, specific, hopeful — under 10 words)
+SUBHEADLINE: (one sentence expanding — what Move Better offers)
+
+ABOVE THE FOLD:
+2–3 sentences speaking directly to someone in pain who has tried other things. End with primary CTA button text.
+
+SECTION — THE PROBLEM:
+H2 + 2–3 sentences on what conventional ${condition} treatment misses. For a skeptical patient.
+
+SECTION — OUR APPROACH:
+H2 + 3–4 sentences on the specific assessment and treatment process. Reference Movement Paradigm Scoring if it fits, linking to https://www.movebetter.co/mps/.
+
+SECTION — WHAT TO EXPECT:
+H2 + 3–4 sentences on first visit, realistic timeline, what changes.
+
+SECTION — PATIENT STORY:
+H2 + 3–4 sentences. Anonymized, specific, outcomes-focused.
+
+TRUST SIGNALS:
+4–6 one-line bullet points (e.g. "Movement-first — we treat root causes, not just symptoms")
+
+CLOSING CTA:
+H2 + 2 sentences + button text. Link destination: https://www.movebetter.co/
+
+SEO:
+TITLE TAG: (under 60 characters, include "${condition}" and "Portland")
+META DESCRIPTION: (under 160 characters, compelling, includes condition and location)
+
+---GOOGLE ADS---
+Google Responsive Search Ad copy for Move Better targeting ${condition} searches in Portland.
+
+HEADLINES — write 15, max 30 characters each (label each with char count):
+1. [headline] (XX chars)
+[continue to 15]
+
+DESCRIPTIONS — write 4, max 90 characters each (label each with char count):
+1. [description] (XX chars)
+[continue to 4]
+
+FINAL URL: https://www.movebetter.co/
+DISPLAY PATH: movebetter.co/${conditionSlug}
+
+CALLOUT EXTENSIONS — 5–6 short phrases under 25 chars each:
+- [callout]
+
+SITELINK EXTENSIONS — 4, with title and 2-line description each:
+1. Title: [title]
+   Line 1: [line 1]
+   Line 2: [line 2]
+[continue to 4]
+
+Mix brand terms (Move Better, Portland), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.`
 }
