@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, FileText, Clock, Trash2, ChevronRight, MessageSquare } from 'lucide-react'
+import { useUser } from '@clerk/clerk-react'
+import { ArrowLeft, Plus, FileText, Clock, Trash2, ChevronRight, MessageSquare, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,42 +10,73 @@ import { Separator } from '@/components/ui/separator'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog'
-import { getClinician, deleteInterview, deleteClinician } from '@/lib/storage'
+import { fetchClinician, deleteClinician, deleteInterview } from '@/lib/api'
 import { getInitials, formatDate, formatRelativeDate } from '@/lib/utils'
 
 export default function ClinicianProfile() {
   const { clinicianId } = useParams()
   const navigate = useNavigate()
+  const { user } = useUser()
   const [clinician, setClinician] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null) // { type: 'interview'|'clinician', id? }
+  const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
-  function refresh() {
-    const c = getClinician(clinicianId)
-    if (!c) { navigate('/'); return }
-    setClinician({ ...c })
+  async function refresh() {
+    try {
+      const c = await fetchClinician(clinicianId)
+      if (!c) { navigate('/'); return }
+      setClinician(c)
+    } catch {
+      navigate('/')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { refresh() }, [clinicianId])
 
-  function handleDeleteInterview(interviewId) {
-    deleteInterview(clinicianId, interviewId)
-    setDeleteTarget(null)
-    refresh()
+  async function handleDeleteInterview(interviewId) {
+    setDeleting(true)
+    try {
+      await deleteInterview(interviewId, user.id)
+      setDeleteTarget(null)
+      await refresh()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setDeleting(false)
+    }
   }
 
-  function handleDeleteClinician() {
-    deleteClinician(clinicianId)
-    navigate('/')
+  async function handleDeleteClinician() {
+    setDeleting(true)
+    try {
+      await deleteClinician(clinicianId, user.id)
+      navigate('/')
+    } catch (e) {
+      alert(e.message)
+      setDeleting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+      </div>
+    )
   }
 
   if (!clinician) return null
 
-  const completed = clinician.interviews.filter((i) => i.status === 'completed')
-  const inProgress = clinician.interviews.filter((i) => i.status === 'in_progress')
+  const interviews = clinician.interviews || []
+  const completed = interviews.filter((i) => i.status === 'completed')
+  const inProgress = interviews.filter((i) => i.status === 'in_progress')
+  const isMyClinicianProfile = clinician.created_by_id === user?.id
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Back */}
       <Button variant="ghost" size="sm" asChild className="-ml-2">
         <Link to="/">
           <ArrowLeft className="h-4 w-4 mr-1.5" />
@@ -52,7 +84,6 @@ export default function ClinicianProfile() {
         </Link>
       </Button>
 
-      {/* Profile header */}
       <div className="flex items-center gap-5">
         <Avatar className="h-16 w-16 text-xl">
           <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
@@ -62,7 +93,7 @@ export default function ClinicianProfile() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{clinician.name}</h1>
           <p className="text-sm text-muted-foreground">
-            Member since {formatDate(clinician.createdAt)} · {clinician.interviews.length} interview{clinician.interviews.length !== 1 ? 's' : ''}
+            Member since {formatDate(clinician.created_at)} · {interviews.length} interview{interviews.length !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex gap-2">
@@ -72,21 +103,22 @@ export default function ClinicianProfile() {
               New Interview
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-destructive"
-            onClick={() => setDeleteTarget({ type: 'clinician' })}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {isMyClinicianProfile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={() => setDeleteTarget({ type: 'clinician' })}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
       <Separator />
 
-      {/* Interview list */}
-      {clinician.interviews.length === 0 ? (
+      {interviews.length === 0 ? (
         <div className="text-center py-16">
           <MessageSquare className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground text-sm">No interviews yet for {clinician.name.split(' ')[0]}.</p>
@@ -105,6 +137,7 @@ export default function ClinicianProfile() {
                     key={interview.id}
                     interview={interview}
                     clinicianId={clinicianId}
+                    currentUserId={user?.id}
                     onDelete={() => setDeleteTarget({ type: 'interview', id: interview.id })}
                   />
                 ))}
@@ -120,6 +153,7 @@ export default function ClinicianProfile() {
                     key={interview.id}
                     interview={interview}
                     clinicianId={clinicianId}
+                    currentUserId={user?.id}
                     onDelete={() => setDeleteTarget({ type: 'interview', id: interview.id })}
                   />
                 ))}
@@ -129,7 +163,6 @@ export default function ClinicianProfile() {
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -143,16 +176,17 @@ export default function ClinicianProfile() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
             <Button
               variant="destructive"
+              disabled={deleting}
               onClick={() =>
                 deleteTarget?.type === 'clinician'
                   ? handleDeleteClinician()
                   : handleDeleteInterview(deleteTarget.id)
               }
             >
-              Delete
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -161,7 +195,8 @@ export default function ClinicianProfile() {
   )
 }
 
-function InterviewRow({ interview, clinicianId, onDelete }) {
+function InterviewRow({ interview, clinicianId, currentUserId, onDelete }) {
+  const isOwner = interview.owner_id === currentUserId
   const isComplete = interview.status === 'completed'
   const href = isComplete
     ? `/output/${clinicianId}/${interview.id}`
@@ -179,10 +214,16 @@ function InterviewRow({ interview, clinicianId, onDelete }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm truncate">{interview.topic}</p>
-          <p className="text-xs text-muted-foreground">{formatRelativeDate(interview.updatedAt)}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatRelativeDate(interview.updated_at)}
+            {!isOwner && <span className="ml-2 text-muted-foreground/60">· by {interview.owner_email?.split('@')[0]}</span>}
+          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Badge variant={isComplete ? 'secondary' : 'outline'} className={`text-xs ${!isComplete ? 'border-amber-300 text-amber-700' : ''}`}>
+          <Badge
+            variant={isComplete ? 'secondary' : 'outline'}
+            className={`text-xs ${!isComplete ? 'border-amber-300 text-amber-700' : ''}`}
+          >
             {isComplete ? 'Content ready' : 'In progress'}
           </Badge>
           <Button asChild variant="ghost" size="icon" className="h-8 w-8">
@@ -190,14 +231,16 @@ function InterviewRow({ interview, clinicianId, onDelete }) {
               <ChevronRight className="h-4 w-4" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          {isOwner && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

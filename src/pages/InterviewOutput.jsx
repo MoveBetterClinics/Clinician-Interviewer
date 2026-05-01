@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Copy, Check, Instagram, Facebook, FileText, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Copy, Check, Instagram, Facebook, FileText, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { getClinician, getInterview } from '@/lib/storage'
+import { fetchClinician, fetchInterview } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 export default function InterviewOutput() {
@@ -13,14 +13,26 @@ export default function InterviewOutput() {
   const navigate = useNavigate()
   const [clinician, setClinician] = useState(null)
   const [interview, setInterview] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const c = getClinician(clinicianId)
-    const i = getInterview(clinicianId, interviewId)
-    if (!c || !i || !i.outputs) { navigate('/'); return }
-    setClinician(c)
-    setInterview(i)
+    Promise.all([fetchClinician(clinicianId), fetchInterview(interviewId)])
+      .then(([c, i]) => {
+        if (!c || !i || !i.outputs) { navigate('/'); return }
+        setClinician(c)
+        setInterview(i)
+      })
+      .catch(() => navigate('/'))
+      .finally(() => setLoading(false))
   }, [clinicianId, interviewId, navigate])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+      </div>
+    )
+  }
 
   if (!clinician || !interview?.outputs) return null
 
@@ -28,7 +40,6 @@ export default function InterviewOutput() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
@@ -51,7 +62,6 @@ export default function InterviewOutput() {
         </Button>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="blog">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="blog" className="gap-1.5">
@@ -69,30 +79,13 @@ export default function InterviewOutput() {
         </TabsList>
 
         <TabsContent value="blog">
-          <OutputCard
-            title="Blog Post"
-            subtitle="Markdown — paste into your CMS or blog editor"
-            content={blogPost}
-            badge="Markdown"
-          />
+          <OutputCard title="Blog Post" subtitle="Markdown — paste into your CMS or blog editor" content={blogPost} badge="Markdown" />
         </TabsContent>
-
         <TabsContent value="instagram">
-          <OutputCard
-            title="Instagram Caption"
-            subtitle="Copy and paste into your Instagram post"
-            content={instagram}
-            badge="Instagram"
-          />
+          <OutputCard title="Instagram Caption" subtitle="Copy and paste into your Instagram post" content={instagram} badge="Instagram" />
         </TabsContent>
-
         <TabsContent value="facebook">
-          <OutputCard
-            title="Facebook Post"
-            subtitle="Copy and paste into your Facebook page"
-            content={facebook}
-            badge="Facebook"
-          />
+          <OutputCard title="Facebook Post" subtitle="Copy and paste into your Facebook page" content={facebook} badge="Facebook" />
         </TabsContent>
       </Tabs>
     </div>

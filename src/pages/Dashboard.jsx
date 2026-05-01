@@ -1,29 +1,55 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, MessageSquare, Clock, ChevronRight, Users } from 'lucide-react'
+import { useUser } from '@clerk/clerk-react'
+import { Plus, MessageSquare, Clock, ChevronRight, Users, Loader2, LayoutGrid, User, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { getClinicians } from '@/lib/storage'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { fetchClinicians } from '@/lib/api'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 
 export default function Dashboard() {
+  const { user } = useUser()
   const [clinicians, setClinicians] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    setClinicians(getClinicians())
+    fetchClinicians()
+      .then(setClinicians)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false))
   }, [])
 
-  const totalInterviews = clinicians.reduce((sum, c) => sum + c.interviews.length, 0)
-  const completedInterviews = clinicians.reduce(
-    (sum, c) => sum + c.interviews.filter((i) => i.status === 'completed').length,
-    0
+  const allInterviews = clinicians.flatMap((c) =>
+    (c.interviews || []).map((i) => ({ ...i, clinicianName: c.name, clinicianId: c.id }))
   )
+  const completedCount = allInterviews.filter((i) => i.status === 'completed').length
+
+  const byInterviewer = groupBy(allInterviews, (i) => i.owner_email || 'unknown')
+  const byTopic = groupBy(allInterviews, (i) => i.topic)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm text-destructive mb-2">Failed to load data</p>
+        <p className="text-xs text-muted-foreground">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Welcome to the Move Better Interview</h1>
@@ -39,31 +65,93 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Stats */}
       {clinicians.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           <StatCard label="Clinicians" value={clinicians.length} icon={<Users className="h-4 w-4" />} />
-          <StatCard label="Interviews" value={totalInterviews} icon={<MessageSquare className="h-4 w-4" />} />
-          <StatCard label="Completed" value={completedInterviews} icon={<Clock className="h-4 w-4" />} />
+          <StatCard label="Interviews" value={allInterviews.length} icon={<MessageSquare className="h-4 w-4" />} />
+          <StatCard label="Completed" value={completedCount} icon={<Clock className="h-4 w-4" />} />
         </div>
       )}
 
-      {/* Clinician tiles */}
       {clinicians.length === 0 ? (
         <EmptyState />
       ) : (
-        <div>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Clinicians</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clinicians.map((clinician) => (
-              <ClinicianTile key={clinician.id} clinician={clinician} />
-            ))}
-            <NewClinicianTile />
-          </div>
-        </div>
+        <Tabs defaultValue="clinician">
+          <TabsList className="mb-6">
+            <TabsTrigger value="clinician" className="gap-2">
+              <LayoutGrid className="h-3.5 w-3.5" />
+              By Clinician
+            </TabsTrigger>
+            <TabsTrigger value="interviewer" className="gap-2">
+              <User className="h-3.5 w-3.5" />
+              By Interviewer
+            </TabsTrigger>
+            <TabsTrigger value="topic" className="gap-2">
+              <Tag className="h-3.5 w-3.5" />
+              By Topic
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="clinician">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clinicians.map((c) => (
+                <ClinicianTile key={c.id} clinician={c} />
+              ))}
+              <NewClinicianTile />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="interviewer">
+            <div className="space-y-8">
+              {Object.entries(byInterviewer)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([email, interviews]) => (
+                  <InterviewerSection
+                    key={email}
+                    email={email}
+                    interviews={interviews}
+                    currentUserId={user?.id}
+                  />
+                ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="topic">
+            <div className="space-y-8">
+              {Object.entries(byTopic)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([topic, interviews]) => (
+                  <TopicSection
+                    key={topic}
+                    topic={topic}
+                    interviews={interviews}
+                    currentUserId={user?.id}
+                  />
+                ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   )
+}
+
+function groupBy(arr, keyFn) {
+  return arr.reduce((acc, item) => {
+    const key = keyFn(item)
+    if (!acc[key]) acc[key] = []
+    acc[key].push(item)
+    return acc
+  }, {})
+}
+
+function formatInterviewerName(email) {
+  if (!email || email === 'unknown') return 'Unknown'
+  const [local] = email.split('@')
+  return local
+    .split('.')
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' ')
 }
 
 function StatCard({ label, value, icon }) {
@@ -79,9 +167,10 @@ function StatCard({ label, value, icon }) {
 }
 
 function ClinicianTile({ clinician }) {
-  const completed = clinician.interviews.filter((i) => i.status === 'completed').length
-  const inProgress = clinician.interviews.filter((i) => i.status === 'in_progress').length
-  const lastInterview = clinician.interviews[0]
+  const interviews = clinician.interviews || []
+  const completed = interviews.filter((i) => i.status === 'completed').length
+  const inProgress = interviews.filter((i) => i.status === 'in_progress').length
+  const last = interviews[0]
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -95,20 +184,18 @@ function ClinicianTile({ clinician }) {
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold truncate">{clinician.name}</h3>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {clinician.interviews.length === 0
+              {interviews.length === 0
                 ? 'No interviews yet'
-                : `${clinician.interviews.length} interview${clinician.interviews.length !== 1 ? 's' : ''}`}
+                : `${interviews.length} interview${interviews.length !== 1 ? 's' : ''}`}
             </p>
           </div>
         </div>
 
-        {clinician.interviews.length > 0 && (
+        {interviews.length > 0 && (
           <div className="mt-4 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               {completed > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {completed} completed
-                </Badge>
+                <Badge variant="secondary" className="text-xs">{completed} completed</Badge>
               )}
               {inProgress > 0 && (
                 <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
@@ -116,9 +203,9 @@ function ClinicianTile({ clinician }) {
                 </Badge>
               )}
             </div>
-            {lastInterview && (
+            {last && (
               <p className="text-xs text-muted-foreground">
-                Last: {lastInterview.topic} · {formatRelativeDate(lastInterview.updatedAt)}
+                Last: {last.topic} · {formatRelativeDate(last.updated_at)}
               </p>
             )}
           </div>
@@ -132,6 +219,93 @@ function ClinicianTile({ clinician }) {
           </Link>
         </Button>
       </CardFooter>
+    </Card>
+  )
+}
+
+function InterviewerSection({ email, interviews, currentUserId }) {
+  const name = formatInterviewerName(email)
+  const isMe = interviews.some((i) => i.owner_id === currentUserId)
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <Avatar className="h-7 w-7">
+          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            {name[0]?.toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <h2 className="text-sm font-semibold">{name}</h2>
+        {isMe && <Badge variant="outline" className="text-xs">You</Badge>}
+        <span className="text-xs text-muted-foreground ml-1">
+          {interviews.length} interview{interviews.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="space-y-2 pl-9">
+        {interviews.map((i) => (
+          <InterviewListRow key={i.id} interview={i} currentUserId={currentUserId} showClinician />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TopicSection({ topic, interviews, currentUserId }) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+        <h2 className="text-sm font-semibold">{topic}</h2>
+        <span className="text-xs text-muted-foreground ml-1">
+          {interviews.length} interview{interviews.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="space-y-2 pl-4">
+        {interviews.map((i) => (
+          <InterviewListRow key={i.id} interview={i} currentUserId={currentUserId} showClinician />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function InterviewListRow({ interview, currentUserId, showClinician }) {
+  const isOwner = interview.owner_id === currentUserId
+  const isComplete = interview.status === 'completed'
+  const href = isComplete
+    ? `/output/${interview.clinicianId}/${interview.id}`
+    : isOwner
+    ? `/interview/${interview.clinicianId}/${interview.id}`
+    : null
+
+  return (
+    <Card className="hover:shadow-sm transition-shadow">
+      <CardContent className="p-3 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          {showClinician && (
+            <p className="text-xs text-muted-foreground truncate">{interview.clinicianName}</p>
+          )}
+          <p className="font-medium text-sm truncate">{interview.topic}</p>
+          <p className="text-xs text-muted-foreground">{formatRelativeDate(interview.updated_at)}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge
+            variant={isComplete ? 'secondary' : 'outline'}
+            className={`text-xs ${!isComplete ? 'border-amber-300 text-amber-700' : ''}`}
+          >
+            {isComplete ? 'Complete' : 'In progress'}
+          </Badge>
+          {href ? (
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+              <Link to={href}>
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <div className="h-8 w-8" />
+          )}
+        </div>
+      </CardContent>
     </Card>
   )
 }

@@ -1,21 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useUser } from '@clerk/clerk-react'
 import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2, Mic2, FileText, Users, PauseCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import {
-  getClinician, getInterview, updateInterviewMessages, saveInterviewOutputs,
-} from '@/lib/storage'
+import { fetchClinician, fetchInterview, updateInterview } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
 import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialMediaSystemPrompt } from '@/lib/prompts'
 import { getInitials } from '@/lib/utils'
 
 const COMPLETE_TOKEN = 'INTERVIEW_COMPLETE'
 
-// Phrases the clinician can say to stop recording and submit their answer.
-// Returns the cleaned transcript (phrase stripped) if matched, null otherwise.
 const STOP_PHRASES = [
   "that's all",
   "that's it",
@@ -35,7 +32,6 @@ function detectAndStripStopPhrase(transcript) {
     if (normalized.endsWith(phrase)) {
       const stripped = transcript.trimEnd()
       const cleaned = stripped.slice(0, stripped.length - phrase.length).trimEnd()
-      // Require some actual content before the stop phrase
       return cleaned.length > 0 ? cleaned : ''
     }
   }
@@ -45,9 +41,11 @@ function detectAndStripStopPhrase(transcript) {
 export default function InterviewSession() {
   const { clinicianId, interviewId } = useParams()
   const navigate = useNavigate()
+  const { user } = useUser()
 
   const [clinician, setClinician] = useState(null)
   const [interview, setInterview] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [messages, setMessages] = useState([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingText, setStreamingText] = useState('')
@@ -66,30 +64,32 @@ export default function InterviewSession() {
   const transcriptRef = useRef('')
   const autoListenRef = useRef(false)
   const finalTranscriptRef = useRef('')
+  const interviewRef = useRef(null)
 
-  // Keep messagesRef in sync
   useEffect(() => { messagesRef.current = messages }, [messages])
   useEffect(() => { transcriptRef.current = transcript }, [transcript])
+  useEffect(() => { interviewRef.current = interview }, [interview])
 
   useEffect(() => {
-    const c = getClinician(clinicianId)
-    const i = getInterview(clinicianId, interviewId)
-    if (!c || !i) { navigate('/'); return }
-    setClinician(c)
-    setInterview(i)
-    setMessages(i.messages)
-    if (i.messages.some((m) => m.content?.includes(COMPLETE_TOKEN))) {
-      setInterviewComplete(true)
-    }
-    // Skip instructions for interviews already in progress
-    if (i.messages.length > 0) setShowInstructions(false)
+    Promise.all([fetchClinician(clinicianId), fetchInterview(interviewId)])
+      .then(([c, i]) => {
+        if (!c || !i) { navigate('/'); return }
+        setClinician(c)
+        setInterview(i)
+        setMessages(i.messages || [])
+        if ((i.messages || []).some((m) => m.content?.includes(COMPLETE_TOKEN))) {
+          setInterviewComplete(true)
+        }
+        if ((i.messages || []).length > 0) setShowInstructions(false)
+      })
+      .catch(() => navigate('/'))
+      .finally(() => setLoading(false))
   }, [clinicianId, interviewId, navigate])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingText])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       window.speechSynthesis?.cancel()
@@ -99,7 +99,6 @@ export default function InterviewSession() {
 
   function getBestVoice() {
     const voices = window.speechSynthesis.getVoices()
-    // Prefer Google's neural voices (Chrome), then Apple enhanced, then any English
     const priority = [
       v => v.name === 'Google US English',
       v => v.name.startsWith('Google') && v.lang.startsWith('en'),
@@ -131,7 +130,6 @@ export default function InterviewSession() {
     window.speechSynthesis.speak(utterance)
   }
 
-  // Auto-start listening after Claude finishes speaking
   useEffect(() => {
     if (!isSpeaking && autoListenRef.current && !isStreaming && !interviewComplete) {
       autoListenRef.current = false
@@ -141,12 +139,12 @@ export default function InterviewSession() {
   }, [isSpeaking, isStreaming, interviewComplete])
 
   const sendToAI = useCallback(async (currentMessages) => {
-    if (!clinician || !interview) return
+    if (!clinician || !interviewRef.current) return
     setIsStreaming(true)
     setStreamingText('')
     setError('')
 
-    const systemPrompt = getInterviewSystemPrompt(clinician.name, interview.topic)
+    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic)
     const apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
 
     let fullText = ''
@@ -167,23 +165,26 @@ export default function InterviewSession() {
     const aiMessage = { role: 'assistant', content: cleanText }
     const updated = [...currentMessages, aiMessage]
     setMessages(updated)
-    updateInterviewMessages(clinicianId, interviewId, updated)
+
+    if (user?.id) {
+      const patch = { messages: updated }
+      if (isComplete) patch.status = 'in_progress'
+      updateInterview(interviewId, patch, user.id).catch(() => {})
+    }
+
     if (isComplete) setInterviewComplete(true)
     setStreamingText('')
     setIsStreaming(false)
 
-    // Speak the response
     if (!isComplete) speak(cleanText)
-  }, [clinician, interview, clinicianId, interviewId])
+  }, [clinician, interviewId, user?.id])
 
-  // Kick off first AI message — only after instructions are dismissed
   useEffect(() => {
     if (!clinician || !interview || hasStarted.current || showInstructions) return
     hasStarted.current = true
     if (messages.length === 0) {
       sendToAI([])
     } else {
-      // Resuming — speak the last assistant message
       const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
       if (lastAssistant && !interviewComplete) speak(lastAssistant.content)
     }
@@ -223,7 +224,6 @@ export default function InterviewSession() {
       setTranscript(display)
       transcriptRef.current = finalTranscriptRef.current.trim()
 
-      // Check for stop phrases only after a final result lands
       if (gotFinal) {
         const cleaned = detectAndStripStopPhrase(finalTranscriptRef.current)
         if (cleaned !== null) {
@@ -251,7 +251,6 @@ export default function InterviewSession() {
     recognitionRef.current?.stop()
   }
 
-  // Auto-submit when listening stops and we have a transcript
   useEffect(() => {
     if (isListening) return
     const text = transcriptRef.current.trim()
@@ -263,9 +262,13 @@ export default function InterviewSession() {
     const userMessage = { role: 'user', content: text }
     const updated = [...messagesRef.current, userMessage]
     setMessages(updated)
-    updateInterviewMessages(clinicianId, interviewId, updated)
+
+    if (user?.id) {
+      updateInterview(interviewId, { messages: updated }, user.id).catch(() => {})
+    }
+
     sendToAI(updated)
-  }, [isListening, clinicianId, interviewId, sendToAI])
+  }, [isListening, interviewId, sendToAI])
 
   function handlePause() {
     window.speechSynthesis?.cancel()
@@ -294,13 +297,14 @@ export default function InterviewSession() {
       const igMatch = socialPosts.match(/INSTAGRAM CAPTION[:\s]*([\s\S]*?)(?=FACEBOOK POST|$)/i)
       const fbMatch = socialPosts.match(/FACEBOOK POST[:\s]*([\s\S]*?)$/i)
 
-      saveInterviewOutputs(clinicianId, interviewId, {
+      const outputs = {
         blogPost,
         instagram: igMatch ? igMatch[1].trim() : socialPosts,
         facebook: fbMatch ? fbMatch[1].trim() : '',
         generatedAt: new Date().toISOString(),
-      })
+      }
 
+      await updateInterview(interviewId, { outputs, status: 'completed' }, user.id)
       navigate(`/output/${clinicianId}/${interviewId}`)
     } catch (err) {
       setError(`Failed to generate content: ${err.message}`)
@@ -308,7 +312,17 @@ export default function InterviewSession() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+      </div>
+    )
+  }
+
   if (!clinician || !interview) return null
+
+  const isOwner = user?.id === interview.owner_id
 
   if (showInstructions) {
     return (
@@ -368,7 +382,6 @@ export default function InterviewSession() {
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-7rem)]">
-      {/* Header */}
       <div className="flex items-center gap-3 pb-4 shrink-0">
         <Button variant="ghost" size="icon" asChild>
           <Link to={`/clinician/${clinicianId}`}>
@@ -386,7 +399,7 @@ export default function InterviewSession() {
         </div>
         {interviewComplete
           ? <Badge variant="secondary" className="text-xs">Interview Complete</Badge>
-          : (
+          : isOwner && (
             <Button variant="outline" size="sm" onClick={handlePause} className="shrink-0 gap-1.5 text-muted-foreground">
               <PauseCircle className="h-3.5 w-3.5" />
               Pause
@@ -395,7 +408,6 @@ export default function InterviewSession() {
         }
       </div>
 
-      {/* Messages */}
       <ScrollArea className="flex-1 pr-4 -mr-4">
         <div className="space-y-4 pb-4">
           {displayMessages.map((msg, i) => (
@@ -436,8 +448,7 @@ export default function InterviewSession() {
         </div>
       </ScrollArea>
 
-      {/* Generate content CTA */}
-      {interviewComplete && !isGenerating && (
+      {interviewComplete && !isGenerating && isOwner && (
         <div className="py-3 shrink-0">
           <div className="rounded-xl border bg-primary/5 border-primary/20 p-4 flex items-center justify-between gap-4">
             <div>
@@ -464,17 +475,14 @@ export default function InterviewSession() {
         </div>
       )}
 
-      {/* Voice input */}
-      {!interviewComplete && (
+      {!interviewComplete && isOwner && (
         <div className="pt-4 pb-1 shrink-0 flex flex-col items-center gap-3">
-          {/* Live transcript */}
           {transcript && (
             <div className="w-full rounded-xl bg-muted px-4 py-3 text-sm text-foreground/80 italic min-h-[44px]">
               "{transcript}"
             </div>
           )}
 
-          {/* Status label */}
           <p className="text-xs text-muted-foreground h-4">
             {isStreaming ? '' : isSpeaking ? (
               <span className="flex items-center gap-1.5">
@@ -487,7 +495,6 @@ export default function InterviewSession() {
             ) : 'Tap to speak'}
           </p>
 
-          {/* Mic button */}
           <button
             onClick={isListening ? stopListening : startListening}
             disabled={isStreaming || isGenerating || isSpeaking}
@@ -502,6 +509,14 @@ export default function InterviewSession() {
               : <Mic className="h-6 w-6" />
             }
           </button>
+        </div>
+      )}
+
+      {!interviewComplete && !isOwner && (
+        <div className="py-3 shrink-0">
+          <div className="rounded-xl border bg-muted/50 p-4 text-center">
+            <p className="text-sm text-muted-foreground">This interview is in progress. Only the interviewer can continue it.</p>
+          </div>
         </div>
       )}
     </div>
