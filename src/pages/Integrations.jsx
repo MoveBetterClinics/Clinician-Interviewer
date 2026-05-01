@@ -9,12 +9,12 @@ const INTEGRATIONS = [
   {
     id: 'buffer',
     name: 'Buffer',
-    description: 'Schedule and publish to Instagram, LinkedIn, and Pinterest.',
-    platforms: ['Instagram', 'LinkedIn', 'Pinterest'],
+    description: 'Schedule and publish to Instagram and LinkedIn.',
+    platforms: ['Instagram', 'LinkedIn'],
     envVars: [{ key: 'BUFFER_ACCESS_TOKEN', label: 'Buffer Access Token', placeholder: 'access_token_...' }],
     setupSteps: [
       'Go to buffer.com and create a free account.',
-      'Connect your Instagram, LinkedIn, and Pinterest pages inside Buffer.',
+      'Connect your Instagram and LinkedIn pages inside Buffer.',
       'Go to buffer.com/developers/apps → Create an app.',
       'Copy the Access Token from your app settings.',
       'Paste it in the field below and add it to Vercel (see instructions).',
