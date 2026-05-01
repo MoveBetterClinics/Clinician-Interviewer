@@ -23,10 +23,11 @@ export default function NewInterview() {
     if (step === 1 && clinicianName.trim()) setStep(2)
   }
 
-  function handleStart() {
-    if (!clinicianName.trim() || !condition.trim()) return
+  function handleStart(selectedCondition) {
+    const topic = (selectedCondition ?? condition).trim()
+    if (!clinicianName.trim() || !topic) return
     const clinician = getOrCreateClinician(clinicianName.trim())
-    const interview = createInterview(clinician.id, condition.trim())
+    const interview = createInterview(clinician.id, topic)
     navigate(`/interview/${clinician.id}/${interview.id}`)
   }
 
@@ -118,12 +119,8 @@ export default function NewInterview() {
                 {SUGGESTED_CONDITIONS.map((c) => (
                   <button
                     key={c}
-                    onClick={() => setCondition(c)}
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                      condition === c
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-input hover:bg-accent hover:border-accent-foreground/20'
-                    }`}
+                    onClick={() => handleStart(c)}
+                    className="text-xs px-2.5 py-1 rounded-full border border-input hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
                   >
                     {c}
                   </button>
