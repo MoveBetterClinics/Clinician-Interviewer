@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { UserButton } from '@clerk/clerk-react'
-import { Plus } from 'lucide-react'
+import { Plus, LayoutDashboard, Layers, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function Layout({ children }) {
@@ -26,12 +26,9 @@ export default function Layout({ children }) {
 
           <div className="flex-1" />
 
-          <Link
-            to="/strategy"
-            className={`text-xs font-medium transition-colors ${isStrategy ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            Strategy
-          </Link>
+          <NavLink to="/"        label="Interviews" active={location.pathname === '/'} />
+          <NavLink to="/hub"     label="Content Hub" active={location.pathname.startsWith('/hub') || location.pathname.startsWith('/review') || location.pathname.startsWith('/calendar')} />
+          <NavLink to="/strategy" label="Strategy"   active={isStrategy} />
 
           {isHome && (
             <Button asChild size="sm">
@@ -42,6 +39,9 @@ export default function Layout({ children }) {
             </Button>
           )}
 
+          <Link to="/settings/integrations" className="text-muted-foreground hover:text-foreground transition-colors" title="Integrations">
+            <Settings className="h-4 w-4" />
+          </Link>
           <UserButton afterSignOutUrl="/" />
         </div>
       </header>
@@ -50,5 +50,16 @@ export default function Layout({ children }) {
         {children}
       </main>
     </div>
+  )
+}
+
+function NavLink({ to, label, active }) {
+  return (
+    <Link
+      to={to}
+      className={`text-xs font-medium transition-colors px-1 ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+    >
+      {label}
+    </Link>
   )
 }

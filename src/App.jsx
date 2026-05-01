@@ -13,6 +13,10 @@ import InterviewSession from '@/pages/InterviewSession'
 import InterviewOutput from '@/pages/InterviewOutput'
 import ClinicianProfile from '@/pages/ClinicianProfile'
 import Strategy from '@/pages/Strategy'
+import ContentHub from '@/pages/ContentHub'
+import ReviewPost from '@/pages/ReviewPost'
+import ContentCalendar from '@/pages/ContentCalendar'
+import Integrations from '@/pages/Integrations'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 const ALLOWED_DOMAIN = 'movebetter.co'
@@ -56,6 +60,10 @@ function ProtectedApp() {
               <Route path="/output/:clinicianId/:interviewId" element={<InterviewOutput />} />
               <Route path="/clinician/:clinicianId" element={<ClinicianProfile />} />
               <Route path="/strategy" element={<Strategy />} />
+              <Route path="/hub" element={<ContentHub />} />
+              <Route path="/review/:itemId" element={<ReviewPost />} />
+              <Route path="/calendar" element={<ContentCalendar />} />
+              <Route path="/settings/integrations" element={<Integrations />} />
             </Routes>
           </Layout>
         </DomainGuard>

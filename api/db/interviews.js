@@ -77,7 +77,7 @@ export default async function handler(req) {
     if (!id) return err('Missing id')
     if (!userId) return err('Unauthorized', 401)
 
-    const chk = await sb(`interviews?id=eq.${id}&select=owner_id`)
+    const chk = await sb(`interviews?id=eq.${id}&select=owner_id,clinician_id,topic`)
     if (!chk.ok) return err('Database error', 500)
     const rows = await chk.json()
     if (!rows.length) return err('Not found', 404)
@@ -95,6 +95,67 @@ export default async function handler(req) {
     })
     if (!res.ok) return err('Update failed', 500)
     const data = await res.json()
+
+    // Auto-create content_items when outputs are saved for the first time
+    if (body.outputs && body.status === 'completed') {
+      try {
+        const { clinician_id, topic } = rows[0]
+        const o = body.outputs
+
+        // Fetch clinician name
+        let clinicianName = ''
+        const clinRes = await sb(`clinicians?id=eq.${clinician_id}&select=name`)
+        if (clinRes.ok) {
+          const clinRows = await clinRes.json()
+          clinicianName = clinRows[0]?.name ?? ''
+        }
+
+        // Check if content_items already exist for this interview to avoid duplicates
+        const existsRes = await sb(`content_items?interview_id=eq.${id}&select=id&limit=1`)
+        const existsRows = existsRes.ok ? await existsRes.json() : []
+
+        if (existsRows.length === 0) {
+          // Map outputs keys → platform identifiers
+          const platformMap = [
+            { key: 'blogPost',        platform: 'blog' },
+            { key: 'instagram',       platform: 'instagram' },
+            { key: 'facebook',        platform: 'facebook' },
+            { key: 'linkedin',        platform: 'linkedin' },
+            { key: 'pinterest',       platform: 'pinterest' },
+            { key: 'gbpPost',         platform: 'gbp' },
+            { key: 'googleAds',       platform: 'google_ads' },
+            { key: 'landingPage',     platform: 'landing_page' },
+            { key: 'youtubeScript',   platform: 'youtube' },
+            { key: 'tiktokScript',    platform: 'tiktok' },
+            { key: 'emailNewsletter', platform: 'email' },
+          ]
+
+          const items = platformMap
+            .filter(({ key }) => o[key]?.trim())
+            .map(({ key, platform }) => ({
+              interview_id:   id,
+              clinician_id,
+              clinician_name: clinicianName,
+              topic:          topic ?? '',
+              platform,
+              content:        o[key],
+              status:         'draft',
+              media_urls:     [],
+            }))
+
+          if (items.length > 0) {
+            await sb('content_items', {
+              method: 'POST',
+              body: JSON.stringify(items),
+              headers: { Prefer: 'return=minimal' },
+            })
+          }
+        }
+      } catch (_) {
+        // Non-fatal — interview update already succeeded
+      }
+    }
+
     return ok(data[0])
   }
 
