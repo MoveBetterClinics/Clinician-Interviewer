@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Stethoscope, User } from 'lucide-react'
+import { useUser } from '@clerk/clerk-react'
+import { ArrowLeft, ArrowRight, Stethoscope, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { getOrCreateClinician, createInterview } from '@/lib/storage'
+import { getOrCreateClinician, createInterview } from '@/lib/api'
 
 const SUGGESTED_CONDITIONS = [
   'Low back pain', 'Neck pain', 'Shoulder impingement', 'Knee pain',
@@ -15,20 +16,40 @@ const SUGGESTED_CONDITIONS = [
 
 export default function NewInterview() {
   const navigate = useNavigate()
+  const { user } = useUser()
   const [clinicianName, setClinicianName] = useState('')
   const [condition, setCondition] = useState('')
   const [step, setStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   function handleNext() {
     if (step === 1 && clinicianName.trim()) setStep(2)
   }
 
-  function handleStart(selectedCondition) {
+  async function handleStart(selectedCondition) {
     const topic = (selectedCondition ?? condition).trim()
-    if (!clinicianName.trim() || !topic) return
-    const clinician = getOrCreateClinician(clinicianName.trim())
-    const interview = createInterview(clinician.id, topic)
-    navigate(`/interview/${clinician.id}/${interview.id}`)
+    if (!clinicianName.trim() || !topic || !user) return
+
+    setLoading(true)
+    setError('')
+    try {
+      const clinician = await getOrCreateClinician({
+        name: clinicianName.trim(),
+        createdById: user.id,
+        createdByEmail: user.primaryEmailAddress?.emailAddress,
+      })
+      const interview = await createInterview({
+        clinicianId: clinician.id,
+        topic,
+        ownerId: user.id,
+        ownerEmail: user.primaryEmailAddress?.emailAddress,
+      })
+      navigate(`/interview/${clinician.id}/${interview.id}`)
+    } catch (e) {
+      setError(e.message)
+      setLoading(false)
+    }
   }
 
   return (
@@ -45,11 +66,14 @@ export default function NewInterview() {
         </div>
       </div>
 
-      {/* Step indicator */}
       <div className="flex gap-2">
         <div className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
         <div className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
       </div>
+
+      {error && (
+        <div className="text-sm text-destructive bg-destructive/10 rounded-lg px-4 py-3">{error}</div>
+      )}
 
       {step === 1 && (
         <Card>
@@ -76,7 +100,7 @@ export default function NewInterview() {
                 autoFocus
               />
               <p className="text-xs text-muted-foreground">
-                If this clinician has interviewed before, their profile will be updated.
+                If this clinician has been interviewed before, they'll be linked to their existing profile.
               </p>
             </div>
             <Button onClick={handleNext} disabled={!clinicianName.trim()} className="w-full">
@@ -120,7 +144,8 @@ export default function NewInterview() {
                   <button
                     key={c}
                     onClick={() => handleStart(c)}
-                    className="text-xs px-2.5 py-1 rounded-full border border-input hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
+                    disabled={loading}
+                    className="text-xs px-2.5 py-1 rounded-full border border-input hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors disabled:opacity-50"
                   >
                     {c}
                   </button>
@@ -129,13 +154,19 @@ export default function NewInterview() {
             </div>
 
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+              <Button variant="outline" onClick={() => setStep(1)} className="flex-1" disabled={loading}>
                 <ArrowLeft className="h-4 w-4 mr-1.5" />
                 Back
               </Button>
-              <Button onClick={handleStart} disabled={!condition.trim()} className="flex-1">
-                Start Interview
-                <ArrowRight className="h-4 w-4 ml-1.5" />
+              <Button onClick={() => handleStart()} disabled={!condition.trim() || loading} className="flex-1">
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Start Interview
+                    <ArrowRight className="h-4 w-4 ml-1.5" />
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
