@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
-import { Plus, MessageSquare, Clock, ChevronRight, Users, Loader2, LayoutGrid, User, Tag, TrendingUp, AlertCircle, Target, Check } from 'lucide-react'
+import { Plus, MessageSquare, Clock, ChevronRight, Users, Loader2, LayoutGrid, User, Tag, TrendingUp, AlertCircle, Target, Check, FileText, Share2, Globe, Video, Mail, Mic, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -91,9 +91,9 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome to the Move Better Interview</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Move Better Clinician Interviewer</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Interview your clinicians and generate on-brand content.
+            Capture your clinicians' expertise and turn it into patient-facing content.
           </p>
         </div>
         <Button asChild>
@@ -103,6 +103,8 @@ export default function Dashboard() {
           </Link>
         </Button>
       </div>
+
+      <AboutPanel />
 
       {clinicians.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
@@ -402,6 +404,65 @@ function CampaignWidget({ campaign, saving, notesSaved, onModeChange, onNotesCha
   )
 }
 
+function AboutPanel() {
+  const outputs = [
+    { icon: <FileText className="h-3.5 w-3.5" />, label: 'Blog Post', detail: 'SEO-optimized, 700–950 words, with internal and external links' },
+    { icon: <Share2 className="h-3.5 w-3.5" />, label: 'Social Media', detail: 'Instagram, Facebook, LinkedIn, Pinterest — each formatted for the platform' },
+    { icon: <Globe className="h-3.5 w-3.5" />, label: 'Google', detail: 'Business Profile post, Search Ad copy (RSA), and a landing page with SEO meta' },
+    { icon: <Video className="h-3.5 w-3.5" />, label: 'Video Scripts', detail: 'YouTube script (5–8 min, with B-roll cues) and TikTok / Reels script (45–60 sec)' },
+    { icon: <Mail className="h-3.5 w-3.5" />, label: 'Email Newsletter', detail: 'GoHighLevel-ready with subject lines, preview text, and body copy' },
+  ]
+
+  return (
+    <div className="rounded-xl border bg-card divide-y">
+      {/* What and why */}
+      <div className="p-5 space-y-4">
+        <div className="grid sm:grid-cols-3 gap-4 text-sm">
+          <div className="space-y-1.5">
+            <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">What this is</p>
+            <p className="text-sm leading-relaxed text-foreground/80">
+              A structured interview tool that captures how each Move Better clinician thinks about treating a specific condition — in their own words. That expertise is what patients and referring providers actually want to know, but it rarely makes it off the treatment table.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">Why the interview format</p>
+            <p className="text-sm leading-relaxed text-foreground/80">
+              Clinicians don't have time to write content — and generic health articles don't reflect Move Better's movement-first philosophy anyway. An interview takes 15–30 minutes of conversation. The AI does the writing. The result sounds like your clinic because it came directly from your clinicians.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">How to get started</p>
+            <p className="text-sm leading-relaxed text-foreground/80">
+              Click <strong>New Interview</strong>, choose a clinician and a condition, then speak naturally when the interviewer asks questions. When you're satisfied with the conversation, click <strong>Finish</strong> and the AI generates everything below automatically.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Output types */}
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            What each interview produces — automatically
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-5 gap-2">
+          {outputs.map(({ icon, label, detail }) => (
+            <div key={label} className="rounded-lg bg-muted/40 border px-3 py-2.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-primary">
+                {icon}
+                <span className="text-xs font-semibold">{label}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-snug">{detail}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function StatCard({ label, value, icon }) {
   return (
     <div className="rounded-lg border bg-card p-4">
@@ -558,13 +619,13 @@ function NewClinicianTile() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-        <MessageSquare className="h-8 w-8 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+        <Mic className="h-7 w-7 text-primary" />
       </div>
-      <h2 className="text-lg font-semibold mb-1">No interviews yet</h2>
-      <p className="text-muted-foreground text-sm max-w-sm mb-6">
-        Start by interviewing a clinician about a condition they treat. We'll help generate blog posts and social content from the conversation.
+      <h2 className="text-lg font-semibold mb-1">Ready when you are</h2>
+      <p className="text-muted-foreground text-sm max-w-xs mb-6">
+        Choose a clinician and a condition to cover. The interview takes 15–30 minutes and the AI handles all the writing.
       </p>
       <Button asChild>
         <Link to="/new">

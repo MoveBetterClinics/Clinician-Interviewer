@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
-import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2, Mic2, FileText, Users, PauseCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2, Mic2, PauseCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -374,30 +374,20 @@ export default function InterviewSession() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Before we begin</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Here's what to expect from your interview.
+              Two things to know before the interview starts.
             </p>
           </div>
 
           <div className="space-y-3">
             <InstructionCard
-              icon={<Users className="h-5 w-5 text-primary" />}
-              title="What this interview is for"
-              body="The goal is to capture your personal perspective and clinical experience treating this condition — in your own words. That knowledge will be turned into patient-facing content: blog posts and social media captions that help prospective patients understand what Move Better offers and why your approach works."
-            />
-            <InstructionCard
               icon={<Mic2 className="h-5 w-5 text-primary" />}
-              title="How it works"
-              body="The interviewer will ask you one question at a time, spoken aloud. When you're ready to answer, tap the microphone button and speak naturally. Take as long as you need — you can pause and think without it cutting you off. When you're done with your answer, say 'done' or 'that's all', or tap the mic button again to send it."
+              title="Speak naturally — the mic works like a conversation"
+              body="The interviewer asks one question at a time, read aloud. Tap the microphone button when you're ready to answer, then speak at your normal pace. You can pause and think — it won't cut you off. When you're done with an answer, say 'done' or 'that's all', or tap the mic button again to send it."
             />
             <InstructionCard
               icon={<AlertCircle className="h-5 w-5 text-primary" />}
-              title="How to end the interview"
-              body="The interviewer will guide the conversation through 8–10 questions. When enough has been covered, it will naturally wrap up. You'll then see a 'Generate Content' button — click it to turn your interview into a finished blog post and social media captions."
-            />
-            <InstructionCard
-              icon={<FileText className="h-5 w-5 text-primary" />}
-              title="What happens after"
-              body="Once the interview is complete, Move Better's AI will write a blog post and Instagram and Facebook captions based entirely on what you shared. You can review, copy, and use the content however you like. There's no writing required on your part."
+              title="You control when it ends"
+              body="The interviewer will keep asking follow-up questions until you've covered the topic thoroughly — there's no fixed number of questions. When you feel you've said everything useful, just say so ('I think that covers it', 'that's everything', 'let's generate') or click the Finish button at the top. The AI does the rest."
             />
           </div>
 
