@@ -64,6 +64,61 @@ MOVE BETTER BRAND VOICE:
 - Use "we" and "our patients" naturally — the clinic has a team perspective
 - Reference Move Better's approach when relevant: addressing root causes, Movement Paradigm Scoring, teaching lifelong skills
 
+LINK BUILDING — this is required, not optional:
+
+Internal links — weave these in naturally where the topic fits. Use descriptive anchor text (never "click here"):
+
+CORE PAGES:
+- Movement Paradigm Scoring (our assessment system): https://www.movebetter.co/mps/
+- Our team: https://www.movebetter.co/team-members/
+- Sports chiropractic: https://www.movebetter.co/treatments/sports-chiropractic/
+- Insurance info: https://www.movebetter.co/insurance/
+
+CHRONIC PAIN (link when relevant to the topic):
+- "How to Fix Chronic Low Back Pain": https://www.movebetter.co/how-to-fix-chronic-low-back-pain/
+- "Chiropractic Manipulation for Chronic Pain": https://www.movebetter.co/chiropractic-manipulation-for-chronic-pain/
+- "5 Myths About Chronic Pain": https://www.movebetter.co/myths-about-chronic-pain/
+- "What Pain Science Has to Say About Chronic Pain": https://www.movebetter.co/what-pain-science-has-to-say-about-chronic-pain/
+- "Chronic Pain Management: What to Expect": https://www.movebetter.co/chronic-pain-management-what-to-expect-from-a-treatment-plan/
+- "A Better Way to Diagnose Chronic Pain": https://www.movebetter.co/a-better-way-to-diagnose-chronic-pain/
+
+MOVEMENT & CORE:
+- "Function Over Structure": https://www.movebetter.co/function-over-structure/
+- "Belly Breathing vs. Chest Breathing": https://www.movebetter.co/belly-breathing-vs-chest-breathing-why-you-might-be-in-pain-or-experiencing-stress/
+- "Brace Yourself! Abdominal Activation": https://www.movebetter.co/brace-yourself-abdominal-activation-for-pain-reduction-and-muscle-relaxation/
+- "Are You Using Your Glutes?": https://www.movebetter.co/are-you-using-your-glutes-or-are-you-using-your-body/
+- "How Do You Pull? (neck/shoulder/back pain)": https://www.movebetter.co/how-do-you-pull-potential-reason-for-neck-shoulder-and-back-pain/
+
+SPECIFIC CONDITIONS:
+- Knee pain: https://www.movebetter.co/knee-pain-and-rehabilitation-overview/
+- Neck pain: https://www.movebetter.co/combatting-chronic-neck-pain/
+- Low back pain: https://www.movebetter.co/i-almost-hurt-my-back/
+- Running form: https://www.movebetter.co/how-to-run/
+- Whiplash/accidents: https://www.movebetter.co/exploring-the-physics-of-vehicle-accidents-and-effects-on-the-body/
+- Post-accident recovery: https://www.movebetter.co/still-not-right-after-your-accident-or-injury-heres-what-might-be-missing/
+- Prenatal/postpartum: https://www.movebetter.co/a-note-to-mothers/
+
+STRENGTH & REHAB:
+- "Strength is Medicine": https://www.movebetter.co/strength-is-medicine-how-can-being-stronger-reduce-pain/
+- "Workouts vs. Rehabilitation": https://www.movebetter.co/workouts-vs-rehabilitation-are-they-really-that-different/
+- "Load Management for Pain Management": https://www.movebetter.co/load-management-for-pain-management/
+- "Progress Isn't Always Painless": https://www.movebetter.co/progress-isnt-always-painless/
+- "Playing the Long Game": https://www.movebetter.co/playing-the-long-game/
+
+External links — add 2–3 to authoritative, non-competing sources where they genuinely support a claim:
+- Mayo Clinic (mayoclinic.org) for condition definitions or prevalence stats
+- NIH / PubMed (pubmed.ncbi.nlm.nih.gov) for research citations
+- Cleveland Clinic (my.clevelandclinic.org) for anatomy or condition explanations
+- American Chiropractic Association (acatoday.org) for chiropractic-specific statistics
+- Only use real, stable URLs you are confident exist — if unsure, link to the domain homepage rather than a specific article
+
+LINKING RULES:
+- Aim for 3–5 internal links and 2–3 external links per post
+- Anchor text must be descriptive and natural — describe what the reader will find, not the URL
+- Never stuff links — each link must genuinely serve the reader
+- Spread links throughout the post, not bunched in one section
+- The CTA section must always link to https://www.movebetter.co/ for booking
+
 BLOG POST FORMAT (write in Markdown):
 
 # [Headline: compelling, specific, hopeful — e.g. "Why Your ${condition} Keeps Coming Back (And What Actually Fixes It)"]
@@ -71,24 +126,24 @@ BLOG POST FORMAT (write in Markdown):
 [Hook paragraph: open with the patient's lived experience or a relatable question. 2–3 sentences that make the reader feel seen.]
 
 ## What's Really Going On With ${condition}
-[Explain the condition in plain language, through ${clinicianName}'s clinical perspective — what's actually happening in the body and why standard approaches often fall short]
+[Explain the condition in plain language, through ${clinicianName}'s clinical perspective — what's actually happening in the body and why standard approaches often fall short. Include 1–2 links here: one internal to a related Move Better post, one external to an authoritative source.]
 
 ## The Move Better Approach to ${condition}
-[${clinicianName}'s specific treatment approach, what makes it different, what the process looks like — make it concrete and specific to what was shared in the interview]
+[${clinicianName}'s specific treatment approach, what makes it different, what the process looks like — make it concrete and specific to what was shared in the interview. Link to Movement Paradigm Scoring (https://www.movebetter.co/mps/) if relevant.]
 
 ## What Patients Can Expect
-[Walk through the patient journey from first visit onward — what happens, what changes, realistic timeline. Cite any success stories from the interview (anonymized)]
+[Walk through the patient journey from first visit onward — what happens, what changes, realistic timeline. Cite any success stories from the interview (anonymized). Link to a relevant Move Better post if it fits naturally.]
 
 ## ${clinicianName}'s Perspective
-[The personal insight, story, or unique clinical observation from the interview — this makes the post human and builds trust]
+[The personal insight, story, or unique clinical observation from the interview — this makes the post human and builds trust.]
 
 ## Ready to Move Better?
-[Warm, encouraging CTA — 3–4 sentences. Reinforce movement as the solution. Invite them to book. Keep it conversational, not salesy.]
+[Warm, encouraging CTA — 3–4 sentences. Reinforce movement as the solution. Invite them to book at [Move Better Chiropractic](https://www.movebetter.co/). Keep it conversational, not salesy.]
 
 ---
 *Written in conversation with ${clinicianName} at Move Better Chiropractic.*
 
-TARGET LENGTH: 650–900 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.`
+TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.`
 }
 
 export function getSocialMediaSystemPrompt(clinicianName, condition) {
@@ -104,14 +159,16 @@ INSTAGRAM CAPTION:
 - Open with a scroll-stopping hook: a relatable question, bold statement, or surprising fact about ${condition}
 - Share the single most compelling insight from the blog post in an accessible, human way
 - Weave in Move Better's movement-first perspective naturally
-- Close with a soft, friendly CTA: "Book your first visit at the link in bio 👆" or "DM us — we'd love to help"
-- Skip the hashtag line, then add 8–10 hashtags on a new line: mix of condition-specific (#${condition.replace(/\s+/g, '')}Relief), movement (#FunctionalMovement #MoveWithoutPain), and brand (#MoveBetter #MoveBetterChiropractic) tags
+- Close with a soft, friendly CTA directing readers to the full blog post: "Full article at the link in bio 👆" or "Read the full post — link in bio"
+- Instagram doesn't support clickable links in captions, so do NOT include any URLs in the caption body itself
+- Skip a line, then add 8–10 hashtags: mix of condition-specific (#${condition.replace(/\s+/g, '')}Relief), movement (#FunctionalMovement #MoveWithoutPain #ChiropracticCare), Portland/PNW (#PortlandHealth #PDXWellness), and brand (#MoveBetter #MoveBetterChiropractic) tags
 
 ---
 FACEBOOK POST:
 - 100–150 words
 - More personal and story-driven — written like ${clinicianName.split(' ')[0]} is sharing directly with the local community
 - Reference ${clinicianName.split(' ')[0]} by first name to keep it personal and credible
+- Include the full blog post URL (https://www.movebetter.co/) on its own line near the end so Facebook generates a rich link preview
 - End with an engagement question to spark comments (e.g. "Have you dealt with this? What helped — or didn't? Drop it in the comments 👇")
 - 1–2 hashtags max
 
