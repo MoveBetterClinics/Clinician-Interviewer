@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
-import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialMediaSystemPrompt } from '@/lib/prompts'
+import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
 import { getInitials } from '@/lib/utils'
 
 const COMPLETE_TOKEN = 'INTERVIEW_COMPLETE'
@@ -51,6 +51,7 @@ export default function InterviewSession() {
   const [streamingText, setStreamingText] = useState('')
   const [interviewComplete, setInterviewComplete] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [generatingPhase, setGeneratingPhase] = useState('')
   const [error, setError] = useState('')
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -282,31 +283,50 @@ export default function InterviewSession() {
     navigate(`/clinician/${clinicianId}`)
   }
 
+  function parseSection(text, startMarker, endMarker) {
+    const start = text.indexOf(startMarker)
+    if (start === -1) return ''
+    const contentStart = start + startMarker.length
+    const end = endMarker ? text.indexOf(endMarker, contentStart) : -1
+    return (end === -1 ? text.slice(contentStart) : text.slice(contentStart, end)).trim()
+  }
+
   async function handleGenerateContent() {
     setIsGenerating(true)
+    setGeneratingPhase('blog')
     setError('')
     window.speechSynthesis?.cancel()
     try {
-      const blogSystemPrompt = getBlogPostSystemPrompt(clinician.name, interview.topic)
       const apiMessages = messages.map((m) => ({ role: m.role, content: m.content }))
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        blogSystemPrompt
+        getBlogPostSystemPrompt(clinician.name, interview.topic)
       )
 
-      const socialSystemPrompt = getSocialMediaSystemPrompt(clinician.name, interview.topic)
-      const socialPosts = await generateContent(
-        [{ role: 'user', content: blogPost }],
-        socialSystemPrompt
-      )
+      setGeneratingPhase('all')
+      const blogInput = [{ role: 'user', content: blogPost }]
+      const [socialResult, videoResult, marketingResult] = await Promise.allSettled([
+        generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic)),
+        generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic)),
+        generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic)),
+      ])
 
-      const igMatch = socialPosts.match(/INSTAGRAM CAPTION[:\s]*([\s\S]*?)(?=FACEBOOK POST|$)/i)
-      const fbMatch = socialPosts.match(/FACEBOOK POST[:\s]*([\s\S]*?)$/i)
+      const social = socialResult.status === 'fulfilled' ? socialResult.value : ''
+      const video = videoResult.status === 'fulfilled' ? videoResult.value : ''
+      const marketing = marketingResult.status === 'fulfilled' ? marketingResult.value : ''
 
       const outputs = {
         blogPost,
-        instagram: igMatch ? igMatch[1].trim() : socialPosts,
-        facebook: fbMatch ? fbMatch[1].trim() : '',
+        instagram: parseSection(social, '---INSTAGRAM---', '---FACEBOOK---'),
+        facebook: parseSection(social, '---FACEBOOK---', '---GBP POST---'),
+        gbpPost: parseSection(social, '---GBP POST---', '---LINKEDIN---'),
+        linkedin: parseSection(social, '---LINKEDIN---', '---PINTEREST---'),
+        pinterest: parseSection(social, '---PINTEREST---', null),
+        youtubeScript: parseSection(video, '---YOUTUBE SCRIPT---', '---TIKTOK SCRIPT---'),
+        tiktokScript: parseSection(video, '---TIKTOK SCRIPT---', null),
+        emailNewsletter: parseSection(marketing, '---EMAIL NEWSLETTER---', '---LANDING PAGE---'),
+        landingPage: parseSection(marketing, '---LANDING PAGE---', '---GOOGLE ADS---'),
+        googleAds: parseSection(marketing, '---GOOGLE ADS---', null),
         generatedAt: new Date().toISOString(),
       }
 
@@ -465,7 +485,7 @@ export default function InterviewSession() {
           <div className="rounded-xl border bg-primary/5 border-primary/20 p-4 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium">Ready to generate content</p>
-              <p className="text-xs text-muted-foreground">We'll create a blog post and social media captions.</p>
+              <p className="text-xs text-muted-foreground">Blog post, social media, video scripts, email newsletter, Google Ads, and more.</p>
             </div>
             <Button onClick={handleGenerateContent} size="sm">
               <Sparkles className="h-4 w-4 mr-1.5" />
@@ -480,8 +500,14 @@ export default function InterviewSession() {
           <div className="rounded-xl border bg-muted p-4 flex items-center gap-3">
             <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />
             <div>
-              <p className="text-sm font-medium">Crafting your content…</p>
-              <p className="text-xs text-muted-foreground">Writing blog post and social captions. This takes about 30 seconds.</p>
+              <p className="text-sm font-medium">
+                {generatingPhase === 'blog' ? 'Writing blog post…' : 'Generating all content formats…'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {generatingPhase === 'blog'
+                  ? 'Turning your interview into a full blog post.'
+                  : 'Creating social posts, video scripts, email newsletter, Google Ads, and landing page copy. About 60 seconds.'}
+              </p>
             </div>
           </div>
         </div>
