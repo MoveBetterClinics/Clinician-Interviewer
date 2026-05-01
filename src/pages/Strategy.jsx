@@ -162,8 +162,8 @@ export default function Strategy() {
             <TabsTrigger value="email" className="gap-1.5">
               <Mail className="h-3.5 w-3.5" />Email
             </TabsTrigger>
-            <TabsTrigger value="more" className="gap-1.5">
-              <MoreHorizontal className="h-3.5 w-3.5" />TDC
+            <TabsTrigger value="more">
+              TDC
             </TabsTrigger>
           </TabsList>
 
