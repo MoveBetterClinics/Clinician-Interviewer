@@ -1,27 +1,39 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
-import { ArrowLeft, ArrowRight, Stethoscope, User, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Stethoscope, User, Loader2, TrendingUp, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { getOrCreateClinician, createInterview } from '@/lib/api'
-
-const SUGGESTED_CONDITIONS = [
-  'Low back pain', 'Neck pain', 'Shoulder impingement', 'Knee pain',
-  'Sciatica', 'Hip flexor tightness', 'Headaches & migraines', 'Plantar fasciitis',
-  'Rotator cuff injury', 'Text neck', 'IT band syndrome', 'Whiplash',
-]
+import { Badge } from '@/components/ui/badge'
+import { getOrCreateClinician, createInterview, fetchClinicians } from '@/lib/api'
+import { getSuggestedTopics } from '@/lib/topicSuggestions'
 
 export default function NewInterview() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useUser()
+
   const [clinicianName, setClinicianName] = useState('')
-  const [condition, setCondition] = useState('')
-  const [step, setStep] = useState(1)
+  const [condition, setCondition] = useState(searchParams.get('topic') || '')
+  const [step, setStep] = useState(searchParams.get('topic') ? 1 : 1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [suggestions, setSuggestions] = useState([])
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchClinicians()
+      .then((clinicians) => {
+        const existingTopics = clinicians.flatMap((c) =>
+          (c.interviews || []).map((i) => i.topic)
+        )
+        setSuggestions(getSuggestedTopics(existingTopics))
+      })
+      .catch(() => setSuggestions(getSuggestedTopics([])))
+      .finally(() => setSuggestionsLoading(false))
+  }, [])
 
   function handleNext() {
     if (step === 1 && clinicianName.trim()) setStep(2)
@@ -51,6 +63,11 @@ export default function NewInterview() {
       setLoading(false)
     }
   }
+
+  // Split suggestions into sections
+  const uncovered = suggestions.filter((s) => s.interviewCount === 0 && s.priority === 'high').slice(0, 8)
+  const underrepresented = suggestions.filter((s) => s.interviewCount > 0 && s.interviewCount <= 2).slice(0, 6)
+  const allHighPriority = suggestions.filter((s) => s.priority === 'high').slice(0, 12)
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
@@ -119,17 +136,17 @@ export default function NewInterview() {
                 <Stethoscope className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-base">What condition are we covering?</CardTitle>
-                <CardDescription>Pick a suggestion or type your own</CardDescription>
+                <CardTitle className="text-base">What are we covering?</CardTitle>
+                <CardDescription>Type a topic or pick a suggestion below</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="condition">Condition / Topic</Label>
+              <Label htmlFor="condition">Condition, treatment, or topic</Label>
               <Input
                 id="condition"
-                placeholder="e.g. Low back pain"
+                placeholder="e.g. Low back pain, IT band rehab, postpartum recovery…"
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleStart()}
@@ -137,23 +154,79 @@ export default function NewInterview() {
               />
             </div>
 
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Suggested topics:</p>
-              <div className="flex flex-wrap gap-2">
-                {SUGGESTED_CONDITIONS.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => handleStart(c)}
-                    disabled={loading}
-                    className="text-xs px-2.5 py-1 rounded-full border border-input hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors disabled:opacity-50"
-                  >
-                    {c}
-                  </button>
-                ))}
+            {suggestionsLoading ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Loading topic suggestions…
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Uncovered high-priority topics */}
+                {uncovered.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <TrendingUp className="h-3.5 w-3.5 text-amber-500" />
+                      <p className="text-xs font-medium text-amber-700">
+                        High patient interest — no content yet
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {uncovered.map((s) => (
+                        <TopicChip
+                          key={s.topic}
+                          label={s.topic}
+                          count={0}
+                          priority={s.priority}
+                          onClick={() => handleStart(s.topic)}
+                          disabled={loading}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            <div className="flex gap-2 pt-2">
+                {/* Underrepresented topics */}
+                {underrepresented.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Could use more perspectives
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {underrepresented.map((s) => (
+                        <TopicChip
+                          key={s.topic}
+                          label={s.topic}
+                          count={s.interviewCount}
+                          onClick={() => handleStart(s.topic)}
+                          disabled={loading}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* All high-priority topics */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">Popular in the Pacific Northwest:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {allHighPriority.map((s) => (
+                      <TopicChip
+                        key={s.topic}
+                        label={s.topic}
+                        count={s.interviewCount}
+                        onClick={() => handleStart(s.topic)}
+                        disabled={loading}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1" disabled={loading}>
                 <ArrowLeft className="h-4 w-4 mr-1.5" />
                 Back
@@ -173,5 +246,25 @@ export default function NewInterview() {
         </Card>
       )}
     </div>
+  )
+}
+
+function TopicChip({ label, count, priority, onClick, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="group flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-input hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors disabled:opacity-50"
+    >
+      {label}
+      {count > 0 && (
+        <span className="text-[10px] opacity-60 group-hover:opacity-80">
+          {count}×
+        </span>
+      )}
+      {count === 0 && priority === 'high' && (
+        <span className="text-[10px] text-amber-500 group-hover:text-primary-foreground">new</span>
+      )}
+    </button>
   )
 }
