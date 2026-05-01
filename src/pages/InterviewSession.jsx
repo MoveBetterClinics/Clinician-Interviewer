@@ -158,7 +158,11 @@ export default function InterviewSession() {
     setError('')
 
     const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current)
-    const apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
+    let apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
+    // Claude API requires at least one message — inject a silent starter for new interviews
+    if (apiMessages.length === 0) {
+      apiMessages = [{ role: 'user', content: 'Please begin the interview.' }]
+    }
 
     let fullText = ''
     try {
