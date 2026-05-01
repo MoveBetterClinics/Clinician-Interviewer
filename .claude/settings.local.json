@@ -26,7 +26,32 @@
       "mcp__Claude_in_Chrome__navigate",
       "Bash(brew install *)",
       "Bash(python3 -c ' *)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(gh pr create --title 'Move API calls to server-side Vercel proxy' --body ' *)",
+      "Bash(vercel --version)",
+      "Bash(vercel whoami *)",
+      "Bash(npx vercel *)",
+      "Bash(git commit -m 'Replace text input with voice-based interview flow *)",
+      "Bash(gh pr *)",
+      "Bash(gh api *)",
+      "WebSearch",
+      "Bash(git commit -m 'Add PNW patient questionnaire database and wire into interview prompt *)",
+      "Bash(git commit -m 'Add chronic pain focus to questionnaire and interview prompt *)",
+      "Bash(git commit -m 'Scope chronic pain angle to relevant conditions only *)",
+      "Bash(git commit -m 'Expand PNW condition database with 11 new conditions *)",
+      "Bash(git commit -m 'Improve TTS voice quality and speed *)",
+      "Bash(git commit -m 'Switch to continuous speech recognition for unlimited pauses *)",
+      "Bash(git commit -m 'Add voice stop phrases to submit answer hands-free *)",
+      "Bash(git commit -m 'Auto-start interview when a topic chip is selected *)",
+      "Bash(git commit -m 'Add pre-interview instructions screen *)",
+      "Bash(git commit -m 'Add Pause button to interview session *)",
+      "Bash(git commit -m 'Migrate to Supabase: shared dashboard, By Clinician/Interviewer/Topic views, ownership model *)",
+      "Bash(git commit -m 'Use past interviews as context to probe for differences in clinician perspectives *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)",
+      "Bash(git commit -m 'Add link building to blog post generation using real Move Better URLs *)",
+      "Bash(git commit -m 'Topic coverage dashboard + smart topic suggestions in NewInterview *)",
+      "Bash(git commit -m 'Tighten interview prompt: direct facilitator style, no filler or acknowledgments *)"
     ]
   }
 }
