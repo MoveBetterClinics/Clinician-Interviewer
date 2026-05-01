@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { fetchClinician, fetchInterview, updateInterview } from '@/lib/api'
+import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
 import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialMediaSystemPrompt } from '@/lib/prompts'
 import { getInitials } from '@/lib/utils'
@@ -65,6 +65,7 @@ export default function InterviewSession() {
   const autoListenRef = useRef(false)
   const finalTranscriptRef = useRef('')
   const interviewRef = useRef(null)
+  const pastInterviewsRef = useRef([])
 
   useEffect(() => { messagesRef.current = messages }, [messages])
   useEffect(() => { transcriptRef.current = transcript }, [transcript])
@@ -81,6 +82,11 @@ export default function InterviewSession() {
           setInterviewComplete(true)
         }
         if ((i.messages || []).length > 0) setShowInstructions(false)
+
+        // Fetch past completed interviews on the same topic for cross-interview context
+        fetchSimilarInterviews(i.topic, interviewId)
+          .then((past) => { pastInterviewsRef.current = past || [] })
+          .catch(() => {})
       })
       .catch(() => navigate('/'))
       .finally(() => setLoading(false))
@@ -144,7 +150,7 @@ export default function InterviewSession() {
     setStreamingText('')
     setError('')
 
-    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic)
+    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current)
     const apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
 
     let fullText = ''

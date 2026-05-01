@@ -38,6 +38,11 @@ export function fetchInterview(id) {
   return apiFetch(`/api/db/interviews?id=${encodeURIComponent(id)}`)
 }
 
+export function fetchSimilarInterviews(topic, excludeId) {
+  const params = new URLSearchParams({ topic, excludeId })
+  return apiFetch(`/api/db/interviews?${params}`)
+}
+
 export function createInterview({ clinicianId, topic, ownerId, ownerEmail }) {
   return apiFetch('/api/db/interviews', {
     method: 'POST',
