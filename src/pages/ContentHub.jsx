@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Instagram, Facebook, Linkedin, Pin, Globe, FileText, Video, Mail,
+  Instagram, Facebook, Globe, FileText, Video, Mail,
   MapPin, Search, ChevronRight, Clock, CheckCircle2, Send, CalendarDays,
   AlertCircle, Loader2, RefreshCw, Filter,
 } from 'lucide-react'
@@ -15,8 +15,6 @@ const PLATFORM_META = {
   blog:         { label: 'Blog',       icon: FileText,   color: 'text-slate-600',  bg: 'bg-slate-100' },
   instagram:    { label: 'Instagram',  icon: Instagram,  color: 'text-pink-600',   bg: 'bg-pink-50' },
   facebook:     { label: 'Facebook',   icon: Facebook,   color: 'text-blue-600',   bg: 'bg-blue-50' },
-  linkedin:     { label: 'LinkedIn',   icon: Linkedin,   color: 'text-sky-700',    bg: 'bg-sky-50' },
-  pinterest:    { label: 'Pinterest',  icon: Pin,        color: 'text-red-600',    bg: 'bg-red-50' },
   gbp:          { label: 'Google Biz', icon: MapPin,     color: 'text-green-700',  bg: 'bg-green-50' },
   google_ads:   { label: 'Google Ads', icon: Search,     color: 'text-yellow-700', bg: 'bg-yellow-50' },
   landing_page: { label: 'Landing Pg', icon: Globe,      color: 'text-purple-600', bg: 'bg-purple-50' },

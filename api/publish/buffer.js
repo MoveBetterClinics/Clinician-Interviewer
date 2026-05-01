@@ -7,11 +7,9 @@ const ok  = (data)       => new Response(JSON.stringify(data), { status: 200, he
 const err = (msg, status = 400) => new Response(JSON.stringify({ error: msg }), { status, headers: { 'Content-Type': 'application/json' } })
 
 // Map our platform names → Buffer service names
+// LinkedIn and Pinterest are disabled until those channels are activated
 const PLATFORM_TO_SERVICE = {
   instagram: 'instagram',
-  facebook:  'facebook',
-  linkedin:  'linkedin',
-  pinterest: 'pinterest',
 }
 
 export default async function handler(req) {
