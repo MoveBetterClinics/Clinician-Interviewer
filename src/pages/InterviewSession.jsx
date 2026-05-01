@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Sparkles, AlertCircle, Mic, MicOff, Volume2, Mic2, FileText, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -57,6 +57,7 @@ export default function InterviewSession() {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [showInstructions, setShowInstructions] = useState(true)
 
   const bottomRef = useRef(null)
   const hasStarted = useRef(false)
@@ -80,6 +81,8 @@ export default function InterviewSession() {
     if (i.messages.some((m) => m.content?.includes(COMPLETE_TOKEN))) {
       setInterviewComplete(true)
     }
+    // Skip instructions for interviews already in progress
+    if (i.messages.length > 0) setShowInstructions(false)
   }, [clinicianId, interviewId, navigate])
 
   useEffect(() => {
@@ -173,9 +176,9 @@ export default function InterviewSession() {
     if (!isComplete) speak(cleanText)
   }, [clinician, interview, clinicianId, interviewId])
 
-  // Kick off first AI message
+  // Kick off first AI message — only after instructions are dismissed
   useEffect(() => {
-    if (!clinician || !interview || hasStarted.current) return
+    if (!clinician || !interview || hasStarted.current || showInstructions) return
     hasStarted.current = true
     if (messages.length === 0) {
       sendToAI([])
@@ -184,7 +187,7 @@ export default function InterviewSession() {
       const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
       if (lastAssistant && !interviewComplete) speak(lastAssistant.content)
     }
-  }, [clinician, interview])
+  }, [clinician, interview, showInstructions])
 
   function startListening() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -300,6 +303,59 @@ export default function InterviewSession() {
   }
 
   if (!clinician || !interview) return null
+
+  if (showInstructions) {
+    return (
+      <div className="max-w-xl mx-auto py-4">
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/new"><ArrowLeft className="h-4 w-4" /></Link>
+          </Button>
+          <div>
+            <p className="font-medium text-sm">{clinician.name}</p>
+            <p className="text-xs text-muted-foreground">{interview.topic}</p>
+          </div>
+        </div>
+
+        <div className="space-y-5">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Before we begin</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Here's what to expect from your interview.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <InstructionCard
+              icon={<Users className="h-5 w-5 text-primary" />}
+              title="What this interview is for"
+              body="The goal is to capture your personal perspective and clinical experience treating this condition — in your own words. That knowledge will be turned into patient-facing content: blog posts and social media captions that help prospective patients understand what Move Better offers and why your approach works."
+            />
+            <InstructionCard
+              icon={<Mic2 className="h-5 w-5 text-primary" />}
+              title="How it works"
+              body="The interviewer will ask you one question at a time, spoken aloud. When you're ready to answer, tap the microphone button and speak naturally. Take as long as you need — you can pause and think without it cutting you off. When you're done with your answer, say 'done' or 'that's all', or tap the mic button again to send it."
+            />
+            <InstructionCard
+              icon={<AlertCircle className="h-5 w-5 text-primary" />}
+              title="How to end the interview"
+              body="The interviewer will guide the conversation through 8–10 questions. When enough has been covered, it will naturally wrap up. You'll then see a 'Generate Content' button — click it to turn your interview into a finished blog post and social media captions."
+            />
+            <InstructionCard
+              icon={<FileText className="h-5 w-5 text-primary" />}
+              title="What happens after"
+              body="Once the interview is complete, Move Better's AI will write a blog post and Instagram and Facebook captions based entirely on what you shared. You can review, copy, and use the content however you like. There's no writing required on your part."
+            />
+          </div>
+
+          <Button className="w-full" size="lg" onClick={() => setShowInstructions(false)}>
+            <Mic className="h-4 w-4 mr-2" />
+            I'm ready — start the interview
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const displayMessages = messages.filter((m) => !m.content?.includes(COMPLETE_TOKEN))
   const firstNameOnly = clinician.name.split(' ')[0]
@@ -436,6 +492,20 @@ export default function InterviewSession() {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+function InstructionCard({ icon, title, body }) {
+  return (
+    <div className="flex gap-4 rounded-xl border bg-card p-4">
+      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+        {icon}
+      </div>
+      <div>
+        <p className="font-semibold text-sm mb-1">{title}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+      </div>
     </div>
   )
 }
