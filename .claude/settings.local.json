@@ -26,7 +26,11 @@
       "mcp__Claude_in_Chrome__navigate",
       "Bash(brew install *)",
       "Bash(python3 -c ' *)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(git pull *)",
+      "Bash(gh pr *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)"
     ]
   }
 }
