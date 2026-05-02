@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin, Video, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import emailTemplateHtml from '../email-template.html?raw'
 
 // Move Better brand colors / identity used in mock cards
 const MB_HANDLE   = 'movebetterclinic'
@@ -355,6 +356,33 @@ const EMAIL_FIELDS = [
   { key: 'PS',             tag: '{{ps_text}}',            label: 'P.S.',              hint: 'Optional postscript line' },
 ]
 
+function escapeForHtml(str) {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function fillTemplate(html, s, heroSrc) {
+  const year = new Date().getFullYear()
+  return html
+    .replace(/\{\{preview_text\}\}/g,    escapeForHtml(s['PREVIEW TEXT'] || ''))
+    .replace(/\{\{headline\}\}/g,         escapeForHtml(s['HEADLINE'] || ''))
+    .replace(/\{\{pull_quote\}\}/g,       escapeForHtml(s['PULL QUOTE'] || ''))
+    .replace(/\{\{body_paragraph_1\}\}/g, escapeForHtml(s['BODY PARAGRAPH 1'] || ''))
+    .replace(/\{\{body_paragraph_2\}\}/g, escapeForHtml(s['BODY PARAGRAPH 2'] || ''))
+    .replace(/\{\{body_paragraph_3\}\}/g, escapeForHtml(s['BODY PARAGRAPH 3'] || ''))
+    .replace(/\{\{cta_text\}\}/g,         escapeForHtml(s['CTA TEXT'] || 'Book Now'))
+    .replace(/\{\{cta_url\}\}/g,          escapeForHtml(s['CTA URL'] || 'https://www.movebetter.co/'))
+    .replace(/\{\{ps_text\}\}/g,          escapeForHtml(s['PS'] || ''))
+    .replace(/\{\{hero_image_url\}\}/g,   heroSrc || 'https://assets.cdn.filesafe.space/55VqA3IoxvCxZyjszdj7/media/698ce4a13fdd0e24c8bf6754.svg')
+    .replace(/\{\{year\}\}/g,             String(year))
+    .replace(/\{\{unsubscribe_url\}\}/g,  '#')
+    .replace(/\{\{webview_url\}\}/g,      '#')
+}
+
 function EmailPreview({ content, mediaUrls = [] }) {
   const s = parseEmailSections(content)
   const hasSections = Object.keys(s).length > 0
@@ -385,104 +413,26 @@ function EmailPreview({ content, mediaUrls = [] }) {
     )
   }
 
+  const filledHtml = fillTemplate(emailTemplateHtml, s, heroSrc)
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
 
-      {/* Visual mock email */}
-      <div className="rounded-xl overflow-hidden shadow-lg border border-slate-200 font-sans" style={{ background: '#1E1E1E' }}>
-        {/* Email chrome bar */}
-        <div className="bg-slate-800 px-4 py-2 border-b border-slate-700">
+      {/* Email subject / preview chrome bar */}
+      <div className="rounded-t-lg overflow-hidden border border-slate-200 bg-slate-800">
+        <div className="px-4 py-2">
           <p className="text-[11px] text-slate-400"><span className="text-slate-300 font-medium">Subject: </span>{s['SUBJECT LINE'] || '—'}</p>
           <p className="text-[10px] text-slate-500 truncate">{s['PREVIEW TEXT'] || 'Preview text will appear here…'}</p>
         </div>
-
-        {/* Orange header with angled cut */}
-        <div style={{ background: '#E36525', padding: '24px 36px 0 36px' }}>
-          <img src="/logo.svg" alt="Move Better" style={{ height: 32, filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 28" style={{ display: 'block', width: '100%', marginTop: 12 }} preserveAspectRatio="none">
-            <polygon points="0,0 600,0 600,6 0,28" fill="#E36525" />
-            <polygon points="0,28 600,6 600,28" fill="#FFFFFF" />
-          </svg>
-        </div>
-
-        {/* Hero image (matches {{hero_image_url}} block in TDC template) */}
-        {heroSrc && (
-          <div style={{ lineHeight: 0, fontSize: 0 }}>
-            <img
-              src={heroSrc}
-              alt="Hero"
-              style={{ display: 'block', width: '100%', height: 160, objectFit: 'cover', objectPosition: 'center' }}
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 24" style={{ display: 'block', width: '100%', marginTop: -1 }} preserveAspectRatio="none">
-              <polygon points="0,0 600,0 600,24 0,8" fill="#FFFFFF" />
-            </svg>
-          </div>
-        )}
-
-        {/* White body */}
-        <div style={{ background: '#FFFFFF', padding: '4px 40px 32px 40px' }}>
-
-          {/* Headline with orange left bar */}
-          {s['HEADLINE'] && (
-            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '20px 0 16px 0' }}>
-              <div style={{ width: 5, minWidth: 5, background: '#E36525', borderRadius: 3, alignSelf: 'stretch' }} />
-              <h1 style={{ margin: 0, fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 22, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3 }}>
-                {s['HEADLINE']}
-              </h1>
-            </div>
-          )}
-
-          {/* Body paragraphs */}
-          {['BODY PARAGRAPH 1', 'BODY PARAGRAPH 2'].map((key) => s[key] && (
-            <p key={key} style={{ margin: '0 0 14px 0', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 15, color: '#2C2C2C', lineHeight: 1.75 }}>
-              {s[key]}
-            </p>
-          ))}
-
-          {/* Pull quote callout */}
-          {s['PULL QUOTE'] && (
-            <div style={{ background: '#EEF1EC', margin: '20px -40px', padding: '16px 40px' }}>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                <div style={{ width: 4, minWidth: 4, background: '#83957C', borderRadius: 3, alignSelf: 'stretch' }} />
-                <p style={{ margin: 0, fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 16, fontWeight: 600, color: '#83957C', lineHeight: 1.5, fontStyle: 'italic' }}>
-                  "{s['PULL QUOTE']}"
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Body paragraph 3 */}
-          {s['BODY PARAGRAPH 3'] && (
-            <p style={{ margin: '20px 0 14px 0', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 15, color: '#2C2C2C', lineHeight: 1.75 }}>
-              {s['BODY PARAGRAPH 3']}
-            </p>
-          )}
-
-          {/* CTA button */}
-          {s['CTA TEXT'] && (
-            <div style={{ textAlign: 'center', margin: '24px 0 8px 0' }}>
-              <span style={{ display: 'inline-block', background: '#E36525', color: '#FFFFFF', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 15, fontWeight: 700, padding: '14px 32px', borderRadius: 6, letterSpacing: '0.3px' }}>
-                {s['CTA TEXT']} →
-              </span>
-            </div>
-          )}
-
-          {/* P.S. */}
-          {s['PS'] && (
-            <p style={{ margin: '16px 0 0 0', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 13, color: '#6E7072', lineHeight: 1.6 }}>
-              {s['PS']}
-            </p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div style={{ background: '#1E1E1E', padding: '20px 40px', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 11, color: '#888', lineHeight: 1.8 }}>
-            Move Better Chiropractic · Portland, OR<br />
-            <span style={{ color: '#E36525' }}>Unsubscribe</span> · <span style={{ color: '#E36525' }}>View in browser</span>
-          </p>
-        </div>
       </div>
+
+      {/* Iframe rendering actual TDC template */}
+      <iframe
+        srcDoc={filledHtml}
+        title="Email Preview"
+        style={{ width: '100%', height: 960, border: '1px solid #e2e8f0', borderRadius: 8, display: 'block' }}
+        sandbox="allow-same-origin"
+      />
 
       {/* Section copy cards */}
       <div className="space-y-2">
@@ -506,7 +456,6 @@ function EmailPreview({ content, mediaUrls = [] }) {
             </div>
           )
         })}
-
       </div>
     </div>
   )
