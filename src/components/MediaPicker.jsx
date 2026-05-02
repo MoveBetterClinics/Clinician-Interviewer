@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, X, Loader2, Image, Video, Upload, FolderOpen, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { fetchDriveFiles } from '@/lib/publish'
 
 export default function MediaPicker({ onSelect, onClose, topic = '' }) {
@@ -105,7 +104,7 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
               </form>
             </div>
 
-            <ScrollArea className="flex-1 px-5 py-3">
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
               {driveError ? (
                 <div className="text-sm text-muted-foreground bg-muted rounded-lg p-4 text-center">{driveError}</div>
               ) : loading && files.length === 0 ? (
@@ -155,7 +154,7 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
                   )}
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {/* Footer */}
             <div className="px-5 py-3 border-t flex items-center justify-between">
