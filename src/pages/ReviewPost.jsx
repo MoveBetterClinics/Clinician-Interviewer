@@ -159,8 +159,9 @@ export default function ReviewPost() {
         <Button variant="ghost" size="icon" asChild>
           <Link to="/hub"><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
-        <div className={`h-9 w-9 rounded-lg ${pm.bg} flex items-center justify-center`}>
-          <Icon className={`h-5 w-5 ${pm.color}`} />
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${pm.bg} shrink-0`}>
+          <Icon className={`h-4 w-4 ${pm.color} shrink-0`} />
+          <span className={`text-xs font-medium ${pm.color}`}>{pm.label}</span>
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">

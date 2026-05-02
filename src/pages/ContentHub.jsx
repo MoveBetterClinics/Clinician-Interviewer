@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Instagram, Facebook, Linkedin, Globe, FileText, Video, Mail,
-  MapPin, Search, ChevronRight, Clock, CheckCircle2, Send, CalendarDays,
+  Instagram, Facebook, Linkedin, FileText, Mail, Video,
+  MapPin, ChevronRight, Clock, CheckCircle2, Send, CalendarDays,
   AlertCircle, Loader2, RefreshCw, Filter,
+  MousePointer2, LayoutTemplate, Clapperboard,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,15 +13,15 @@ import { fetchContentItems } from '@/lib/publish'
 import { formatRelativeDate } from '@/lib/utils'
 
 const PLATFORM_META = {
-  blog:         { label: 'Blog',       icon: FileText,   color: 'text-slate-600',  bg: 'bg-slate-100' },
-  instagram:    { label: 'Instagram',  icon: Instagram,  color: 'text-pink-600',   bg: 'bg-pink-50' },
-  facebook:     { label: 'Facebook',   icon: Facebook,   color: 'text-blue-600',   bg: 'bg-blue-50' },
-  linkedin:     { label: 'LinkedIn',   icon: Linkedin,   color: 'text-sky-700',    bg: 'bg-sky-50' },
-  gbp:          { label: 'Google Biz', icon: MapPin,     color: 'text-green-700',  bg: 'bg-green-50' },
-  google_ads:   { label: 'Google Ads', icon: Search,     color: 'text-yellow-700', bg: 'bg-yellow-50' },
-  landing_page: { label: 'Landing Pg', icon: Globe,      color: 'text-purple-600', bg: 'bg-purple-50' },
-  video_script: { label: 'Video',      icon: Video,      color: 'text-orange-600', bg: 'bg-orange-50' },
-  email:        { label: 'Email',      icon: Mail,       color: 'text-teal-600',   bg: 'bg-teal-50' },
+  blog:         { label: 'Blog Post',       icon: FileText,   color: 'text-slate-600',  bg: 'bg-slate-100' },
+  instagram:    { label: 'Instagram',       icon: Instagram,  color: 'text-pink-600',   bg: 'bg-pink-50' },
+  facebook:     { label: 'Facebook',        icon: Facebook,   color: 'text-blue-600',   bg: 'bg-blue-50' },
+  linkedin:     { label: 'LinkedIn',        icon: Linkedin,   color: 'text-sky-700',    bg: 'bg-sky-50' },
+  gbp:          { label: 'Google Business', icon: MapPin,     color: 'text-green-700',  bg: 'bg-green-50' },
+  google_ads:   { label: 'Google Ads',      icon: MousePointer2, color: 'text-yellow-700', bg: 'bg-yellow-50' },
+  landing_page: { label: 'Landing Page',    icon: LayoutTemplate, color: 'text-purple-600', bg: 'bg-purple-50' },
+  video_script: { label: 'Video Script',    icon: Clapperboard,  color: 'text-orange-600', bg: 'bg-orange-50' },
+  email:        { label: 'Email',           icon: Mail,       color: 'text-teal-600',   bg: 'bg-teal-50' },
 }
 
 const STATUS_META = {
@@ -166,9 +167,10 @@ function ContentRow({ item }) {
   return (
     <Card className="hover:shadow-sm transition-shadow">
       <CardContent className="p-4 flex items-start gap-4">
-        {/* Platform icon */}
-        <div className={`h-10 w-10 rounded-lg ${pm.bg} flex items-center justify-center shrink-0`}>
-          <Icon className={`h-5 w-5 ${pm.color}`} />
+        {/* Platform badge — icon + name */}
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${pm.bg} shrink-0 min-w-[110px]`}>
+          <Icon className={`h-4 w-4 ${pm.color} shrink-0`} />
+          <span className={`text-xs font-medium ${pm.color} leading-none`}>{pm.label}</span>
         </div>
 
         {/* Content preview */}
