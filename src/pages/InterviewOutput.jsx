@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { fetchClinician, fetchInterview, fetchCampaign, updateInterview } from '@/lib/api'
 import { fetchContentItemsByInterview, createContentItems } from '@/lib/publish'
 import { generateContent } from '@/lib/claude'
+import { brand } from '@/lib/brand'
 import {
   getSocialBatchSystemPrompt,
   getVideoScriptBatchSystemPrompt,
@@ -247,7 +248,7 @@ export default function InterviewOutput() {
                 <OutputCard title="Facebook Post" subtitle="Copy and paste into your Facebook page — URL generates a rich link preview" content={outputs.facebook} badge="Facebook" editId={itemMap['facebook']} />
               </TabsContent>
               <TabsContent value="linkedin">
-                <OutputCard title="LinkedIn Post" subtitle="Post from the Move Better LinkedIn page" content={outputs.linkedin} badge="LinkedIn" editId={itemMap['linkedin']} />
+                <OutputCard title="LinkedIn Post" subtitle={`Post from the ${brand.name} LinkedIn page`} content={outputs.linkedin} badge="LinkedIn" editId={itemMap['linkedin']} />
               </TabsContent>
               <TabsContent value="pinterest">
                 <OutputCard title="Pinterest Pins" subtitle="3 pin variations — use with a vertical image linked to the blog post" content={outputs.pinterest} badge="Pinterest" editId={itemMap['pinterest']} />

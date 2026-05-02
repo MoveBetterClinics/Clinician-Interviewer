@@ -10,6 +10,7 @@ import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview
 import { streamMessage, generateContent } from '@/lib/claude'
 import { getInterviewSystemPrompt, getBlogPostSystemPrompt } from '@/lib/prompts'
 import { getInitials } from '@/lib/utils'
+import { brand } from '@/lib/brand'
 
 const COMPLETE_TOKEN = 'INTERVIEW_COMPLETE'
 
@@ -564,7 +565,7 @@ function MessageBubble({ message, clinicianName, isStreaming }) {
     <div className={`flex items-start gap-3 ${!isAI ? 'flex-row-reverse' : ''}`}>
       {isAI ? (
         <div className="h-8 w-8 rounded-full bg-white border border-border flex items-center justify-center shrink-0 p-1">
-          <img src="/icon.svg" alt="Move Better" className="h-full w-full" />
+          <img src={brand.logo.icon} alt={brand.name} className="h-full w-full" />
         </div>
       ) : (
         <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center shrink-0 text-xs font-medium">

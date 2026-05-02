@@ -90,7 +90,7 @@ export default async function handler(req) {
     languageCode: 'en-US',
     summary: content,
     topicType: 'STANDARD',
-    callToAction: { actionType: 'BOOK', url: 'https://www.movebetter.co' },
+    callToAction: { actionType: 'BOOK', url: process.env.BRAND_URL || 'https://www.movebetter.co' },
   }
 
   if (mediaUrls.length > 0) {

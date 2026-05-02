@@ -21,7 +21,16 @@ This is the **equine chiropractic** brand (Move Better Equine). Separate busines
 - Core message: Movement as a system — joint function, posture, gait — not isolated symptoms
 - Always positioned as complementary to veterinary care, never a replacement
 
-The underlying app is called **NarrateRx**. Move Better Equine, Move Better People, and Move Better Animal Chiropractic are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
+The underlying app is called **NarrateRx** — a multi-brand SaaS product. Move Better Equine, Move Better People, and Move Better Animal Chiropractic are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
+
+### Brand config
+Brand-specific values (name, domain, location, social handles, prompt context, internal-link library, signature system, etc.) live in [src/lib/brand.js](src/lib/brand.js). The `EQUINE` entry is populated; this deployment selects it via env vars on Vercel:
+
+- `VITE_BRAND=equine` — read by browser code (Vite replaces at build time).
+- `BRAND=equine` — read by Vercel serverless functions in `api/`. Must match `VITE_BRAND`.
+- `BRAND_URL` — used by `api/publish/gbp.js` for the GBP "Book" call-to-action URL.
+
+When adding a feature, never hardcode "Move Better," `movebetter.co`, "Portland," "patients/clinicians," or human-specific assumptions in `src/`. Read those values from `brand` instead. The animals deployment (Phase 3) lands as another sibling entry in `BRANDS`.
 
 ## Key Conditions & Language
 Horse hotspots: poll/neck, shoulders/withers, thoracic back, lumbar/loin, hips/pelvis.
