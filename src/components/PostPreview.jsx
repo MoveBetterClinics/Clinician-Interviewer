@@ -295,12 +295,185 @@ function BlogPreview({ content }) {
   )
 }
 
-// ── Plain formatted (email, ads, landing page, video scripts) ────────────────
+// ── Plain formatted (ads, landing page, video scripts) ───────────────────────
 function PlainPreview({ content }) {
   return (
     <div className="max-w-2xl mx-auto bg-white border rounded-xl shadow-sm overflow-hidden">
       <div className="px-6 py-6">
         <pre className="text-sm leading-relaxed font-sans whitespace-pre-wrap text-slate-800">{content}</pre>
+      </div>
+    </div>
+  )
+}
+
+// ── Email — parse sections + visual mock matching the TDC master template ────
+function parseEmailSections(content) {
+  if (!content) return {}
+  const result = {}
+  const regex  = /^---([A-Z][A-Z 0-9]+)---$/gm
+  const matches = []
+  let m
+  while ((m = regex.exec(content)) !== null) {
+    matches.push({ key: m[1].trim(), start: m.index + m[0].length })
+  }
+  matches.forEach((match, i) => {
+    const end   = i < matches.length - 1 ? matches[i + 1].start - matches[i + 1].key.length - 7 : content.length
+    result[match.key] = content.slice(match.start, end).trim()
+  })
+  return result
+}
+
+function CopyButton({ value }) {
+  const [copied, setCopied] = React.useState(false)
+  function copy() {
+    navigator.clipboard.writeText(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <button
+      onClick={copy}
+      className={`shrink-0 text-[11px] px-2 py-1 rounded border transition-colors ${
+        copied ? 'border-green-500 text-green-600 bg-green-50' : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+      }`}
+    >
+      {copied ? '✓ Copied' : 'Copy'}
+    </button>
+  )
+}
+
+const EMAIL_FIELDS = [
+  { key: 'SUBJECT LINE',    tag: null,                    label: 'Subject Line',      hint: 'Set in TrustDrivenCare send settings' },
+  { key: 'PREVIEW TEXT',   tag: '{{preview_text}}',      label: 'Preview Text',      hint: 'Inbox snippet — 50–90 chars' },
+  { key: 'HEADLINE',       tag: '{{headline}}',           label: 'Headline',          hint: 'Large bold heading at top of email' },
+  { key: 'PULL QUOTE',     tag: '{{pull_quote}}',         label: 'Pull Quote',        hint: 'Styled callout block — most compelling line' },
+  { key: 'BODY PARAGRAPH 1', tag: '{{body_paragraph_1}}', label: 'Body Paragraph 1', hint: 'Opening hook' },
+  { key: 'BODY PARAGRAPH 2', tag: '{{body_paragraph_2}}', label: 'Body Paragraph 2', hint: 'Move Better perspective' },
+  { key: 'BODY PARAGRAPH 3', tag: '{{body_paragraph_3}}', label: 'Body Paragraph 3', hint: 'Patient story + bridge to action' },
+  { key: 'CTA TEXT',       tag: '{{cta_text}}',           label: 'CTA Button Text',   hint: 'Button label only' },
+  { key: 'CTA URL',        tag: '{{cta_url}}',            label: 'CTA URL',           hint: 'Button destination URL' },
+  { key: 'PS',             tag: '{{ps_text}}',            label: 'P.S.',              hint: 'Optional postscript line' },
+]
+
+function EmailPreview({ content }) {
+  const s = parseEmailSections(content)
+  const hasSections = Object.keys(s).length > 0
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+
+      {/* Visual mock email */}
+      <div className="rounded-xl overflow-hidden shadow-lg border border-slate-200 font-sans" style={{ background: '#1E1E1E' }}>
+        {/* Email chrome bar */}
+        <div className="bg-slate-800 px-4 py-2 border-b border-slate-700">
+          <p className="text-[11px] text-slate-400"><span className="text-slate-300 font-medium">Subject: </span>{s['SUBJECT LINE'] || '—'}</p>
+          <p className="text-[10px] text-slate-500 truncate">{s['PREVIEW TEXT'] || 'Preview text will appear here…'}</p>
+        </div>
+
+        {/* Orange header with angled cut */}
+        <div style={{ background: '#E36525', padding: '24px 36px 0 36px' }}>
+          <img src="/logo.svg" alt="Move Better" style={{ height: 32, filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+          {/* Angled cut SVG */}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 28" style={{ display: 'block', width: '100%', marginTop: 12 }} preserveAspectRatio="none">
+            <polygon points="0,0 600,0 600,6 0,28" fill="#E36525" />
+            <polygon points="0,28 600,6 600,28" fill="#FFFFFF" />
+          </svg>
+        </div>
+
+        {/* White body */}
+        <div style={{ background: '#FFFFFF', padding: '4px 40px 32px 40px' }}>
+
+          {/* Headline with orange left bar */}
+          {s['HEADLINE'] && (
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '20px 0 16px 0' }}>
+              <div style={{ width: 5, minWidth: 5, background: '#E36525', borderRadius: 3, alignSelf: 'stretch' }} />
+              <h1 style={{ margin: 0, fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 22, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3 }}>
+                {s['HEADLINE']}
+              </h1>
+            </div>
+          )}
+
+          {/* Body paragraphs */}
+          {['BODY PARAGRAPH 1', 'BODY PARAGRAPH 2'].map((key) => s[key] && (
+            <p key={key} style={{ margin: '0 0 14px 0', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 15, color: '#2C2C2C', lineHeight: 1.75 }}>
+              {s[key]}
+            </p>
+          ))}
+
+          {/* Pull quote callout */}
+          {s['PULL QUOTE'] && (
+            <div style={{ background: '#EEF1EC', margin: '20px -40px', padding: '16px 40px' }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                <div style={{ width: 4, minWidth: 4, background: '#83957C', borderRadius: 3, alignSelf: 'stretch' }} />
+                <p style={{ margin: 0, fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 16, fontWeight: 600, color: '#83957C', lineHeight: 1.5, fontStyle: 'italic' }}>
+                  "{s['PULL QUOTE']}"
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Body paragraph 3 */}
+          {s['BODY PARAGRAPH 3'] && (
+            <p style={{ margin: '20px 0 14px 0', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 15, color: '#2C2C2C', lineHeight: 1.75 }}>
+              {s['BODY PARAGRAPH 3']}
+            </p>
+          )}
+
+          {/* CTA button */}
+          {s['CTA TEXT'] && (
+            <div style={{ textAlign: 'center', margin: '24px 0 8px 0' }}>
+              <span style={{ display: 'inline-block', background: '#E36525', color: '#FFFFFF', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 15, fontWeight: 700, padding: '14px 32px', borderRadius: 6, letterSpacing: '0.3px' }}>
+                {s['CTA TEXT']} →
+              </span>
+            </div>
+          )}
+
+          {/* P.S. */}
+          {s['PS'] && (
+            <p style={{ margin: '16px 0 0 0', fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 13, color: '#6E7072', lineHeight: 1.6 }}>
+              {s['PS']}
+            </p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ background: '#1E1E1E', padding: '20px 40px', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontFamily: 'Titillium Web, Arial, sans-serif', fontSize: 11, color: '#888', lineHeight: 1.8 }}>
+            Move Better Chiropractic · Portland, OR<br />
+            <span style={{ color: '#E36525' }}>Unsubscribe</span> · <span style={{ color: '#E36525' }}>View in browser</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Section copy cards */}
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Copy into TrustDrivenCare — Move Better Newsletter · Master
+        </p>
+        {EMAIL_FIELDS.map(({ key, tag, label, hint }) => {
+          const value = s[key]
+          if (!value) return null
+          return (
+            <div key={key} className="border rounded-lg bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b">
+                <div>
+                  <span className="text-xs font-semibold text-slate-700">{label}</span>
+                  {tag && <span className="ml-2 text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">{tag}</span>}
+                  <span className="ml-2 text-[10px] text-muted-foreground">{hint}</span>
+                </div>
+                <CopyButton value={value} />
+              </div>
+              <p className="px-3 py-2 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{value}</p>
+            </div>
+          )
+        })}
+
+        {!hasSections && (
+          <div className="text-center py-8 text-sm text-muted-foreground">
+            This email was generated before the structured format was introduced.<br />
+            Edit the content and regenerate to get copyable sections.
+          </div>
+        )}
       </div>
     </div>
   )
@@ -322,6 +495,7 @@ export default function PostPreview({ platform, content, mediaUrls = [] }) {
     case 'linkedin':    return <LinkedInPreview  content={content} />
     case 'gbp':         return <GBPPreview       content={content} />
     case 'blog':        return <BlogPreview      content={content} />
+    case 'email':       return <EmailPreview     content={content} />
     default:            return <PlainPreview     content={content} />
   }
 }
