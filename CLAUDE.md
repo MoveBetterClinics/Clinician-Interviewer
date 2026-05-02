@@ -30,7 +30,7 @@ Shared remote: https://github.com/MoveBetterClinics/NarrateRx
 
 To pull core improvements from main into this branch:
 ```bash
-git fetch origin && git merge origin/main
+git fetch origin && git merge origin/people
 ```
 
 ## Email Template
