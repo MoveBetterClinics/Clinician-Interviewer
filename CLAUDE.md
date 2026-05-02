@@ -13,7 +13,7 @@ If the work drifts into a second unrelated area mid-session, name it and suggest
 
 ## Brand
 This is the **human chiropractic / physical therapy** brand (Move Better People).
-There are two sibling projects — Move Better Equine and Move Better Animal Chiropractic — which share this codebase but deploy separately with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between projects.
+The underlying app is called **NarrateRx** — a multi-brand SaaS product. Move Better People, Move Better Equine, and Move Better Animal Chiropractic are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
 
 ## GitHub
 Always use the GitHub CLI (`gh`) for all GitHub interactions — pushing, PRs, issues, repo management. Do not use `git push` over HTTPS or SSH directly.
