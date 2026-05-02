@@ -3,3 +3,6 @@ dist
 .env
 .env.local
 .DS_Store
+
+# Per-developer Claude Code permission state — local-only by convention
+.claude/settings.local.json
