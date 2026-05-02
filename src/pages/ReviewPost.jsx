@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import {
@@ -28,6 +28,9 @@ export default function ReviewPost() {
   const [content, setContent]         = useState('')
   const [loading, setLoading]         = useState(true)
   const [saving, setSaving]           = useState(false)
+  const [saveStatus, setSaveStatus]   = useState('') // '' | 'saving' | 'saved'
+  const autoSaveTimer                 = useRef(null)
+  const isFirstLoad                   = useRef(true)
   const [publishing, setPublishing]   = useState(false)
   const [copied, setCopied]           = useState(false)
   const [error, setError]             = useState('')
@@ -38,12 +41,33 @@ export default function ReviewPost() {
   const [gbpLocations, setGbpLocations]   = useState([])
   const [selectedLocs, setSelectedLocs]   = useState([])
 
+  // Auto-save 2 seconds after user stops typing
+  useEffect(() => {
+    if (isFirstLoad.current) return // skip on initial load
+    if (!item || item.status === 'published') return
+
+    clearTimeout(autoSaveTimer.current)
+    setSaveStatus('saving')
+    autoSaveTimer.current = setTimeout(async () => {
+      try {
+        await updateContentItem(itemId, { content })
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus(''), 2000)
+      } catch {
+        setSaveStatus('')
+      }
+    }, 2000)
+
+    return () => clearTimeout(autoSaveTimer.current)
+  }, [content])
+
   useEffect(() => {
     fetchContentItem(itemId)
       .then((i) => {
         setItem(i)
         setContent(i?.content || '')
         setScheduledAt(i?.scheduled_at ? i.scheduled_at.slice(0, 16) : '')
+        setTimeout(() => { isFirstLoad.current = false }, 100)
         // Fetch GBP locations if this is a GBP post
         if (i?.platform === 'gbp') {
           fetchGBPLocations()
@@ -152,7 +176,11 @@ export default function ReviewPost() {
         <div className="lg:col-span-2 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium">Content</label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Content</label>
+                {saveStatus === 'saving' && <span className="text-xs text-muted-foreground">↑ Saving…</span>}
+                {saveStatus === 'saved'  && <span className="text-xs text-green-600">✓ Saved</span>}
+              </div>
               <div className="flex items-center gap-1">
                 <Button
                   variant={showPreview ? 'ghost' : 'secondary'}
@@ -272,12 +300,6 @@ export default function ReviewPost() {
               </div>
 
               <Separator />
-
-              {/* Save */}
-              <Button variant="outline" size="sm" className="w-full" onClick={() => save()} disabled={saving}>
-                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
-                Save Changes
-              </Button>
 
               {/* Approve */}
               {item.status === 'draft' || item.status === 'in_review' ? (
