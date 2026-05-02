@@ -18,7 +18,7 @@ This is the **small animal chiropractic** brand (Move Better Animal Chiropractic
 - Brand is new — website, social accounts, and visual identity are being built alongside this deployment
 - Positioned as complementary to veterinary care, never a replacement
 
-There are two sibling projects — Move Better People (human) and Move Better Equine — which share this codebase but deploy separately. Do not mix brand-specific content, credentials, or data between projects.
+The underlying app is called **NarrateRx**. Move Better Animal Chiropractic, Move Better People, and Move Better Equine are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
 
 ## Key Conditions & Language
 Common conditions: intervertebral disc disease (IVDD), hip dysplasia, post-surgical recovery, mobility decline in senior pets, gait abnormalities, neck and back pain, limping without orthopedic cause.
@@ -26,7 +26,7 @@ Audience tone: warm, accessible, pet-owner-friendly. Education-forward without c
 
 ## GitHub
 Always use the GitHub CLI (`gh`) for all GitHub interactions. This worktree is on the `animals` branch.
-Shared remote: https://github.com/MoveBetterClinics/Move-Better-People
+Shared remote: https://github.com/MoveBetterClinics/NarrateRx
 
 To pull core improvements from main into this branch:
 ```bash
