@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import {
   ClerkProvider,
@@ -17,9 +18,10 @@ import ContentHub from '@/pages/ContentHub'
 import ReviewPost from '@/pages/ReviewPost'
 import ContentCalendar from '@/pages/ContentCalendar'
 import Integrations from '@/pages/Integrations'
+import { brand } from '@/lib/brand'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-const ALLOWED_DOMAIN = 'movebetter.co'
+const ALLOWED_DOMAIN = brand.authDomain
 
 function DomainGuard({ children }) {
   const { user } = useUser()
@@ -73,8 +75,8 @@ function ProtectedApp() {
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="w-full max-w-md">
             <div className="text-center mb-6">
-              <h1 className="text-xl font-bold">Move Better</h1>
-              <p className="text-sm text-muted-foreground">Clinician Interviewer · Sign in with your @movebetter.co account</p>
+              <h1 className="text-xl font-bold">{brand.name}</h1>
+              <p className="text-sm text-muted-foreground">{brand.signInBlurb}</p>
             </div>
             <SignIn
               appearance={{
@@ -92,6 +94,10 @@ function ProtectedApp() {
 }
 
 export default function App() {
+  useEffect(() => {
+    document.title = `${brand.name} — Clinician Interviewer`
+  }, [])
+
   if (!PUBLISHABLE_KEY) {
     return (
       <div className="min-h-screen flex items-center justify-center">

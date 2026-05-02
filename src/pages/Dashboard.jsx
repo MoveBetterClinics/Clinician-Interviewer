@@ -12,6 +12,7 @@ import { fetchClinicians, fetchCampaign, updateCampaign } from '@/lib/api'
 import { CAMPAIGN_MODES } from '@/lib/campaigns'
 import { getSuggestedTopics } from '@/lib/topicSuggestions'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
+import { brand } from '@/lib/brand'
 
 export default function Dashboard() {
   const { user } = useUser()
@@ -91,7 +92,7 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Move Better Clinician Interviewer</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{brand.appName}</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Capture your clinicians' expertise and turn it into patient-facing content.
           </p>
@@ -421,13 +422,13 @@ function AboutPanel() {
           <div className="space-y-1.5">
             <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">What this is</p>
             <p className="text-sm leading-relaxed text-foreground/80">
-              A structured interview tool that captures how each Move Better clinician practices Movement Based Medicine — in their own words. That clinical perspective is what patients and referring providers actually want to know, but it rarely makes it off the treatment table.
+              A structured interview tool that captures how each {brand.name} clinician practices {brand.tagline} — in their own words. That clinical perspective is what patients and referring providers actually want to know, but it rarely makes it off the treatment table.
             </p>
           </div>
           <div className="space-y-1.5">
             <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">Why the interview format</p>
             <p className="text-sm leading-relaxed text-foreground/80">
-              Clinicians don't have time to write content — and generic health articles don't reflect Move Better's movement-first philosophy anyway. An interview takes 15–30 minutes of conversation. The AI does the writing. The result sounds like Move Better because it came directly from your clinicians.
+              Clinicians don't have time to write content — and generic health articles don't reflect {brand.name}'s movement-first philosophy anyway. An interview takes 15–30 minutes of conversation. The AI does the writing. The result sounds like {brand.name} because it came directly from your clinicians.
             </p>
           </div>
           <div className="space-y-1.5">
@@ -468,7 +469,7 @@ function AboutPanel() {
             to="/strategy"
             className="text-primary underline underline-offset-2 hover:opacity-80"
           >
-            Read the Move Better Content Distribution Strategy
+            Read the {brand.name} Content Distribution Strategy
           </Link>
         </p>
       </div>
