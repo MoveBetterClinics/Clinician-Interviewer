@@ -141,7 +141,7 @@ BLOG POST FORMAT (write in Markdown):
 [Explain the condition in plain language from a clinical perspective — what's actually happening in the body and why standard approaches often fall short. Include 1–2 links here: one internal to a related ${brand.name} post, one external to an authoritative source.]
 
 ## The ${brand.name} Approach to ${condition}
-[${brand.name}'s specific treatment approach — what makes it different, what the process looks like. Use "we" and "our team." Make it concrete and specific to what was shared in the interview. Link to ${brand.prompt.signatureSystemName} (${brand.prompt.signatureSystemUrl}) if relevant.]
+[${brand.name}'s specific treatment approach — what makes it different, what the process looks like. Use "we" and "our team." Make it concrete and specific to what was shared in the interview.${brand.prompt.signatureSystemName ? ` Link to ${brand.prompt.signatureSystemName} (${brand.prompt.signatureSystemUrl}) if relevant.` : ''}]
 
 ## What Our Patients Experience
 [Walk through the patient journey from first visit onward — what happens, what changes, realistic timeline. Cite any success stories from the interview (anonymized). Use "our patients" language. Link to a relevant ${brand.name} post if it fits naturally.]
@@ -331,7 +331,7 @@ SECTION — THE PROBLEM:
 H2 + 2–3 sentences on what conventional ${condition} treatment misses. For a skeptical patient.
 
 SECTION — OUR APPROACH:
-H2 + 3–4 sentences on ${brand.name}'s specific assessment and treatment process. Use "we" and "our team." Reference ${brand.prompt.signatureSystemName} if it fits, linking to ${brand.prompt.signatureSystemUrl}.
+H2 + 3–4 sentences on ${brand.name}'s specific assessment and treatment process. Use "we" and "our team."${brand.prompt.signatureSystemName ? ` Reference ${brand.prompt.signatureSystemName} if it fits, linking to ${brand.prompt.signatureSystemUrl}.` : ''}
 
 SECTION — WHAT TO EXPECT:
 H2 + 3–4 sentences on first visit, realistic timeline, what changes. Always "our patients" language.

@@ -125,10 +125,105 @@ STRENGTH & REHAB:
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Newsletter · Master',
 }
 
+const EQUINE = {
+  id: 'equine',
+
+  // Identity
+  name: 'Move Better Equine',
+  appName: 'Move Better Equine Clinician Interviewer',
+  tagline: 'Restoring Movement, Balance, and Comfort for Horses',
+  signInBlurb: 'Move Better Equine · Sign in with your @movebetterequine.com account',
+
+  // Auth
+  authDomain: 'movebetterequine.com',
+
+  // Web presence
+  website: 'https://movebetterequine.com/',
+  websiteHostname: 'movebetterequine.com',
+
+  // Location — physical haul-in base; service area is broader (see region).
+  location: 'Ridgefield, WA',
+  region: 'Southwest Washington and Greater Portland',
+  regionShort: 'PNW',
+
+  // Visual identity. Logo paths resolve from each deployment's public/ — the
+  // equine-branded SVGs will replace the default ones in Move Better Equine/public/.
+  logo: { main: '/logo.svg', icon: '/icon.svg' },
+  colors: { primary: '#E36525', grey: '#6E7072' },
+  socialAvatarInitials: 'MBE',
+  linkPreviewBlurb: 'Mobile equine chiropractic care across Southwest Washington and the greater Portland area — restoring movement, balance, and comfort for horses.',
+  linkedInIndustry: 'Veterinary',
+
+  // Social handles — none claimed yet for the equine brand. Placeholders mirror
+  // expected usernames so PostPreview mocks render coherently. Update when claimed.
+  social: {
+    instagram: 'movebetterequine',
+    facebook: 'movebetterequine',
+  },
+
+  // Strings injected into AI system prompts. Mirror the HUMAN structure exactly
+  // so prompts.js stays brand-agnostic.
+  prompt: {
+    clinicContext:
+      'mobile equine chiropractic practice serving Southwest Washington and the greater Portland, Oregon region. Dr. Whitney Phillips visits horses on-site at farms and barns, with a haul-in option to Ridgefield, WA. Each horse is evaluated individually with attention to posture, gait, and joint motion; care is tailored to the horse\'s discipline and stage of life. Movement-based chiropractic restoring mobility, balance, and overall comfort — always positioned as complementary to veterinary care, never a replacement.',
+
+    audienceDescription:
+      'horse owners, riders, trainers, and equestrian professionals across Southwest Washington and the Portland, Oregon area, ranging from recreational riders to high-performance sport-horse competitors. They notice subtle changes in their horses — refusal to pick up a lead, shifted posture, tail swishing, bit grinding, reluctance to move forward — and want to address restrictions before they become bigger problems. They value evidence-informed, systems-based explanations and respect their veterinarian, looking for complementary care that supports their horse\'s long-term soundness.',
+
+    audienceShort:
+      'horse owners, trainers, and riders in Southwest Washington and the Portland area who notice subtle movement changes in their horses and want evidence-informed, complementary care that supports long-term soundness.',
+
+    brandVoice: `- Educational and evidence-informed — explain what's happening anatomically without drifting into jargon
+- Systems-based: movement is a whole-body story (poll, withers, thoracic, lumbar, hips), not isolated symptoms
+- Subtle-signs language — name what owners actually observe: lead refusals, tail swishing, bit grinding, posture shifts, reluctance to move forward
+- Always complementary to veterinary care, never positioned as a replacement
+- Owner-centered: speak to the rider/owner directly using "you" and "your horse"
+- Hopeful and practical — the goal is restoring balance, comfort, and efficient movement so a horse can do its job well and feel good doing it
+- Reference Move Better Equine's approach when relevant: individual evaluation of posture, gait, and joint motion; care tailored to the horse's discipline and stage of life`,
+
+    // Internal-link library used by the blog post prompt. Each brand keeps
+    // its own equivalent. Drop in verbatim — the prompt expects markdown.
+    internalLinksMarkdown: `CORE PAGES:
+- Move Better Equine (homepage): https://movebetterequine.com/
+- Contact / book a visit: https://movebetterequine.com/contact/
+- Blog index: https://movebetterequine.com/blog/
+
+BLOG POSTS:
+- "Subtle Signs Your Horse's Movement May Be Restricted": https://movebetterequine.com/subtle-signs-your-horses-movement-may-be-restricted/`,
+
+    // The single anchor link the blog CTA must always land on. Equine has no
+    // online booking — this is the contact page where owners arrange a visit.
+    bookingUrl: 'https://movebetterequine.com/contact/',
+
+    // No signature assessment system for the equine brand. prompts.js checks
+    // for null and omits the relevant sentences when these are absent.
+    signatureSystemName: null,
+    signatureSystemUrl: null,
+
+    pinterestBoards:
+      'Equine Wellness / Sport Horse Care / Horse Health / Pacific Northwest Equestrian',
+
+    locationKeyword: 'Southwest Washington',
+    locationHashtag: '#PNWEquestrian',
+    brandHashtag: '#MoveBetterEquine',
+    spokenUrl: 'MoveBetterEquine.com',
+
+    // Tone-modifier vocabulary for performance/sport-focused content.
+    sportContext:
+      'discipline-specific scenarios across English, Western, and sport horse work — dressage, jumping, eventing, reining, ranch and trail riding common to the Pacific Northwest',
+  },
+
+  // Newsletter — the equine variant of the TrustDrivenCare master template
+  // hasn't been authored yet. Names mirror the HUMAN convention; update once
+  // the actual TDC template exists.
+  newsletterTemplateName: 'Move Better Equine Newsletter - Master',
+  newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Equine Newsletter · Master',
+}
+
 // Phase 2 / Phase 3 brand entries land here as siblings.
 const BRANDS = {
   human: HUMAN,
-  // equine: { id: 'equine', name: 'Move Better Equine', ... },
+  equine: EQUINE,
   // animals: { id: 'animals', name: 'Move Better Animal Chiropractic', ... },
 }
 
