@@ -26,7 +26,25 @@
       "mcp__Claude_in_Chrome__navigate",
       "Bash(brew install *)",
       "Bash(python3 -c ' *)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(git pull *)",
+      "Bash(git commit -m 'Move content strategy doc link to landing page *)",
+      "Bash(gh pr *)",
+      "WebFetch(domain:docs.google.com)",
+      "Bash(npx shadcn@latest add accordion)",
+      "Bash(npm run *)",
+      "Bash(node_modules/.bin/vite build *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)",
+      "Bash(git commit *)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "WebFetch(domain:movebetterequine.com)",
+      "Bash(git worktree *)",
+      "WebSearch",
+      "Bash(git branch *)",
+      "Bash(gh api *)",
+      "Bash(vercel ls *)"
     ]
   }
 }

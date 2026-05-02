@@ -18,7 +18,16 @@ This is the **small animal chiropractic** brand (Move Better Animal Chiropractic
 - Brand is new — website, social accounts, and visual identity are being built alongside this deployment
 - Positioned as complementary to veterinary care, never a replacement
 
-The underlying app is called **NarrateRx**. Move Better Animal Chiropractic, Move Better People, and Move Better Equine are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
+The underlying app is called **NarrateRx** — a multi-brand SaaS product. Move Better Animal Chiropractic, Move Better People, and Move Better Equine are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
+
+### Brand config
+Brand-specific values (name, domain, location, social handles, prompt context, internal-link library, signature system, etc.) live in [src/lib/brand.js](src/lib/brand.js). The `ANIMALS` entry has not been authored yet (Phase 3 work — currently a placeholder comment in `BRANDS`). Once added, this deployment will select it via env vars on Vercel:
+
+- `VITE_BRAND=animals` — read by browser code (Vite replaces at build time).
+- `BRAND=animals` — read by Vercel serverless functions in `api/`. Must match `VITE_BRAND`.
+- `BRAND_URL` — used by `api/publish/gbp.js` for the GBP "Book" call-to-action URL.
+
+When adding a feature, never hardcode "Move Better," `movebetter.co`, "Portland," "patients/clinicians," or human/equine-specific assumptions in `src/`. Read those values from `brand` instead.
 
 ## Key Conditions & Language
 Common conditions: intervertebral disc disease (IVDD), hip dysplasia, post-surgical recovery, mobility decline in senior pets, gait abnormalities, neck and back pain, limping without orthopedic cause.

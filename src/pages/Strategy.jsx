@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronRight, FileText, Share2, Globe, Video, Mail, MoreHorizontal, Zap } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { brand } from '@/lib/brand'
 
 function Accordion({ title, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -96,10 +97,10 @@ export default function Strategy() {
       <div>
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold tracking-tight">Content Distribution Strategy</h1>
-          <Badge variant="secondary">Move Better</Badge>
+          <Badge variant="secondary">{brand.name}</Badge>
         </div>
         <p className="text-muted-foreground text-sm">
-          How to take each piece of content the Clinician Interviewer generates and deploy it for maximum reach and patient acquisition.
+          How to take each piece of content NarrateRx generates and deploy it for maximum reach and patient acquisition.
         </p>
       </div>
 
@@ -107,7 +108,7 @@ export default function Strategy() {
       <div className="rounded-xl border bg-card p-5 space-y-4">
         <h2 className="font-semibold text-base">Why This Workflow Exists</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Move Better clinicians have deep expertise that patients are actively searching for — but that expertise lives in a 30-minute conversation, not a Google search result. This tool extracts that knowledge from a structured interview, then formats it for every channel a prospective patient might encounter. One interview session produces 10+ ready-to-publish assets, turning clinician time into a compounding content library.
+          {brand.name} clinicians have deep expertise that patients are actively searching for — but that expertise lives in a 30-minute conversation, not a Google search result. This tool extracts that knowledge from a structured interview, then formats it for every channel a prospective patient might encounter. One interview session produces 10+ ready-to-publish assets, turning clinician time into a compounding content library.
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed">
           The strategy below tells you where to post each asset, in what order, and how to connect the pieces into a system that builds trust before a patient ever walks through the door.
@@ -174,7 +175,7 @@ export default function Strategy() {
               <Steps items={[
                 'Publish the full blog post to your website CMS (WordPress, Squarespace, Webflow, etc.).',
                 'Use the suggested SEO title and meta description from the output verbatim — these are written for search intent.',
-                'Add at least one relevant internal link to another Move Better page (services, another blog post, booking page).',
+                `Add at least one relevant internal link to another ${brand.name} page (services, another blog post, booking page).`,
                 'Add 2–3 external authority links (research studies, medical associations) if referenced in the content.',
                 'Add a clear call-to-action at the bottom: book a free discovery call, register for a seminar, or contact the clinic.',
                 'Submit the new URL to Google Search Console for faster indexing.',
@@ -243,7 +244,7 @@ export default function Strategy() {
                   'Clinical outcomes and evidence-based approaches.',
                   'Specific patient success stories (anonymized).',
                   'Content that makes them look good for sharing.',
-                  'Clear explanations of what Move Better does differently.',
+                  `Clear explanations of what ${brand.name} does differently.`,
                 ]} />
               </div>
             </Accordion>
@@ -423,7 +424,7 @@ export default function Strategy() {
               <p>Free public seminars are one of the highest-trust patient acquisition strategies available — especially for a clinic that differentiates on experience and philosophy. The content this app generates feeds directly into seminar promotion and materials.</p>
               <Steps items={[
                 'Choose a seminar topic that matches a high-volume condition (lower back pain, shoulder impingement, etc.).',
-                'Run the Clinician Interviewer on that topic before planning the seminar — use the content to build the talk outline.',
+                'Run NarrateRx on that topic before planning the seminar — use the content to build the talk outline.',
                 'Promote the seminar 3–4 weeks in advance: Facebook Event, Instagram posts (use the generated captions), email blast, GBP post, and local Facebook Groups.',
                 'Capture email addresses at registration via a TrustDrivenCare form.',
                 'Follow up with attendees: send the related blog post within 24 hours, follow with a 3-email nurture sequence.',
