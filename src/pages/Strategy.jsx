@@ -100,7 +100,7 @@ export default function Strategy() {
           <Badge variant="secondary">{brand.name}</Badge>
         </div>
         <p className="text-muted-foreground text-sm">
-          How to take each piece of content the Clinician Interviewer generates and deploy it for maximum reach and patient acquisition.
+          How to take each piece of content NarrateRx generates and deploy it for maximum reach and patient acquisition.
         </p>
       </div>
 
@@ -424,7 +424,7 @@ export default function Strategy() {
               <p>Free public seminars are one of the highest-trust patient acquisition strategies available — especially for a clinic that differentiates on experience and philosophy. The content this app generates feeds directly into seminar promotion and materials.</p>
               <Steps items={[
                 'Choose a seminar topic that matches a high-volume condition (lower back pain, shoulder impingement, etc.).',
-                'Run the Clinician Interviewer on that topic before planning the seminar — use the content to build the talk outline.',
+                'Run NarrateRx on that topic before planning the seminar — use the content to build the talk outline.',
                 'Promote the seminar 3–4 weeks in advance: Facebook Event, Instagram posts (use the generated captions), email blast, GBP post, and local Facebook Groups.',
                 'Capture email addresses at registration via a TrustDrivenCare form.',
                 'Follow up with attendees: send the related blog post within 24 hours, follow with a 3-email nurture sequence.',

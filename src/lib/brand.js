@@ -8,9 +8,9 @@ const HUMAN = {
 
   // Identity
   name: 'Move Better',
-  appName: 'Move Better Clinician Interviewer',
+  appName: 'Move Better — NarrateRx',
   tagline: 'Movement Based Medicine',
-  signInBlurb: 'Clinician Interviewer · Sign in with your @movebetter.co account',
+  signInBlurb: 'Move Better · Sign in with your @movebetter.co account',
 
   // Auth
   authDomain: 'movebetter.co',
@@ -130,7 +130,7 @@ const EQUINE = {
 
   // Identity
   name: 'Move Better Equine',
-  appName: 'Move Better Equine Clinician Interviewer',
+  appName: 'Move Better Equine — NarrateRx',
   tagline: 'Restoring Movement, Balance, and Comfort for Horses',
   signInBlurb: 'Move Better Equine · Sign in with your @movebetterequine.com account',
 

@@ -17,7 +17,7 @@ export default function Layout({ children }) {
             <img src={brand.logo.main} alt={brand.name} className="h-9 w-auto" />
             <div className="hidden sm:block border-l border-border pl-3">
               <p className="text-xs font-semibold leading-none text-foreground" style={{ fontFamily: "'Titillium Web', sans-serif" }}>
-                Clinician Interviewer
+                NarrateRx
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5 leading-none">
                 {brand.tagline}
