@@ -184,7 +184,9 @@ export default function ReviewPost() {
         body:    JSON.stringify({ messages: inputMessages, systemPrompt }),
       })
       if (!res.ok) throw new Error(`Generation failed (${res.status})`)
-      const { content: generated } = await res.json()
+      const data = await res.json()
+      const generated = data.content?.[0]?.text || ''
+      if (!generated) throw new Error(data.error || 'No content returned from generation.')
 
       const [startMarker, endMarker] = PLATFORM_MARKERS[platform] || [null, null]
       const newContent = extractSection(generated, startMarker, endMarker)
