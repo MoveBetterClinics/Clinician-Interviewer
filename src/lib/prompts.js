@@ -102,7 +102,7 @@ Start immediately with your first question. No greeting, no introduction.`
 }
 
 export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart') {
-  return `You are a content writer for Move Better Chiropractic in Portland, OR. Based on the interview transcript below with ${clinicianName} about treating ${condition}, write an engaging, on-brand blog post targeted at Pacific Northwest readers.
+  return `You are a content writer for Move Better in Portland, OR. Based on the interview transcript below with ${clinicianName} about treating ${condition}, write an engaging, on-brand blog post targeted at Pacific Northwest readers.
 
 CRITICAL FRAMING RULE:
 This content is branded for Move Better as a clinic — NOT for the individual clinician. The clinician's insights and expertise drive the content, but the subject is always "we at Move Better" or "our team" or "our approach." Do not make the post about the clinician personally. The clinician's name may appear once or twice naturally (e.g., "one of our clinicians, ${clinicianName}, notes that...") but should never be in a headline, section header, or the main focus of a paragraph.
@@ -190,17 +190,17 @@ BLOG POST FORMAT (write in Markdown):
 [The key clinical observation from the interview — framed as Move Better's team perspective. This makes the post human and builds trust. The clinician's name may appear here once naturally if it adds credibility, e.g. "As our clinician ${clinicianName} puts it…"]
 
 ## Ready to Move Better?
-[Warm, encouraging CTA — 3–4 sentences. Reinforce movement as the solution. Invite them to book at [Move Better Chiropractic](https://www.movebetter.co/). Keep it conversational, not salesy.]
+[Warm, encouraging CTA — 3–4 sentences. Reinforce movement as the solution. Invite them to book at [Move Better](https://www.movebetter.co/). Keep it conversational, not salesy.]
 
 ---
-*Move Better Chiropractic · Portland, OR*
+*Move Better · Portland, OR*
 
 TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.
 ${getToneModifier(tone)}`
 }
 
 export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
-  return `Based on the blog post provided, generate social media content for Move Better Chiropractic. The post is about ${condition}.
+  return `Based on the blog post provided, generate social media content for Move Better. The post is about ${condition}.
 
 CRITICAL FRAMING RULE:
 All content is branded for Move Better as a clinic. Write from the perspective of "we at Move Better" or "our team." The clinician who provided the expertise may be referenced once for credibility (e.g., "one of our clinicians shares…") but should never be the main subject or featured by name in headlines or hooks.
@@ -256,7 +256,7 @@ ${getToneModifier(tone)}`
 
 export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
   const firstName = clinicianName.split(' ')[0]
-  return `Based on the blog post provided, write two video scripts for Move Better Chiropractic about ${condition}.
+  return `Based on the blog post provided, write two video scripts for Move Better about ${condition}.
 
 CRITICAL FRAMING RULE:
 The videos are branded for Move Better as a clinic. ${firstName} is the on-camera clinician and expert, but the brand being promoted is Move Better. Scripts should introduce ${firstName} as "our clinician" or "part of the Move Better team." All CTAs, bookings, and references point to Move Better, not to ${firstName} personally.
@@ -316,7 +316,7 @@ ${getToneModifier(tone)}`
 export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
   const firstName = clinicianName.split(' ')[0]
   const conditionSlug = condition.toLowerCase().replace(/\s+/g, '-').slice(0, 20)
-  return `Based on the blog post provided, generate three marketing assets for Move Better Chiropractic about ${condition}. Use the blog post as your source of truth.
+  return `Based on the blog post provided, generate three marketing assets for Move Better about ${condition}. Use the blog post as your source of truth.
 
 CRITICAL FRAMING RULE:
 All assets are branded for Move Better as a clinic. The clinician's expertise informs the content but Move Better is always the subject. Use "we," "our team," and "Move Better" throughout. The clinician's name (${firstName}) may appear once in the email as a credibility signal but should not appear in headlines, page titles, or ad copy.
@@ -336,7 +336,7 @@ Opening hook: 2–3 sentences that make the reader feel seen if they have ${cond
 Highlight: 2–3 paragraphs on Move Better's key perspective on ${condition} — what makes the approach different. May reference "one of our clinicians, ${firstName}" once.
 Patient story: 2–3 sentences on the anonymized case from the blog (if available). Frame as a Move Better patient.
 Read more: "Read the full post on our website →" linking to https://www.movebetter.co/
-CTA: "Ready to move better? Book your assessment at Move Better Chiropractic → https://www.movebetter.co/"
+CTA: "Ready to move better? Book your assessment at Move Better → https://www.movebetter.co/"
 
 Tone: warm, educational, knowledgeable friend. No medical jargon. Plain text with line breaks — compatible with GoHighLevel email templates.
 

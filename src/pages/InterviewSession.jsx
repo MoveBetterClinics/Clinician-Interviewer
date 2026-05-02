@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview, fetchCampaign } from '@/lib/api'
+import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
-import { getInterviewSystemPrompt, getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
-import { getCampaignPromptContext } from '@/lib/campaigns'
+import { getInterviewSystemPrompt, getBlogPostSystemPrompt } from '@/lib/prompts'
 import { getInitials } from '@/lib/utils'
 
 const COMPLETE_TOKEN = 'INTERVIEW_COMPLETE'
@@ -52,7 +51,6 @@ export default function InterviewSession() {
   const [streamingText, setStreamingText] = useState('')
   const [interviewComplete, setInterviewComplete] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatingPhase, setGeneratingPhase] = useState('')
   const [error, setError] = useState('')
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -69,7 +67,6 @@ export default function InterviewSession() {
   const finalTranscriptRef = useRef('')
   const interviewRef = useRef(null)
   const pastInterviewsRef = useRef([])
-  const campaignRef = useRef({ mode: 'bookings', notes: '' })
 
   function saveMessages(interviewId, patch, userId) {
     setSaveStatus('saving')
@@ -100,10 +97,6 @@ export default function InterviewSession() {
         // Fetch past completed interviews on the same topic for cross-interview context
         fetchSimilarInterviews(i.topic, interviewId)
           .then((past) => { pastInterviewsRef.current = past || [] })
-          .catch(() => {})
-        // Fetch current campaign focus to shape generated content
-        fetchCampaign()
-          .then((c) => { campaignRef.current = c })
           .catch(() => {})
       })
       .catch(() => navigate('/'))
@@ -304,17 +297,8 @@ export default function InterviewSession() {
     navigate(`/clinician/${clinicianId}`)
   }
 
-  function parseSection(text, startMarker, endMarker) {
-    const start = text.indexOf(startMarker)
-    if (start === -1) return ''
-    const contentStart = start + startMarker.length
-    const end = endMarker ? text.indexOf(endMarker, contentStart) : -1
-    return (end === -1 ? text.slice(contentStart) : text.slice(contentStart, end)).trim()
-  }
-
   async function handleGenerateContent() {
     setIsGenerating(true)
-    setGeneratingPhase('blog')
     setError('')
     window.speechSynthesis?.cancel()
     try {
@@ -324,35 +308,7 @@ export default function InterviewSession() {
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
         getBlogPostSystemPrompt(clinician.name, interview.topic, tone)
       )
-
-      setGeneratingPhase('all')
-      const blogInput = [{ role: 'user', content: blogPost }]
-      const campaignContext = getCampaignPromptContext(campaignRef.current)
-      const [socialResult, videoResult, marketingResult] = await Promise.allSettled([
-        generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone)),
-        generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone)),
-        generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone)),
-      ])
-
-      const social = socialResult.status === 'fulfilled' ? socialResult.value : ''
-      const video = videoResult.status === 'fulfilled' ? videoResult.value : ''
-      const marketing = marketingResult.status === 'fulfilled' ? marketingResult.value : ''
-
-      const outputs = {
-        blogPost,
-        instagram: parseSection(social, '---INSTAGRAM---', '---FACEBOOK---'),
-        facebook: parseSection(social, '---FACEBOOK---', '---GBP POST---'),
-        gbpPost: parseSection(social, '---GBP POST---', '---LINKEDIN---'),
-        linkedin: parseSection(social, '---LINKEDIN---', '---PINTEREST---'),
-        pinterest: parseSection(social, '---PINTEREST---', null),
-        youtubeScript: parseSection(video, '---YOUTUBE SCRIPT---', '---TIKTOK SCRIPT---'),
-        tiktokScript: parseSection(video, '---TIKTOK SCRIPT---', null),
-        emailNewsletter: parseSection(marketing, '---EMAIL NEWSLETTER---', '---LANDING PAGE---'),
-        landingPage: parseSection(marketing, '---LANDING PAGE---', '---GOOGLE ADS---'),
-        googleAds: parseSection(marketing, '---GOOGLE ADS---', null),
-        generatedAt: new Date().toISOString(),
-      }
-
+      const outputs = { blogPost, generatedAt: new Date().toISOString() }
       await updateInterview(interviewId, { outputs, status: 'completed' }, user.id)
       navigate(`/output/${clinicianId}/${interviewId}`)
     } catch (err) {
@@ -518,13 +474,9 @@ export default function InterviewSession() {
           <div className="rounded-xl border bg-muted p-4 flex items-center gap-3">
             <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />
             <div>
-              <p className="text-sm font-medium">
-                {generatingPhase === 'blog' ? 'Writing blog post…' : 'Generating all content formats…'}
-              </p>
+              <p className="text-sm font-medium">Writing blog post…</p>
               <p className="text-xs text-muted-foreground">
-                {generatingPhase === 'blog'
-                  ? 'Turning your interview into a full blog post.'
-                  : 'Creating social posts, video scripts, email newsletter, Google Ads, and landing page copy. About 60 seconds.'}
+                Turning your interview into a full blog post. Social, video, and marketing content will generate on demand.
               </p>
             </div>
           </div>
