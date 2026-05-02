@@ -4,17 +4,29 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { fetchDriveFiles } from '@/lib/publish'
 
+// Build a short list of suggested search chips from the interview topic
+function buildSuggestions(topic) {
+  if (!topic) return []
+  const full = topic.trim()
+  // Also surface individual meaningful words (3+ chars)
+  const words = full.split(/\s+/).filter((w) => w.length >= 4)
+  const chips = [full, ...words].filter((v, i, arr) => arr.indexOf(v) === i).slice(0, 5)
+  return chips
+}
+
 export default function MediaPicker({ onSelect, onClose, topic = '' }) {
-  const [tab, setTab]               = useState('drive') // drive | upload
-  const [query, setQuery]           = useState(topic)
+  const [tab, setTab]               = useState('drive')
+  const [query, setQuery]           = useState('')
   const [files, setFiles]           = useState([])
   const [loading, setLoading]       = useState(false)
   const [selected, setSelected]     = useState(null)
   const [nextPage, setNextPage]     = useState(null)
   const [driveError, setDriveError] = useState('')
   const fileInputRef                = useRef(null)
+  const debounceRef                 = useRef(null)
+  const suggestions                 = buildSuggestions(topic)
 
-  async function search(q = query, pageToken = '') {
+  async function search(q, pageToken = '') {
     setLoading(true)
     setDriveError('')
     try {
@@ -30,12 +42,32 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
     }
   }
 
-  useEffect(() => { if (tab === 'drive') search() }, [tab])
+  // Load all media immediately on open
+  useEffect(() => { if (tab === 'drive') search('') }, [tab])
 
-  function handleSearch(e) {
-    e.preventDefault()
+  // Debounce search as user types
+  function handleQueryChange(e) {
+    const val = e.target.value
+    setQuery(val)
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setFiles([])
+      search(val)
+    }, 500)
+  }
+
+  // Chip click — instant search
+  function handleChip(chip) {
+    setQuery(chip)
     setFiles([])
-    search(query)
+    search(chip)
+  }
+
+  // Clear search and show all
+  function handleClear() {
+    setQuery('')
+    setFiles([])
+    search('')
   }
 
   function handleSelect() {
@@ -46,7 +78,6 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
   async function handleUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    // For local uploads, create an object URL — in production you'd upload to storage
     const url = URL.createObjectURL(file)
     onSelect({
       id:           crypto.randomUUID(),
@@ -88,20 +119,44 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
 
         {tab === 'drive' && (
           <>
-            {/* Search */}
-            <div className="px-5 py-3 border-b">
-              <form onSubmit={handleSearch} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search your Drive…"
-                    className="pl-8 h-8 text-sm"
-                  />
+            {/* Search + chips */}
+            <div className="px-5 pt-3 pb-2 border-b space-y-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={handleQueryChange}
+                  placeholder="Filter by filename…"
+                  className="pl-8 pr-8 h-8 text-sm"
+                />
+                {query && (
+                  <button
+                    onClick={handleClear}
+                    className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pb-1">
+                  <span className="text-[11px] text-muted-foreground self-center">Suggestions:</span>
+                  {suggestions.map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => handleChip(chip)}
+                      className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                        query === chip
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-muted text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                      }`}
+                    >
+                      {chip}
+                    </button>
+                  ))}
                 </div>
-                <Button type="submit" size="sm" variant="outline">Search</Button>
-              </form>
+              )}
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
