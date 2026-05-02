@@ -58,6 +58,7 @@ export default function InterviewSession() {
   const [transcript, setTranscript] = useState('')
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [showInstructions, setShowInstructions] = useState(true)
+  const [saveStatus, setSaveStatus] = useState('') // '' | 'saving' | 'saved' | 'error'
 
   const bottomRef = useRef(null)
   const hasStarted = useRef(false)
@@ -69,6 +70,16 @@ export default function InterviewSession() {
   const interviewRef = useRef(null)
   const pastInterviewsRef = useRef([])
   const campaignRef = useRef({ mode: 'bookings', notes: '' })
+
+  function saveMessages(interviewId, patch, userId) {
+    setSaveStatus('saving')
+    updateInterview(interviewId, patch, userId)
+      .then(() => {
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus(''), 2000)
+      })
+      .catch(() => setSaveStatus('error'))
+  }
 
   useEffect(() => { messagesRef.current = messages }, [messages])
   useEffect(() => { transcriptRef.current = transcript }, [transcript])
@@ -186,7 +197,7 @@ export default function InterviewSession() {
     if (user?.id) {
       const patch = { messages: updated }
       if (isComplete) patch.status = 'in_progress'
-      updateInterview(interviewId, patch, user.id).catch(() => {})
+      saveMessages(interviewId, patch, user.id)
     }
 
     if (isComplete) setInterviewComplete(true)
@@ -281,7 +292,7 @@ export default function InterviewSession() {
     setMessages(updated)
 
     if (user?.id) {
-      updateInterview(interviewId, { messages: updated }, user.id).catch(() => {})
+      saveMessages(interviewId, { messages: updated }, user.id)
     }
 
     sendToAI(updated)
@@ -424,6 +435,11 @@ export default function InterviewSession() {
           <p className="font-medium text-sm leading-none">{clinician.name}</p>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{interview.topic}</p>
         </div>
+        {saveStatus && (
+          <span className={`text-xs shrink-0 ${saveStatus === 'error' ? 'text-destructive' : 'text-muted-foreground'}`}>
+            {saveStatus === 'saving' ? '↑ Saving…' : saveStatus === 'saved' ? '✓ Saved' : '⚠ Save failed'}
+          </span>
+        )}
         {interviewComplete
           ? <Badge variant="secondary" className="text-xs">Interview Complete</Badge>
           : isOwner && (
