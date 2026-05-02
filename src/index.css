@@ -50,4 +50,10 @@
     font-family: 'Titillium Web', system-ui, sans-serif;
     font-weight: 600;
   }
+  a {
+    @apply text-primary;
+  }
+  a:hover {
+    @apply opacity-80;
+  }
 }
