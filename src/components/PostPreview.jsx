@@ -2,11 +2,17 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin, Video, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import emailTemplateHtml from '../email-template.html?raw'
+import { brand } from '@/lib/brand'
 
-// Move Better brand colors / identity used in mock cards
-const MB_HANDLE   = 'movebetterclinic'
-const MB_NAME     = 'Move Better'
-const MB_LOCATION = 'Portland, OR'
+// Brand identity used in mock previews — sourced from src/lib/brand.js
+const MB_HANDLE   = brand.social.instagram
+const MB_NAME     = brand.name
+const MB_LOCATION = brand.location
+const MB_INITIALS = brand.socialAvatarInitials
+const MB_BLURB    = brand.linkPreviewBlurb
+const MB_HOSTNAME = brand.websiteHostname
+const MB_INDUSTRY = brand.linkedInIndustry
+const MB_BOOKING  = brand.prompt.bookingUrl
 
 // Highlight hashtags and @mentions in social copy
 function SocialText({ text }) {
@@ -38,7 +44,7 @@ function MediaCarousel({ mediaUrls, aspectClass = 'aspect-square' }) {
   if (total === 0) {
     return (
       <div className={`bg-gradient-to-br from-orange-100 to-orange-50 ${aspectClass} flex flex-col items-center justify-center gap-2`}>
-        <img src="/logo.svg" alt="Move Better" className="h-16 w-auto opacity-30" />
+        <img src={brand.logo.main} alt={brand.name} className="h-16 w-auto opacity-30" />
         <p className="text-xs text-muted-foreground">Add media in the editor</p>
       </div>
     )
@@ -123,7 +129,7 @@ function InstagramPreview({ content, mediaUrls = [] }) {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b">
         <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
-          MB
+          {MB_INITIALS}
         </div>
         <div>
           <p className="text-xs font-semibold">{MB_HANDLE}</p>
@@ -196,9 +202,9 @@ function FacebookPreview({ content, mediaUrls = [] }) {
 
       {/* Link preview */}
       <div className="border-t bg-slate-50 px-4 py-3">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">movebetter.co</p>
-        <p className="text-xs font-semibold mt-0.5">Move Better · Portland, OR</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5">Movement-first care for lasting pain relief.</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{MB_HOSTNAME}</p>
+        <p className="text-xs font-semibold mt-0.5">{MB_NAME} · {MB_LOCATION}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{MB_BLURB}</p>
       </div>
 
       {/* Reactions bar */}
@@ -227,7 +233,7 @@ function LinkedInPreview({ content }) {
           </div>
           <div>
             <p className="text-sm font-semibold">{MB_NAME}</p>
-            <p className="text-[11px] text-muted-foreground">Chiropractic · Portland, OR</p>
+            <p className="text-[11px] text-muted-foreground">{MB_INDUSTRY} · {MB_LOCATION}</p>
             <p className="text-[10px] text-muted-foreground">Just now · 🌐</p>
           </div>
           <button className="ml-auto text-xs font-semibold text-blue-600 border border-blue-600 rounded-full px-3 py-1">+ Follow</button>
@@ -349,7 +355,7 @@ const EMAIL_FIELDS = [
   { key: 'HEADLINE',       tag: '{{headline}}',           label: 'Headline',          hint: 'Large bold heading at top of email' },
   { key: 'PULL QUOTE',     tag: '{{pull_quote}}',         label: 'Pull Quote',        hint: 'Styled callout block — most compelling line' },
   { key: 'BODY PARAGRAPH 1', tag: '{{body_paragraph_1}}', label: 'Body Paragraph 1', hint: 'Opening hook' },
-  { key: 'BODY PARAGRAPH 2', tag: '{{body_paragraph_2}}', label: 'Body Paragraph 2', hint: 'Move Better perspective' },
+  { key: 'BODY PARAGRAPH 2', tag: '{{body_paragraph_2}}', label: 'Body Paragraph 2', hint: `${brand.name} perspective` },
   { key: 'BODY PARAGRAPH 3', tag: '{{body_paragraph_3}}', label: 'Body Paragraph 3', hint: 'Patient story + bridge to action' },
   { key: 'CTA TEXT',       tag: '{{cta_text}}',           label: 'CTA Button Text',   hint: 'Button label only' },
   { key: 'CTA URL',        tag: '{{cta_url}}',            label: 'CTA URL',           hint: 'Button destination URL' },
@@ -375,7 +381,7 @@ function fillTemplate(html, s, heroSrc) {
     .replace(/\{\{body_paragraph_2\}\}/g, escapeForHtml(s['BODY PARAGRAPH 2'] || ''))
     .replace(/\{\{body_paragraph_3\}\}/g, escapeForHtml(s['BODY PARAGRAPH 3'] || ''))
     .replace(/\{\{cta_text\}\}/g,         escapeForHtml(s['CTA TEXT'] || 'Book Now'))
-    .replace(/\{\{cta_url\}\}/g,          escapeForHtml(s['CTA URL'] || 'https://www.movebetter.co/'))
+    .replace(/\{\{cta_url\}\}/g,          escapeForHtml(s['CTA URL'] || MB_BOOKING))
     .replace(/\{\{ps_text\}\}/g,          escapeForHtml(s['PS'] || ''))
     .replace(/\{\{hero_image_url\}\}/g,   heroSrc || 'https://assets.cdn.filesafe.space/55VqA3IoxvCxZyjszdj7/media/698ce4a13fdd0e24c8bf6754.svg')
     .replace(/\{\{year\}\}/g,             String(year))
@@ -437,7 +443,7 @@ function EmailPreview({ content, mediaUrls = [] }) {
       {/* Section copy cards */}
       <div className="space-y-2">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Copy into TrustDrivenCare — Move Better Newsletter · Master
+          {brand.newsletterCopyHeader}
         </p>
         {EMAIL_FIELDS.map(({ key, tag, label, hint }) => {
           const value = s[key]
