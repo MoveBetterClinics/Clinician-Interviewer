@@ -88,10 +88,11 @@ export async function publishAndTrack(item, userId) {
 
 // ── Google Drive ──────────────────────────────────────────────────────────────
 
-export function fetchDriveFiles({ query = '', folder = '', pageToken = '' } = {}) {
+export function fetchDriveFiles({ query = '', folderId = '', pageToken = '' } = {}) {
   const params = new URLSearchParams()
   if (query)     params.set('q', query)
-  if (folder)    params.set('folder', folder)
+  if (folderId)  params.set('folder', folderId)
   if (pageToken) params.set('pageToken', pageToken)
   return apiFetch(`/api/drive/files?${params}`)
+  // Returns { items: [...{ id, name, kind:'folder'|'image'|'video', thumbnailUrl?, ... }], nextPageToken }
 }

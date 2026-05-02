@@ -3,7 +3,7 @@ export const config = { runtime: 'edge' }
 // Google Drive Team Drive browser via service account
 // Required env vars: GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_SERVICE_ACCOUNT_KEY, GOOGLE_DRIVE_ID
 
-const ok  = (data)       => new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } })
+const ok  = (data)            => new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } })
 const err = (msg, status = 400) => new Response(JSON.stringify({ error: msg }), { status, headers: { 'Content-Type': 'application/json' } })
 
 async function getGoogleToken(scope = 'https://www.googleapis.com/auth/drive.readonly') {
@@ -35,6 +35,8 @@ async function getGoogleToken(scope = 'https://www.googleapis.com/auth/drive.rea
   return data.access_token
 }
 
+const FOLDER_MIME = 'application/vnd.google-apps.folder'
+
 export default async function handler(req) {
   const driveId = process.env.GOOGLE_DRIVE_ID
   if (!driveId) return err('Google Drive not configured — add GOOGLE_DRIVE_ID to Vercel env vars', 503)
@@ -44,26 +46,33 @@ export default async function handler(req) {
   const folderId  = searchParams.get('folder') || driveId
   const pageToken = searchParams.get('pageToken') || ''
 
+  // Browse mode: no search query → show folders + media in current folder
+  // Search mode: query present → search all media across entire drive
+  const isBrowse = !query
+
   let token
   try { token = await getGoogleToken() }
   catch (e) { return err(`Google auth failed: ${e.message}`, 503) }
 
-  // Build query — only images and videos, from Team Drive
-  const mimeFilter = "(mimeType contains 'image/' or mimeType contains 'video/')"
-  const textFilter = query ? ` and name contains '${query.replace(/'/g, "\\'")}'` : ''
-  // Only filter by parent folder when browsing a specific subfolder — not the drive root
-  const folderFilter = (folderId && folderId !== driveId) ? ` and '${folderId}' in parents` : ''
-  const fullQuery = `${mimeFilter}${textFilter}${folderFilter} and trashed=false`
+  const mediaFilter = "(mimeType contains 'image/' or mimeType contains 'video/')"
+
+  let fullQuery
+  if (isBrowse) {
+    fullQuery = `'${folderId}' in parents and (mimeType = '${FOLDER_MIME}' or ${mediaFilter}) and trashed=false`
+  } else {
+    const textFilter = ` and name contains '${query.replace(/'/g, "\\'")}'`
+    fullQuery = `${mediaFilter}${textFilter} and trashed=false`
+  }
 
   const params = new URLSearchParams({
-    q: fullQuery,
-    fields: 'nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,webContentLink,size,createdTime,parents)',
-    pageSize: '50',
-    supportsAllDrives: 'true',
-    includeItemsFromAllDrives: 'true',
+    q:                        fullQuery,
+    fields:                   'nextPageToken,files(id,name,mimeType,thumbnailLink,webViewLink,size,createdTime)',
+    pageSize:                 '100',
+    supportsAllDrives:        'true',
+    includeItemsFromAllDrives:'true',
     driveId,
-    corpora: 'drive',
-    orderBy: 'createdTime desc',
+    corpora:                  'drive',
+    orderBy:                  'name',
   })
   if (pageToken) params.set('pageToken', pageToken)
 
@@ -72,32 +81,37 @@ export default async function handler(req) {
   })
   if (!res.ok) {
     const e = await res.json()
-    return err(`Drive API error: ${e.error?.message || res.status} (driveId: ${driveId}, query: ${fullQuery})`, 502)
+    return err(`Drive API error: ${e.error?.message || res.status} (folderId: ${folderId}, query: ${fullQuery})`, 502)
   }
 
   const data = await res.json()
+  const raw  = data.files || []
 
-  // Return debug info when no files found so we can diagnose
-  if (!data.files?.length) {
-    return ok({
-      files: [],
-      nextPageToken: null,
-      debug: { query: fullQuery, driveId, totalFound: 0 },
-    })
-  }
+  // Folders first, then media — both groups already alphabetical from orderBy:name
+  const folders = raw.filter((f) => f.mimeType === FOLDER_MIME)
+  const files   = raw.filter((f) => f.mimeType !== FOLDER_MIME)
 
-  return ok({
-    files: (data.files || []).map((f) => ({
+  const items = [
+    ...folders.map((f) => ({
+      id:   f.id,
+      name: f.name,
+      kind: 'folder',
+    })),
+    ...files.map((f) => ({
       id:           f.id,
       name:         f.name,
+      kind:         f.mimeType.startsWith('video') ? 'video' : 'image',
       mimeType:     f.mimeType,
-      type:         f.mimeType.startsWith('video') ? 'video' : 'image',
       thumbnailUrl: f.thumbnailLink || null,
       viewUrl:      f.webViewLink,
-      downloadUrl:  `https://drive.google.com/uc?export=download&id=${f.id}`,
       size:         f.size,
       createdAt:    f.createdTime,
     })),
-    nextPageToken: data.nextPageToken || null,
-  })
+  ]
+
+  if (!items.length) {
+    return ok({ items: [], nextPageToken: null, debug: { query: fullQuery, folderId, driveId } })
+  }
+
+  return ok({ items, nextPageToken: data.nextPageToken || null })
 }

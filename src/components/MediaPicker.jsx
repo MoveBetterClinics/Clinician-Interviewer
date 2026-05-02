@@ -1,81 +1,159 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, X, Loader2, Image, Video, Upload, FolderOpen, Check } from 'lucide-react'
+import { Search, X, Loader2, Image, Video, Upload, FolderOpen, Check, ChevronRight, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { fetchDriveFiles } from '@/lib/publish'
 
-// Build a short list of suggested search chips from the interview topic
+// Build suggested search chips from the interview topic
 function buildSuggestions(topic) {
   if (!topic) return []
-  const full = topic.trim()
-  // Also surface individual meaningful words (3+ chars)
+  const full  = topic.trim()
   const words = full.split(/\s+/).filter((w) => w.length >= 4)
-  const chips = [full, ...words].filter((v, i, arr) => arr.indexOf(v) === i).slice(0, 5)
-  return chips
+  return [full, ...words].filter((v, i, arr) => arr.indexOf(v) === i).slice(0, 5)
 }
 
-export default function MediaPicker({ onSelect, onClose, topic = '' }) {
-  const [tab, setTab]               = useState('drive')
-  const [query, setQuery]           = useState('')
-  const [files, setFiles]           = useState([])
-  const [loading, setLoading]       = useState(false)
-  const [selected, setSelected]     = useState(null)
-  const [nextPage, setNextPage]     = useState(null)
-  const [driveError, setDriveError] = useState('')
-  const fileInputRef                = useRef(null)
-  const debounceRef                 = useRef(null)
-  const suggestions                 = buildSuggestions(topic)
+// ── Video thumbnail with play-button overlay and graceful fallback ────────────
+function VideoThumb({ item }) {
+  const [thumbFailed, setThumbFailed] = useState(false)
 
-  async function search(q, pageToken = '') {
+  return (
+    <div className="relative h-full w-full">
+      {item.thumbnailUrl && !thumbFailed ? (
+        <img
+          src={item.thumbnailUrl}
+          alt={item.name}
+          className="w-full h-full object-cover"
+          onError={() => setThumbFailed(true)}
+        />
+      ) : (
+        <div className="h-full bg-slate-800 flex flex-col items-center justify-center gap-1 px-1">
+          <Video className="h-6 w-6 text-slate-400 shrink-0" />
+          <span className="text-[9px] text-slate-400 text-center leading-tight line-clamp-3">{item.name}</span>
+        </div>
+      )}
+      {/* Play button overlay */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="h-8 w-8 rounded-full bg-black/55 flex items-center justify-center">
+          <Play className="h-4 w-4 text-white ml-0.5" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Image thumbnail ───────────────────────────────────────────────────────────
+function ImageThumb({ item }) {
+  const [failed, setFailed] = useState(false)
+  if (item.thumbnailUrl && !failed) {
+    return (
+      <img
+        src={item.thumbnailUrl}
+        alt={item.name}
+        className="w-full h-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    )
+  }
+  return (
+    <div className="h-full bg-muted flex items-center justify-center">
+      <Image className="h-6 w-6 text-muted-foreground" />
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+export default function MediaPicker({ onSelect, onClose, topic = '' }) {
+  const [tab, setTab]         = useState('drive')
+  const [query, setQuery]     = useState('')
+  const [items, setItems]     = useState([])
+  const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [nextPage, setNextPage] = useState(null)
+  const [driveError, setDriveError] = useState('')
+  // Folder navigation: stack of { id, name }. Empty id = drive root.
+  const [folderStack, setFolderStack] = useState([{ id: '', name: 'Drive' }])
+  const fileInputRef = useRef(null)
+  const debounceRef  = useRef(null)
+  const suggestions  = buildSuggestions(topic)
+
+  const currentFolder = folderStack[folderStack.length - 1]
+  const isSearching   = !!query
+
+  async function load(opts = {}) {
+    const { q = '', folderId = currentFolder.id, pageToken = '', append = false } = opts
     setLoading(true)
     setDriveError('')
     try {
-      const data = await fetchDriveFiles({ query: q, pageToken })
-      setFiles(pageToken ? (prev) => [...prev, ...data.files] : data.files)
+      const data = await fetchDriveFiles({ query: q, folderId, pageToken })
+      const incoming = data.items || []
+      setItems(append ? (prev) => [...prev, ...incoming] : incoming)
       setNextPage(data.nextPageToken || null)
     } catch (e) {
-      setDriveError(e.message.includes('not configured')
-        ? 'Google Drive is not connected yet. Go to Settings → Integrations to set it up.'
-        : e.message)
+      setDriveError(
+        e.message.includes('not configured')
+          ? 'Google Drive is not connected yet. Go to Settings → Integrations to set it up.'
+          : e.message,
+      )
     } finally {
       setLoading(false)
     }
   }
 
-  // Load all media immediately on open
-  useEffect(() => { if (tab === 'drive') search('') }, [tab])
+  // Initial load when tab / folder changes
+  useEffect(() => {
+    if (tab === 'drive') {
+      setItems([])
+      setSelected(null)
+      load({ q: query, folderId: currentFolder.id })
+    }
+  }, [tab, currentFolder.id])
 
-  // Debounce search as user types
+  // Debounced search
   function handleQueryChange(e) {
     const val = e.target.value
     setQuery(val)
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      setFiles([])
-      search(val)
-    }, 500)
+      setItems([])
+      setSelected(null)
+      load({ q: val, folderId: currentFolder.id })
+    }, 400)
   }
 
-  // Chip click — instant search
   function handleChip(chip) {
     setQuery(chip)
-    setFiles([])
-    search(chip)
+    setItems([])
+    setSelected(null)
+    load({ q: chip, folderId: currentFolder.id })
   }
 
-  // Clear search and show all
   function handleClear() {
     setQuery('')
-    setFiles([])
-    search('')
+    setItems([])
+    setSelected(null)
+    load({ q: '', folderId: currentFolder.id })
+  }
+
+  function enterFolder(folder) {
+    setQuery('')           // clear search when navigating
+    setSelected(null)
+    setFolderStack((prev) => [...prev, { id: folder.id, name: folder.name }])
+    // the useEffect on currentFolder.id will trigger load
+  }
+
+  function goToLevel(index) {
+    setQuery('')
+    setSelected(null)
+    setFolderStack((prev) => prev.slice(0, index + 1))
   }
 
   function handleSelect() {
     if (!selected) return
-    // Attach a proxy URL so images can be displayed without Google auth
-    const file = selected.type === 'image'
-      ? { ...selected, proxyUrl: `/api/drive/media?id=${selected.id}` }
-      : selected
+    const file = {
+      ...selected,
+      type:     selected.kind,   // backward compat for editor / preview
+      proxyUrl: selected.kind === 'image' ? `/api/drive/media?id=${selected.id}` : undefined,
+    }
     onSelect(file)
   }
 
@@ -87,6 +165,7 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
       id:           crypto.randomUUID(),
       name:         file.name,
       mimeType:     file.type,
+      kind:         file.type.startsWith('video') ? 'video' : 'image',
       type:         file.type.startsWith('video') ? 'video' : 'image',
       thumbnailUrl: file.type.startsWith('image') ? url : null,
       url,
@@ -94,17 +173,21 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
     })
   }
 
+  const mediaItems  = items.filter((i) => i.kind !== 'folder')
+  const folderItems = items.filter((i) => i.kind === 'folder')
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-background rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div className="bg-background rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b">
+        <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
           <h2 className="font-semibold">Add Media</h2>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b px-5">
+        <div className="flex border-b px-5 shrink-0">
           {[
             { id: 'drive',  label: 'Google Drive', icon: FolderOpen },
             { id: 'upload', label: 'Upload',        icon: Upload },
@@ -113,7 +196,9 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
               key={id}
               onClick={() => setTab(id)}
               className={`flex items-center gap-1.5 px-3 py-3 text-sm border-b-2 transition-colors -mb-px ${
-                tab === id ? 'border-primary text-foreground font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'
+                tab === id
+                  ? 'border-primary text-foreground font-medium'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon className="h-3.5 w-3.5" />{label}
@@ -124,7 +209,7 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
         {tab === 'drive' && (
           <>
             {/* Search + chips */}
-            <div className="px-5 pt-3 pb-2 border-b space-y-2">
+            <div className="px-5 pt-3 pb-2 border-b shrink-0 space-y-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -144,8 +229,8 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
               </div>
 
               {suggestions.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pb-1">
-                  <span className="text-[11px] text-muted-foreground self-center">Suggestions:</span>
+                <div className="flex flex-wrap gap-1.5 pb-0.5">
+                  <span className="text-[11px] text-muted-foreground self-center">Suggest:</span>
                   {suggestions.map((chip) => (
                     <button
                       key={chip}
@@ -163,51 +248,99 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
               )}
             </div>
 
+            {/* Breadcrumb — hidden when searching */}
+            {!isSearching && folderStack.length > 1 && (
+              <div className="flex items-center gap-1 px-5 py-2 text-xs text-muted-foreground border-b shrink-0 overflow-x-auto">
+                {folderStack.map((f, i) => (
+                  <span key={i} className="flex items-center gap-1 shrink-0">
+                    {i > 0 && <ChevronRight className="h-3 w-3" />}
+                    <button
+                      onClick={() => goToLevel(i)}
+                      className={i === folderStack.length - 1
+                        ? 'text-foreground font-medium'
+                        : 'hover:text-foreground transition-colors'}
+                    >
+                      {f.name}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Grid */}
             <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
               {driveError ? (
                 <div className="text-sm text-muted-foreground bg-muted rounded-lg p-4 text-center">{driveError}</div>
-              ) : loading && files.length === 0 ? (
-                <div className="flex items-center justify-center py-12">
+              ) : loading && items.length === 0 ? (
+                <div className="flex items-center justify-center py-16">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : files.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground text-sm">No media found in your Drive.</div>
+              ) : items.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground text-sm">
+                  {isSearching ? 'No media matching that search.' : 'No media in this folder.'}
+                </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-4 gap-2">
-                    {files.map((f) => (
-                      <button
-                        key={f.id}
-                        onClick={() => setSelected(selected?.id === f.id ? null : f)}
-                        className={`relative rounded-lg overflow-hidden border-2 aspect-square transition-all ${
-                          selected?.id === f.id ? 'border-primary' : 'border-transparent hover:border-muted-foreground/30'
-                        }`}
-                      >
-                        {f.type === 'video' ? (
-                          <div className="h-full bg-slate-100 flex flex-col items-center justify-center gap-1">
-                            <Video className="h-6 w-6 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground px-1 text-center leading-tight line-clamp-2">{f.name}</span>
-                          </div>
-                        ) : f.thumbnailUrl ? (
-                          <img src={f.thumbnailUrl} alt={f.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="h-full bg-muted flex items-center justify-center">
-                            <Image className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                        {selected?.id === f.id && (
-                          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                            <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Folders — not selectable, click to navigate */}
+                  {!isSearching && folderItems.length > 0 && (
+                    <div>
+                      <p className="text-[11px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">Folders</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {folderItems.map((f) => (
+                          <button
+                            key={f.id}
+                            onClick={() => enterFolder(f)}
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/40 aspect-square hover:bg-accent hover:border-primary/40 transition-colors p-2"
+                          >
+                            <FolderOpen className="h-8 w-8 text-primary/70" />
+                            <span className="text-[10px] text-muted-foreground text-center leading-tight line-clamp-2 w-full">{f.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Media files */}
+                  {mediaItems.length > 0 && (
+                    <div>
+                      {!isSearching && folderItems.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">Files</p>
+                      )}
+                      <div className="grid grid-cols-4 gap-2">
+                        {mediaItems.map((f) => (
+                          <button
+                            key={f.id}
+                            onClick={() => setSelected(selected?.id === f.id ? null : f)}
+                            className={`relative rounded-lg overflow-hidden border-2 aspect-square transition-all ${
+                              selected?.id === f.id
+                                ? 'border-primary'
+                                : 'border-transparent hover:border-muted-foreground/30'
+                            }`}
+                          >
+                            {f.kind === 'video'
+                              ? <VideoThumb item={f} />
+                              : <ImageThumb item={f} />
+                            }
+                            {selected?.id === f.id && (
+                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
+                                  <Check className="h-4 w-4 text-white" />
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {nextPage && (
-                    <Button variant="outline" size="sm" className="w-full" onClick={() => search(query, nextPage)} disabled={loading}>
-                      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                    <Button
+                      variant="outline" size="sm" className="w-full"
+                      onClick={() => load({ q: query, folderId: currentFolder.id, pageToken: nextPage, append: true })}
+                      disabled={loading}
+                    >
+                      {loading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
                       Load more
                     </Button>
                   )}
@@ -216,8 +349,8 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
+            <div className="px-5 py-3 border-t flex items-center justify-between shrink-0">
+              <p className="text-xs text-muted-foreground truncate max-w-[55%]">
                 {selected ? `Selected: ${selected.name}` : 'Select a file to attach'}
               </p>
               <div className="flex gap-2">
@@ -238,16 +371,11 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
               <p className="text-sm font-medium mb-1">Click to upload a photo or video</p>
               <p className="text-xs text-muted-foreground">JPG, PNG, GIF, MP4, MOV supported</p>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={handleUpload}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleUpload} />
             <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
           </div>
         )}
+
       </div>
     </div>
   )
