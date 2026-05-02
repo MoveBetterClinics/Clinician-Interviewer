@@ -95,7 +95,7 @@ function ProtectedApp() {
 
 export default function App() {
   useEffect(() => {
-    document.title = `${brand.name} — Clinician Interviewer`
+    document.title = brand.appName
   }, [])
 
   if (!PUBLISHABLE_KEY) {
