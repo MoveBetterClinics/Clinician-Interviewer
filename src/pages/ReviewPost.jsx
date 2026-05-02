@@ -208,7 +208,7 @@ export default function ReviewPost() {
 
             {showPreview ? (
               <div className="min-h-[400px] rounded-xl border bg-slate-50 p-4 overflow-auto">
-                <PostPreview platform={item.platform} content={content} />
+                <PostPreview platform={item.platform} content={content} mediaUrls={item.media_urls || []} />
               </div>
             ) : (
               <>
@@ -259,7 +259,11 @@ export default function ReviewPost() {
                         <span className="text-xs text-muted-foreground text-center px-2">{m.name}</span>
                       </div>
                     ) : (
-                      <img src={m.thumbnailUrl || m.url} alt={m.name} className="w-full h-full object-cover" />
+                      <img
+                        src={m.proxyUrl || (m.id ? `/api/drive/media?id=${m.id}` : m.thumbnailUrl || m.url)}
+                        alt={m.name}
+                        className="w-full h-full object-cover"
+                      />
                     )}
                     {!isPublished && (
                       <button

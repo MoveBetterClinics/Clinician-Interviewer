@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin } from 'lucide-react'
+import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin, Video } from 'lucide-react'
 
 // Move Better brand colors / identity used in mock cards
 const MB_HANDLE   = 'movebetterclinic'
@@ -23,8 +23,14 @@ function SocialText({ text }) {
   )
 }
 
+// Resolve the best displayable URL for a media item
+function mediaSrc(m) {
+  if (!m) return null
+  return m.proxyUrl || (m.id ? `/api/drive/media?id=${m.id}` : m.thumbnailUrl || m.url || null)
+}
+
 // ── Instagram ────────────────────────────────────────────────────────────────
-function InstagramPreview({ content }) {
+function InstagramPreview({ content, mediaUrls = [] }) {
   const [showFull, setShowFull] = React.useState(false)
   const lines = (content || '').split('\n')
   const preview = lines.slice(0, 4).join('\n')
@@ -44,11 +50,24 @@ function InstagramPreview({ content }) {
         <button className="ml-auto text-xs font-semibold text-blue-500">Follow</button>
       </div>
 
-      {/* Image placeholder */}
-      <div className="bg-gradient-to-br from-orange-100 to-orange-50 aspect-square flex flex-col items-center justify-center gap-2">
-        <img src="/logo.svg" alt="Move Better" className="h-16 w-auto opacity-30" />
-        <p className="text-xs text-muted-foreground">Add media in the editor</p>
-      </div>
+      {/* Image / placeholder */}
+      {mediaUrls[0] && mediaSrc(mediaUrls[0]) ? (
+        mediaUrls[0].type === 'video' ? (
+          <div className="bg-slate-900 aspect-square flex flex-col items-center justify-center gap-2">
+            <Video className="h-10 w-10 text-white/60" />
+            <p className="text-xs text-white/40 px-4 text-center line-clamp-2">{mediaUrls[0].name}</p>
+          </div>
+        ) : (
+          <div className="aspect-square overflow-hidden">
+            <img src={mediaSrc(mediaUrls[0])} alt={mediaUrls[0].name} className="w-full h-full object-cover" />
+          </div>
+        )
+      ) : (
+        <div className="bg-gradient-to-br from-orange-100 to-orange-50 aspect-square flex flex-col items-center justify-center gap-2">
+          <img src="/logo.svg" alt="Move Better" className="h-16 w-auto opacity-30" />
+          <p className="text-xs text-muted-foreground">Add media in the editor</p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="px-4 pt-3 pb-1 flex items-center gap-4">
@@ -73,7 +92,7 @@ function InstagramPreview({ content }) {
 }
 
 // ── Facebook ─────────────────────────────────────────────────────────────────
-function FacebookPreview({ content }) {
+function FacebookPreview({ content, mediaUrls = [] }) {
   const [showFull, setShowFull] = React.useState(false)
   const lines = (content || '').split('\n')
   const preview = lines.slice(0, 5).join('\n')
@@ -103,6 +122,13 @@ function FacebookPreview({ content }) {
           )}
         </p>
       </div>
+
+      {/* Attached image */}
+      {mediaUrls[0] && mediaSrc(mediaUrls[0]) && mediaUrls[0].type !== 'video' && (
+        <div className="border-t overflow-hidden max-h-48">
+          <img src={mediaSrc(mediaUrls[0])} alt={mediaUrls[0].name} className="w-full object-cover" />
+        </div>
+      )}
 
       {/* Link preview */}
       <div className="border-t bg-slate-50 px-4 py-3">
@@ -218,7 +244,7 @@ function PlainPreview({ content }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function PostPreview({ platform, content }) {
+export default function PostPreview({ platform, content, mediaUrls = [] }) {
   if (!content?.trim()) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
@@ -228,8 +254,8 @@ export default function PostPreview({ platform, content }) {
   }
 
   switch (platform) {
-    case 'instagram':   return <InstagramPreview content={content} />
-    case 'facebook':    return <FacebookPreview  content={content} />
+    case 'instagram':   return <InstagramPreview content={content} mediaUrls={mediaUrls} />
+    case 'facebook':    return <FacebookPreview  content={content} mediaUrls={mediaUrls} />
     case 'linkedin':    return <LinkedInPreview  content={content} />
     case 'gbp':         return <GBPPreview       content={content} />
     case 'blog':        return <BlogPreview      content={content} />

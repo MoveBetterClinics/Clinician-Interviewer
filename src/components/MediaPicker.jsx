@@ -72,7 +72,11 @@ export default function MediaPicker({ onSelect, onClose, topic = '' }) {
 
   function handleSelect() {
     if (!selected) return
-    onSelect(selected)
+    // Attach a proxy URL so images can be displayed without Google auth
+    const file = selected.type === 'image'
+      ? { ...selected, proxyUrl: `/api/drive/media?id=${selected.id}` }
+      : selected
+    onSelect(file)
   }
 
   async function handleUpload(e) {
