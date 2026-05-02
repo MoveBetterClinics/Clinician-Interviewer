@@ -1,5 +1,56 @@
 import { formatPNWContextForPrompt } from './pnwQuestions'
 
+export const TONES = [
+  {
+    id: 'smart',
+    label: 'Smart Default',
+    emoji: '✨',
+    description: 'AI picks what best connects patients with this condition',
+  },
+  {
+    id: 'active',
+    label: 'Active & Driven',
+    emoji: '⚡',
+    description: 'Athletes and high performers — direct, sport-specific, efficient',
+  },
+  {
+    id: 'clinical',
+    label: 'Clinical & In-Depth',
+    emoji: '🔬',
+    description: 'Educated patients who want the full picture — precise, research-backed',
+  },
+  {
+    id: 'warm',
+    label: 'Warm & Reassuring',
+    emoji: '🤝',
+    description: 'Anxious or overwhelmed patients — empathetic, gentle, hopeful',
+  },
+]
+
+function getToneModifier(tone) {
+  switch (tone) {
+    case 'active':
+      return `
+CONTENT TONE — Active & Driven:
+This content targets athletes, fitness-minded patients, and high performers. Write with direct, efficient language. Reference sport-specific scenarios relevant to the Pacific Northwest (running, lifting, cycling, climbing, hiking, skiing). Speak to performance, return-to-sport timelines, and understanding the mechanics. These readers don't need hand-holding — they want precision and actionable specifics. Avoid overly gentle or reassuring language.`
+
+    case 'clinical':
+      return `
+CONTENT TONE — Clinical & In-Depth:
+This content targets educated patients who want the full clinical picture. Use precise anatomical and medical vocabulary where it adds clarity — always briefly explain technical terms inline. Include biomechanical reasoning, research-backed framing, and detailed process descriptions. These readers have often already tried standard treatments and want to understand exactly why Move Better's approach is different. Do not oversimplify.`
+
+    case 'warm':
+      return `
+CONTENT TONE — Warm & Reassuring:
+This content targets patients who are anxious, overwhelmed, or have tried many things without success. Lead with empathy and validation — make them feel seen and understood before anything else. Use gentle, hopeful language throughout. Emphasize that recovery is possible, that their experience is valid, and that they are not alone. Avoid clinical jargon entirely. Focus on small wins, realistic timelines, and the emotional journey alongside the physical. Never make readers feel blamed for their condition.`
+
+    default: // 'smart' or undefined
+      return `
+CONTENT TONE — Smart Default:
+Optimize for maximum patient connection and engagement. Write at an accessible level that a motivated patient with no medical background can fully understand and act on. Use warm, relatable language while still being specific and credible. Prioritize the framing most likely to resonate with someone experiencing this condition and considering seeking help at a movement-based clinic.`
+  }
+}
+
 export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = []) {
   let pastContext = ''
   if (pastInterviews.length > 0) {
@@ -50,7 +101,7 @@ ENDING THE INTERVIEW:
 Start immediately with your first question. No greeting, no introduction.`
 }
 
-export function getBlogPostSystemPrompt(clinicianName, condition) {
+export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart') {
   return `You are a content writer for Move Better Chiropractic in Portland, OR. Based on the interview transcript below with ${clinicianName} about treating ${condition}, write an engaging, on-brand blog post targeted at Pacific Northwest readers.
 
 CRITICAL FRAMING RULE:
@@ -144,10 +195,11 @@ BLOG POST FORMAT (write in Markdown):
 ---
 *Move Better Chiropractic · Portland, OR*
 
-TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.`
+TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.
+${getToneModifier(tone)}`
 }
 
-export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '') {
+export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
   return `Based on the blog post provided, generate social media content for Move Better Chiropractic. The post is about ${condition}.
 
 CRITICAL FRAMING RULE:
@@ -198,10 +250,11 @@ Google Business Profile post:
 Create 3 Pinterest pin variations. For each:
 PIN TITLE: (max 100 characters, include keywords naturally — brand as Move Better)
 PIN DESCRIPTION: (200–400 characters, keyword-rich natural language, include https://www.movebetter.co/)
-BOARD: (Pain Relief & Recovery / Portland Wellness / Movement & Fitness / Chiropractic Care)${campaignContext}`
+BOARD: (Pain Relief & Recovery / Portland Wellness / Movement & Fitness / Chiropractic Care)${campaignContext}
+${getToneModifier(tone)}`
 }
 
-export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '') {
+export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
   const firstName = clinicianName.split(' ')[0]
   return `Based on the blog post provided, write two video scripts for Move Better Chiropractic about ${condition}.
 
@@ -256,10 +309,11 @@ One punchy sentence that stops the scroll. Lead with tension or a counterintuiti
 Soft CTA: "If you're dealing with ${condition} in Portland, follow for more — link in bio to book at Move Better."
 
 CAPTION:
-50–80 word TikTok caption with 5–6 relevant hashtags. Brand as Move Better.${campaignContext}`
+50–80 word TikTok caption with 5–6 relevant hashtags. Brand as Move Better.${campaignContext}
+${getToneModifier(tone)}`
 }
 
-export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '') {
+export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
   const firstName = clinicianName.split(' ')[0]
   const conditionSlug = condition.toLowerCase().replace(/\s+/g, '-').slice(0, 20)
   return `Based on the blog post provided, generate three marketing assets for Move Better Chiropractic about ${condition}. Use the blog post as your source of truth.
@@ -340,5 +394,6 @@ SITELINK EXTENSIONS — 4, with title and 2-line description each:
    Line 2: [line 2]
 [continue to 4]
 
-Mix brand terms (Move Better, Portland), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.${campaignContext}`
+Mix brand terms (Move Better, Portland), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.${campaignContext}
+${getToneModifier(tone)}`
 }

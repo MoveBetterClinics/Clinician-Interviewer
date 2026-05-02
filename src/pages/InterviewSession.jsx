@@ -319,18 +319,19 @@ export default function InterviewSession() {
     window.speechSynthesis?.cancel()
     try {
       const apiMessages = messages.map((m) => ({ role: m.role, content: m.content }))
+      const tone = interview.tone || 'smart'
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        getBlogPostSystemPrompt(clinician.name, interview.topic)
+        getBlogPostSystemPrompt(clinician.name, interview.topic, tone)
       )
 
       setGeneratingPhase('all')
       const blogInput = [{ role: 'user', content: blogPost }]
       const campaignContext = getCampaignPromptContext(campaignRef.current)
       const [socialResult, videoResult, marketingResult] = await Promise.allSettled([
-        generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext)),
-        generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext)),
-        generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic, campaignContext)),
+        generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone)),
+        generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone)),
+        generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone)),
       ])
 
       const social = socialResult.status === 'fulfilled' ? socialResult.value : ''
