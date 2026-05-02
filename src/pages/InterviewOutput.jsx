@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft, Copy, Check, Instagram, Facebook, FileText, RefreshCw, Loader2,
-  Globe, Video, Mail, Linkedin, Youtube, MapPin, Search, Layout, Smartphone, Pin, Share2,
+  Globe, Video, Mail, Linkedin, Youtube, MapPin, Search, Layout, Smartphone, Pin, Share2, Pencil,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { fetchClinician, fetchInterview } from '@/lib/api'
+import { fetchContentItemsByInterview } from '@/lib/publish'
 import { formatDate } from '@/lib/utils'
 
 export default function InterviewOutput() {
@@ -17,6 +18,7 @@ export default function InterviewOutput() {
   const [clinician, setClinician] = useState(null)
   const [interview, setInterview] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [itemMap, setItemMap] = useState({}) // platform → content_item id
 
   useEffect(() => {
     Promise.all([fetchClinician(clinicianId), fetchInterview(interviewId)])
@@ -24,6 +26,14 @@ export default function InterviewOutput() {
         if (!c || !i || !i.outputs) { navigate('/'); return }
         setClinician(c)
         setInterview(i)
+        // Build platform → content_item id map for Edit buttons
+        fetchContentItemsByInterview(interviewId)
+          .then((items) => {
+            const map = {}
+            items.forEach((item) => { map[item.platform] = item.id })
+            setItemMap(map)
+          })
+          .catch(() => {})
       })
       .catch(() => navigate('/'))
       .finally(() => setLoading(false))
@@ -96,6 +106,7 @@ export default function InterviewOutput() {
             subtitle="Markdown — paste into your CMS or blog editor"
             content={o.blogPost}
             badge="Markdown"
+            editId={itemMap['blog']}
           />
         </TabsContent>
 
@@ -126,6 +137,7 @@ export default function InterviewOutput() {
                 subtitle="Copy and paste into your Instagram post — no URLs in body, use bio link"
                 content={o.instagram}
                 badge="Instagram"
+                editId={itemMap['instagram']}
               />
             </TabsContent>
             <TabsContent value="facebook">
@@ -134,14 +146,16 @@ export default function InterviewOutput() {
                 subtitle="Copy and paste into your Facebook page — URL generates a rich link preview"
                 content={o.facebook}
                 badge="Facebook"
+                editId={itemMap['facebook']}
               />
             </TabsContent>
             <TabsContent value="linkedin">
               <OutputCard
                 title="LinkedIn Post"
-                subtitle="Post from the clinician's personal LinkedIn for maximum reach"
+                subtitle="Post from the Move Better LinkedIn page"
                 content={o.linkedin}
                 badge="LinkedIn"
+                editId={itemMap['linkedin']}
               />
             </TabsContent>
             <TabsContent value="pinterest">
@@ -150,6 +164,7 @@ export default function InterviewOutput() {
                 subtitle="3 pin variations — use with a vertical image linked to the blog post"
                 content={o.pinterest}
                 badge="Pinterest"
+                editId={itemMap['pinterest']}
               />
             </TabsContent>
           </Tabs>
@@ -178,6 +193,7 @@ export default function InterviewOutput() {
                 subtitle="Post directly to your GBP — appears in Maps and Search results"
                 content={o.gbpPost}
                 badge="GBP"
+                editId={itemMap['gbp']}
               />
             </TabsContent>
             <TabsContent value="ads">
@@ -186,6 +202,7 @@ export default function InterviewOutput() {
                 subtitle="Responsive Search Ad — 15 headlines, 4 descriptions, extensions"
                 content={o.googleAds}
                 badge="Google Ads"
+                editId={itemMap['google_ads']}
               />
             </TabsContent>
             <TabsContent value="landing">
@@ -194,6 +211,7 @@ export default function InterviewOutput() {
                 subtitle="Conversion-focused page copy — includes SEO title tag and meta description"
                 content={o.landingPage}
                 badge="Landing Page"
+                editId={itemMap['landing_page']}
               />
             </TabsContent>
           </Tabs>
@@ -218,6 +236,7 @@ export default function InterviewOutput() {
                 subtitle="5–8 minute script with B-roll cues, patient story, and video description"
                 content={o.youtubeScript}
                 badge="YouTube"
+                editId={itemMap['youtube']}
               />
             </TabsContent>
             <TabsContent value="tiktok">
@@ -226,6 +245,7 @@ export default function InterviewOutput() {
                 subtitle="45–60 second vertical video script with on-screen text cues and caption"
                 content={o.tiktokScript}
                 badge="TikTok / Reels"
+                editId={itemMap['tiktok']}
               />
             </TabsContent>
           </Tabs>
@@ -238,6 +258,7 @@ export default function InterviewOutput() {
             subtitle="GoHighLevel-ready — subject lines, preview text, and body copy included"
             content={o.emailNewsletter}
             badge="Newsletter"
+            editId={itemMap['email']}
           />
         </TabsContent>
       </Tabs>
@@ -245,7 +266,7 @@ export default function InterviewOutput() {
   )
 }
 
-function OutputCard({ title, subtitle, content, badge }) {
+function OutputCard({ title, subtitle, content, badge, editId }) {
   const [copied, setCopied] = useState(false)
 
   function handleCopy() {
@@ -287,6 +308,14 @@ function OutputCard({ title, subtitle, content, badge }) {
               </>
             )}
           </Button>
+          {editId && (
+            <Button size="sm" variant="outline" asChild>
+              <Link to={`/review/${editId}`}>
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Edit
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
       <ScrollArea className="h-[480px]">

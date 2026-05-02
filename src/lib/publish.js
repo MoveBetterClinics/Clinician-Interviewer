@@ -22,6 +22,10 @@ export function fetchContentItem(id) {
   return apiFetch(`/api/db/content?id=${encodeURIComponent(id)}`)
 }
 
+export function fetchContentItemsByInterview(interviewId) {
+  return apiFetch(`/api/db/content?interviewId=${encodeURIComponent(interviewId)}`)
+}
+
 export function updateContentItem(id, patch) {
   return apiFetch(`/api/db/content?id=${encodeURIComponent(id)}`, {
     method: 'PATCH',

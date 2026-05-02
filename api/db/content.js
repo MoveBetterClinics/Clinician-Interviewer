@@ -35,17 +35,19 @@ export default async function handler(req) {
     }
 
     // List with optional filters
-    const status   = searchParams.get('status')
-    const platform = searchParams.get('platform')
-    const from     = searchParams.get('from')   // ISO date
-    const to       = searchParams.get('to')     // ISO date
-    const limit    = parseInt(searchParams.get('limit') || '100')
+    const status      = searchParams.get('status')
+    const platform    = searchParams.get('platform')
+    const from        = searchParams.get('from')        // ISO date
+    const to          = searchParams.get('to')          // ISO date
+    const interviewId = searchParams.get('interviewId')
+    const limit       = parseInt(searchParams.get('limit') || '100')
 
     let qs = `content_items?select=${SELECT}&order=created_at.desc&limit=${limit}`
-    if (status)   qs += `&status=eq.${status}`
-    if (platform) qs += `&platform=eq.${platform}`
-    if (from)     qs += `&scheduled_at=gte.${from}`
-    if (to)       qs += `&scheduled_at=lte.${to}`
+    if (status)      qs += `&status=eq.${status}`
+    if (platform)    qs += `&platform=eq.${platform}`
+    if (from)        qs += `&scheduled_at=gte.${from}`
+    if (to)          qs += `&scheduled_at=lte.${to}`
+    if (interviewId) qs += `&interview_id=eq.${interviewId}`
 
     const res = await sb(qs)
     if (!res.ok) return err('Database error', 500)
