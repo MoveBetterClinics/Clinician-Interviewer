@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ExternalLink, CheckCircle2, AlertCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { ExternalLink, CheckCircle2, AlertCircle, Loader2, ChevronDown, ChevronUp, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -80,6 +80,22 @@ const INTEGRATIONS = [
   },
 ]
 
+const EMAIL_MERGE_TAGS = [
+  { tag: '{{preview_text}}',    desc: 'Inbox snippet shown below the subject line (50–90 chars)' },
+  { tag: '{{headline}}',        desc: 'Large bold heading at the top of the email body' },
+  { tag: '{{pull_quote}}',      desc: 'Styled green callout block — most compelling line from the piece' },
+  { tag: '{{body_paragraph_1}}', desc: 'Opening hook paragraph' },
+  { tag: '{{body_paragraph_2}}', desc: 'Move Better perspective paragraph' },
+  { tag: '{{body_paragraph_3}}', desc: 'Patient story + bridge to action paragraph' },
+  { tag: '{{cta_text}}',        desc: 'Button label only (e.g. "Book a Free Consultation")' },
+  { tag: '{{cta_url}}',         desc: 'Button destination URL' },
+  { tag: '{{ps_text}}',         desc: 'Optional P.S. line after the CTA' },
+  { tag: '{{hero_image_url}}',  desc: 'Full URL of the hero image shown below the header' },
+  { tag: '{{year}}',            desc: 'Auto-filled — current year for the copyright line' },
+  { tag: '{{unsubscribe_url}}', desc: 'Auto-filled by TrustDrivenCare at send time' },
+  { tag: '{{webview_url}}',     desc: 'Auto-filled by TrustDrivenCare at send time' },
+]
+
 export default function Integrations() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -102,6 +118,9 @@ export default function Integrations() {
           <IntegrationCard key={integration.id} integration={integration} />
         ))}
       </div>
+
+      {/* TrustDrivenCare email template section */}
+      <TrustDrivenCareCard />
     </div>
   )
 }
@@ -196,6 +215,115 @@ function VercelEnvRow({ envKey, label, placeholder }) {
         </div>
         <p className="text-[11px] text-muted-foreground">Value example: <code className="font-mono">{placeholder}</code></p>
       </div>
+    </div>
+  )
+}
+
+function TrustDrivenCareCard() {
+  const [open, setOpen] = useState(false)
+  const [copiedTag, setCopiedTag] = useState(null)
+
+  function copyTag(tag) {
+    navigator.clipboard.writeText(tag)
+    setCopiedTag(tag)
+    setTimeout(() => setCopiedTag(null), 1500)
+  }
+
+  return (
+    <div className="rounded-xl border bg-card overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-accent/30 transition-colors text-left"
+      >
+        <div className="flex items-start gap-3">
+          <Mail className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">TrustDrivenCare — Email Newsletter</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Email previews render the actual Move Better Newsletter master template. Here's how to keep it in sync.
+            </p>
+            <div className="flex gap-1 mt-1.5">
+              <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">Email</span>
+            </div>
+          </div>
+        </div>
+        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5 border-t pt-4 space-y-5">
+
+          {/* How it works */}
+          <div>
+            <p className="text-sm font-medium mb-2">How the preview works</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              The email preview in the Content Hub renders an <code className="font-mono text-xs bg-muted px-1 rounded">iframe</code> using
+              the actual TrustDrivenCare HTML template stored at{' '}
+              <code className="font-mono text-xs bg-muted px-1 rounded">src/email-template.html</code> in the repo.
+              Each <code className="font-mono text-xs bg-muted px-1 rounded">{'{{merge_tag}}'}</code> is substituted
+              with the corresponding section from the generated email before rendering — so what you see in the app
+              is exactly what will appear in TDC.
+            </p>
+          </div>
+
+          <Separator />
+
+          {/* Updating the template */}
+          <div>
+            <p className="text-sm font-medium mb-2">Updating the template design</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              When you update the <strong>Move Better Newsletter · Master</strong> template in TrustDrivenCare, do the following to keep the preview in sync:
+            </p>
+            <ol className="space-y-1.5">
+              {[
+                'In TrustDrivenCare, open the master template and export / copy the full HTML source.',
+                'Open the repo in your code editor and replace the contents of src/email-template.html with the new HTML.',
+                'Make sure all {{merge_tags}} listed below are still present in the new HTML — TDC should preserve them.',
+                'Commit the file and push to main. Vercel will redeploy automatically.',
+                'No other code changes are needed — the preview will immediately reflect the new design.',
+              ].map((step, i) => (
+                <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                  <span className="text-primary font-semibold shrink-0">{i + 1}.</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <Separator />
+
+          {/* Merge tags reference */}
+          <div>
+            <p className="text-sm font-medium mb-2">Merge tag reference</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              These tags are filled automatically by the app when rendering the preview and when you copy content into TDC.
+            </p>
+            <div className="space-y-1.5">
+              {EMAIL_MERGE_TAGS.map(({ tag, desc }) => (
+                <div key={tag} className="flex items-start gap-2 group">
+                  <button
+                    onClick={() => copyTag(tag)}
+                    className="shrink-0 font-mono text-xs bg-muted px-2 py-1 rounded border hover:bg-accent transition-colors text-primary min-w-0"
+                    title="Click to copy"
+                  >
+                    {copiedTag === tag ? <span className="text-green-600">✓ copied</span> : tag}
+                  </button>
+                  <p className="text-xs text-muted-foreground pt-1 leading-tight">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 flex items-start gap-3">
+            <AlertCircle className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700">
+              The <code className="font-mono">{'{{unsubscribe_url}}'}</code> and <code className="font-mono">{'{{webview_url}}'}</code> tags
+              are set to <code className="font-mono">#</code> in the preview. TrustDrivenCare replaces them automatically at send time.
+            </p>
+          </div>
+
+        </div>
+      )}
     </div>
   )
 }
