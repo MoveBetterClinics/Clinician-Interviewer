@@ -1,4 +1,4 @@
-# Move Better People — Project Notes
+# Move Better Animal Chiropractic — Project Notes
 
 ## Session Focus
 At the start of EVERY new conversation, before doing anything else, ask:
@@ -12,15 +12,26 @@ At the start of EVERY new conversation, before doing anything else, ask:
 If the work drifts into a second unrelated area mid-session, name it and suggest: "That's a good next session — want to note it and come back to it?"
 
 ## Brand
-This is the **human chiropractic / physical therapy** brand (Move Better People).
-There are two sibling projects — Move Better Equine and Move Better Animal Chiropractic — which share this codebase but deploy separately with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between projects.
+This is the **small animal chiropractic** brand (Move Better Animal Chiropractic).
+- Species: Dogs, cats, and most small pets
+- Audience: Pet owners
+- Brand is new — website, social accounts, and visual identity are being built alongside this deployment
+- Positioned as complementary to veterinary care, never a replacement
+
+There are two sibling projects — Move Better People (human) and Move Better Equine — which share this codebase but deploy separately. Do not mix brand-specific content, credentials, or data between projects.
+
+## Key Conditions & Language
+Common conditions: intervertebral disc disease (IVDD), hip dysplasia, post-surgical recovery, mobility decline in senior pets, gait abnormalities, neck and back pain, limping without orthopedic cause.
+Audience tone: warm, accessible, pet-owner-friendly. Education-forward without clinical jargon.
 
 ## GitHub
-Always use the GitHub CLI (`gh`) for all GitHub interactions — pushing, PRs, issues, repo management. Do not use `git push` over HTTPS or SSH directly.
+Always use the GitHub CLI (`gh`) for all GitHub interactions. This worktree is on the `animals` branch.
+Shared remote: https://github.com/MoveBetterClinics/Move-Better-People
+
+To pull core improvements from main into this branch:
+```bash
+git fetch origin && git merge origin/main
+```
 
 ## Email Template
-The email newsletter preview renders the actual TrustDrivenCare (TDC) HTML template via `<iframe srcDoc>`. The template lives at `src/email-template.html` and is imported with Vite's `?raw` loader in `src/components/PostPreview.jsx`.
-
-**To update the template** (e.g. after redesigning in TDC): export the master HTML from TrustDrivenCare, replace `src/email-template.html` with the new HTML, and commit. No React changes needed — all `{{merge_tags}}` are substituted at render time by `fillTemplate()` in PostPreview.jsx.
-
-Merge tags currently in use: `{{preview_text}}`, `{{headline}}`, `{{pull_quote}}`, `{{body_paragraph_1}}`, `{{body_paragraph_2}}`, `{{body_paragraph_3}}`, `{{cta_text}}`, `{{cta_url}}`, `{{ps_text}}`, `{{hero_image_url}}`, `{{year}}`, `{{unsubscribe_url}}`, `{{webview_url}}`.
+Same TrustDrivenCare template as Move Better People — see the main branch CLAUDE.md for merge tag details.
