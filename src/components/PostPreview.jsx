@@ -359,6 +359,30 @@ function EmailPreview({ content }) {
   const s = parseEmailSections(content)
   const hasSections = Object.keys(s).length > 0
 
+  // Old-format email: show a notice + raw content instead of the broken shell
+  if (!hasSections) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex gap-3">
+          <span className="text-amber-500 text-lg shrink-0">⚠</span>
+          <div>
+            <p className="text-sm font-medium text-amber-800">This email needs to be regenerated</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              It was created before the structured template format. Switch to <strong>Edit</strong>, delete the content,
+              and re-run <em>Generate Content</em> from the interview to get the new section layout with one-click copy into TrustDrivenCare.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-xl border bg-white shadow-sm">
+          <div className="px-5 py-4 border-b bg-slate-50">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Current content (raw)</p>
+          </div>
+          <pre className="px-5 py-4 text-xs leading-relaxed font-sans whitespace-pre-wrap text-slate-700">{content}</pre>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
 
@@ -468,12 +492,6 @@ function EmailPreview({ content }) {
           )
         })}
 
-        {!hasSections && (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            This email was generated before the structured format was introduced.<br />
-            Edit the content and regenerate to get copyable sections.
-          </div>
-        )}
       </div>
     </div>
   )
