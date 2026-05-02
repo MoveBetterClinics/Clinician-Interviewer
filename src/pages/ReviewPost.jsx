@@ -4,6 +4,7 @@ import { useUser } from '@clerk/clerk-react'
 import {
   ArrowLeft, Send, CalendarDays, CheckCircle2, Loader2, Copy, Check,
   AlertCircle, Image, Trash2, ExternalLink, Eye, Pencil,
+  ChevronLeft, ChevronRight, Play, Video,
 } from 'lucide-react'
 import PostPreview from '@/components/PostPreview'
 import { Button } from '@/components/ui/button'
@@ -133,6 +134,14 @@ export default function ReviewPost() {
     setItem(updated)
   }
 
+  async function reorderMedia(fromIndex, toIndex) {
+    const urls = [...(item.media_urls || [])]
+    const [moved] = urls.splice(fromIndex, 1)
+    urls.splice(toIndex, 0, moved)
+    const updated = await updateContentItem(itemId, { mediaUrls: urls })
+    setItem(updated)
+  }
+
   async function addMedia(file) {
     const urls = [...(item.media_urls || []), file]
     const updated = await updateContentItem(itemId, { mediaUrls: urls })
@@ -252,34 +261,71 @@ export default function ReviewPost() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {item.media_urls.map((m, i) => (
-                  <div key={i} className="relative group rounded-lg overflow-hidden border bg-muted aspect-square">
-                    {m.type === 'video' ? (
-                      <div className="h-full flex items-center justify-center bg-slate-100">
-                        <span className="text-xs text-muted-foreground text-center px-2">{m.name}</span>
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {item.media_urls.map((m, i) => {
+                  const total = item.media_urls.length
+                  const imgSrc = m.proxyUrl || (m.id ? `/api/drive/media?id=${m.id}` : m.thumbnailUrl || m.url)
+                  return (
+                    <div key={i} className="relative group shrink-0 w-32 rounded-lg overflow-hidden border bg-muted" style={{ aspectRatio: '1' }}>
+                      {/* Thumbnail */}
+                      {m.type === 'video' ? (
+                        <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center gap-1 px-1">
+                          {imgSrc && <img src={imgSrc} alt={m.name} className="absolute inset-0 w-full h-full object-cover opacity-50" onError={(e) => { e.target.style.display='none' }} />}
+                          <div className="relative z-10 flex flex-col items-center gap-1">
+                            <Play className="h-6 w-6 text-white" />
+                            <span className="text-[9px] text-white/70 text-center line-clamp-2 px-1">{m.name}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <img src={imgSrc} alt={m.name} className="absolute inset-0 w-full h-full object-cover" />
+                      )}
+
+                      {/* Position badge */}
+                      <div className="absolute top-1 left-1 h-5 w-5 rounded-full bg-black/60 text-white text-[10px] font-bold flex items-center justify-center">
+                        {i + 1}
                       </div>
-                    ) : (
-                      <img
-                        src={m.proxyUrl || (m.id ? `/api/drive/media?id=${m.id}` : m.thumbnailUrl || m.url)}
-                        alt={m.name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    {!isPublished && (
-                      <button
-                        onClick={() => removeMedia(i)}
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                    <a href={m.viewUrl} target="_blank" rel="noopener noreferrer"
-                       className="absolute bottom-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                ))}
+
+                      {/* Reorder + delete controls — visible on hover */}
+                      {!isPublished && (
+                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-1 py-1 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => reorderMedia(i, i - 1)}
+                            disabled={i === 0}
+                            className="h-6 w-6 rounded bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/80 transition-colors"
+                            title="Move left"
+                          >
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => removeMedia(i)}
+                            className="h-6 w-6 rounded bg-red-600/80 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                            title="Remove"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => reorderMedia(i, i + 1)}
+                            disabled={i === total - 1}
+                            className="h-6 w-6 rounded bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/80 transition-colors"
+                            title="Move right"
+                          >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+
+                      {m.viewUrl && (
+                        <a
+                          href={m.viewUrl} target="_blank" rel="noopener noreferrer"
+                          className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Open in Drive"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

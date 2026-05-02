@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin, Video } from 'lucide-react'
+import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin, Video, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 
 // Move Better brand colors / identity used in mock cards
 const MB_HANDLE   = 'movebetterclinic'
@@ -29,6 +29,87 @@ function mediaSrc(m) {
   return m.proxyUrl || (m.id ? `/api/drive/media?id=${m.id}` : m.thumbnailUrl || m.url || null)
 }
 
+// ── Carousel — shared by Instagram and Facebook ───────────────────────────────
+function MediaCarousel({ mediaUrls, aspectClass = 'aspect-square' }) {
+  const [idx, setIdx] = React.useState(0)
+  const total = mediaUrls.length
+
+  if (total === 0) {
+    return (
+      <div className={`bg-gradient-to-br from-orange-100 to-orange-50 ${aspectClass} flex flex-col items-center justify-center gap-2`}>
+        <img src="/logo.svg" alt="Move Better" className="h-16 w-auto opacity-30" />
+        <p className="text-xs text-muted-foreground">Add media in the editor</p>
+      </div>
+    )
+  }
+
+  const m   = mediaUrls[idx]
+  const src = mediaSrc(m)
+
+  return (
+    <div className={`relative ${aspectClass} overflow-hidden bg-black select-none`}>
+      {/* Slide */}
+      {m.type === 'video' ? (
+        <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center gap-2">
+          {src ? (
+            <img src={src} alt={m.name} className="w-full h-full object-cover opacity-70" onError={(e) => { e.target.style.display = 'none' }} />
+          ) : null}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-black/50 flex items-center justify-center">
+              <Play className="h-6 w-6 text-white ml-1" />
+            </div>
+          </div>
+          <p className="absolute bottom-2 left-0 right-0 text-center text-[10px] text-white/60 px-4 line-clamp-1">{m.name}</p>
+        </div>
+      ) : src ? (
+        <img src={src} alt={m.name} className="absolute inset-0 w-full h-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 bg-muted flex items-center justify-center">
+          <p className="text-xs text-muted-foreground">{m.name}</p>
+        </div>
+      )}
+
+      {/* Prev / Next arrows */}
+      {total > 1 && (
+        <>
+          {idx > 0 && (
+            <button
+              onClick={() => setIdx(idx - 1)}
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          {idx < total - 1 && (
+            <button
+              onClick={() => setIdx(idx + 1)}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+
+          {/* Slide counter */}
+          <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+            {idx + 1} / {total}
+          </div>
+
+          {/* Dot indicators */}
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {mediaUrls.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`rounded-full transition-all ${i === idx ? 'w-2 h-2 bg-white' : 'w-1.5 h-1.5 bg-white/50'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Instagram ────────────────────────────────────────────────────────────────
 function InstagramPreview({ content, mediaUrls = [] }) {
   const [showFull, setShowFull] = React.useState(false)
@@ -50,24 +131,8 @@ function InstagramPreview({ content, mediaUrls = [] }) {
         <button className="ml-auto text-xs font-semibold text-blue-500">Follow</button>
       </div>
 
-      {/* Image / placeholder */}
-      {mediaUrls[0] && mediaSrc(mediaUrls[0]) ? (
-        mediaUrls[0].type === 'video' ? (
-          <div className="bg-slate-900 aspect-square flex flex-col items-center justify-center gap-2">
-            <Video className="h-10 w-10 text-white/60" />
-            <p className="text-xs text-white/40 px-4 text-center line-clamp-2">{mediaUrls[0].name}</p>
-          </div>
-        ) : (
-          <div className="aspect-square overflow-hidden">
-            <img src={mediaSrc(mediaUrls[0])} alt={mediaUrls[0].name} className="w-full h-full object-cover" />
-          </div>
-        )
-      ) : (
-        <div className="bg-gradient-to-br from-orange-100 to-orange-50 aspect-square flex flex-col items-center justify-center gap-2">
-          <img src="/logo.svg" alt="Move Better" className="h-16 w-auto opacity-30" />
-          <p className="text-xs text-muted-foreground">Add media in the editor</p>
-        </div>
-      )}
+      {/* Carousel */}
+      <MediaCarousel mediaUrls={mediaUrls} aspectClass="aspect-square" />
 
       {/* Actions */}
       <div className="px-4 pt-3 pb-1 flex items-center gap-4">
@@ -123,11 +188,9 @@ function FacebookPreview({ content, mediaUrls = [] }) {
         </p>
       </div>
 
-      {/* Attached image */}
-      {mediaUrls[0] && mediaSrc(mediaUrls[0]) && mediaUrls[0].type !== 'video' && (
-        <div className="border-t overflow-hidden max-h-48">
-          <img src={mediaSrc(mediaUrls[0])} alt={mediaUrls[0].name} className="w-full object-cover" />
-        </div>
+      {/* Media carousel */}
+      {mediaUrls.length > 0 && (
+        <MediaCarousel mediaUrls={mediaUrls} aspectClass="aspect-video" />
       )}
 
       {/* Link preview */}
