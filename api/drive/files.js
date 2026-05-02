@@ -72,10 +72,20 @@ export default async function handler(req) {
   })
   if (!res.ok) {
     const e = await res.json()
-    return err(e.error?.message || 'Drive API error', 502)
+    return err(`Drive API error: ${e.error?.message || res.status} (driveId: ${driveId}, query: ${fullQuery})`, 502)
   }
 
   const data = await res.json()
+
+  // Return debug info when no files found so we can diagnose
+  if (!data.files?.length) {
+    return ok({
+      files: [],
+      nextPageToken: null,
+      debug: { query: fullQuery, driveId, totalFound: 0 },
+    })
+  }
+
   return ok({
     files: (data.files || []).map((f) => ({
       id:           f.id,
