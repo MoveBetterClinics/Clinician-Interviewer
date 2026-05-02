@@ -4,7 +4,7 @@ import { useUser } from '@clerk/clerk-react'
 import {
   ArrowLeft, Send, CalendarDays, CheckCircle2, Loader2, Copy, Check,
   AlertCircle, Image, Trash2, ExternalLink, Eye, Pencil,
-  ChevronLeft, ChevronRight, Play, Video,
+  ChevronLeft, ChevronRight, Play, Video, RefreshCw,
 } from 'lucide-react'
 import PostPreview from '@/components/PostPreview'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { fetchContentItem, updateContentItem, publishAndTrack, fetchGBPLocations } from '@/lib/publish'
+import { fetchInterview } from '@/lib/api'
+import { getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
 import { PLATFORM_META, STATUS_META } from './ContentHub'
 import MediaPicker from '@/components/MediaPicker'
 import { formatDate } from '@/lib/utils'
@@ -32,10 +34,11 @@ export default function ReviewPost() {
   const [saveStatus, setSaveStatus]   = useState('') // '' | 'saving' | 'saved'
   const autoSaveTimer                 = useRef(null)
   const isFirstLoad                   = useRef(true)
-  const [publishing, setPublishing]   = useState(false)
-  const [copied, setCopied]           = useState(false)
-  const [error, setError]             = useState('')
-  const [success, setSuccess]         = useState('')
+  const [publishing, setPublishing]     = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
+  const [copied, setCopied]             = useState(false)
+  const [error, setError]               = useState('')
+  const [success, setSuccess]           = useState('')
   const [showPicker, setShowPicker]       = useState(false)
   const [showPreview, setShowPreview]     = useState(false)
   const [scheduledAt, setScheduledAt]     = useState('')
@@ -118,6 +121,86 @@ export default function ReviewPost() {
       setError(`Publish failed: ${e.message}`)
     } finally {
       setPublishing(false)
+    }
+  }
+
+  // ── Regenerate ────────────────────────────────────────────────────────────────
+  function extractSection(text, startMarker, endMarker) {
+    if (!startMarker) return text.trim()
+    const si = text.indexOf(startMarker)
+    if (si === -1) return text.trim()
+    const after = text.slice(si + startMarker.length)
+    if (!endMarker) return after.trim()
+    const ei = after.indexOf(endMarker)
+    return ei === -1 ? after.trim() : after.slice(0, ei).trim()
+  }
+
+  const PLATFORM_MARKERS = {
+    blog:         [null,                    null],
+    instagram:    ['---INSTAGRAM---',       '---FACEBOOK---'],
+    facebook:     ['---FACEBOOK---',        '---GBP POST---'],
+    gbp:          ['---GBP POST---',        '---LINKEDIN---'],
+    linkedin:     ['---LINKEDIN---',        null],
+    youtube:      ['---YOUTUBE SCRIPT---',  '---TIKTOK SCRIPT---'],
+    tiktok:       ['---TIKTOK SCRIPT---',   null],
+    email:        ['---EMAIL NEWSLETTER---','---LANDING PAGE---'],
+    landing_page: ['---LANDING PAGE---',    '---GOOGLE ADS---'],
+    google_ads:   ['---GOOGLE ADS---',      null],
+  }
+
+  async function regenerate() {
+    if (!item) return
+    setRegenerating(true)
+    setError('')
+    setSuccess('')
+    try {
+      const interview = await fetchInterview(item.interview_id)
+      const { messages, outputs, tone } = interview
+      const clinicianName = item.clinician_name
+      const condition     = item.topic
+      const platform      = item.platform
+
+      let systemPrompt, inputMessages
+      const blogPost = outputs?.blogPost || ''
+
+      if (platform === 'blog') {
+        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, '', tone)
+        inputMessages = messages?.length ? messages : [{ role: 'user', content: 'Please write the blog post.' }]
+      } else {
+        if (!blogPost) throw new Error('The blog post for this interview must be generated first before regenerating other content.')
+        inputMessages = [{ role: 'user', content: blogPost }]
+        if (['instagram', 'facebook', 'gbp', 'linkedin'].includes(platform)) {
+          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone)
+        } else if (['youtube', 'tiktok'].includes(platform)) {
+          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone)
+        } else {
+          systemPrompt = getMarketingBatchSystemPrompt(clinicianName, condition, '', tone)
+        }
+      }
+
+      const res = await fetch('/api/generate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ messages: inputMessages, systemPrompt }),
+      })
+      if (!res.ok) throw new Error(`Generation failed (${res.status})`)
+      const data = await res.json()
+      const generated = data.content?.[0]?.text || ''
+      if (!generated) throw new Error(data.error || 'No content returned from generation.')
+
+      const [startMarker, endMarker] = PLATFORM_MARKERS[platform] || [null, null]
+      const newContent = extractSection(generated, startMarker, endMarker)
+      if (!newContent) throw new Error('Could not parse content from the generated output.')
+
+      const updated = await updateContentItem(itemId, { content: newContent, status: 'draft' })
+      setItem(updated)
+      setContent(newContent)
+      setSuccess('Content regenerated!')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (e) {
+      setError(`Regenerate failed: ${e.message}`)
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -344,6 +427,25 @@ export default function ReviewPost() {
         {/* Right: actions */}
         <div className="space-y-4">
           {/* Status actions */}
+          {/* Regenerate */}
+          {!isPublished && (
+            <div className="rounded-xl border p-4 space-y-2">
+              <p className="text-sm font-medium">Regenerate content</p>
+              <p className="text-xs text-muted-foreground">Re-runs AI generation for this platform using the original interview.</p>
+              <Button
+                variant="outline" size="sm" className="w-full"
+                onClick={regenerate}
+                disabled={regenerating}
+              >
+                {regenerating
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                }
+                {regenerating ? 'Regenerating…' : 'Regenerate'}
+              </Button>
+            </div>
+          )}
+
           {!isPublished && (
             <div className="rounded-xl border p-4 space-y-3">
               <p className="text-sm font-medium">Publish this post</p>

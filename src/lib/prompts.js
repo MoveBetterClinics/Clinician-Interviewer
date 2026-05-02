@@ -324,21 +324,39 @@ All assets are branded for Move Better as a clinic. The clinician's expertise in
 Output each section separated by the exact markers below.
 
 ---EMAIL NEWSLETTER---
-Monthly patient newsletter section for GoHighLevel email delivery.
+Monthly patient newsletter for TrustDrivenCare delivery. Output MUST use the exact section markers below — each maps to a named field in the Move Better Newsletter - Master template.
 
-SUBJECT LINE OPTIONS:
-Option A: (curiosity-driven — about the condition, not the clinician)
-Option B: (benefit-driven — what Move Better can help with)
-PREVIEW TEXT: (50–90 characters for inbox preview)
+---SUBJECT LINE---
+One subject line. Curiosity- or benefit-driven. About the condition and what Move Better does — not the clinician. Under 50 characters.
 
-BODY:
-Opening hook: 2–3 sentences that make the reader feel seen if they have ${condition}.
-Highlight: 2–3 paragraphs on Move Better's key perspective on ${condition} — what makes the approach different. May reference "one of our clinicians, ${firstName}" once.
-Patient story: 2–3 sentences on the anonymized case from the blog (if available). Frame as a Move Better patient.
-Read more: "Read the full post on our website →" linking to https://www.movebetter.co/
-CTA: "Ready to move better? Book your assessment at Move Better → https://www.movebetter.co/"
+---PREVIEW TEXT---
+One sentence, 50–90 characters. The inbox preview snippet. Complements the subject line — don't repeat it.
 
-Tone: warm, educational, knowledgeable friend. No medical jargon. Plain text with line breaks — compatible with GoHighLevel email templates.
+---HEADLINE---
+The email's main headline. Hopeful, specific, under 12 words. No clinician name. This appears in large bold type at the top of the email body.
+
+---PULL QUOTE---
+One single compelling sentence pulled or adapted from the body — the most memorable insight. 15–25 words. First person plural ("we") or declarative. This appears as a styled callout block.
+
+---BODY PARAGRAPH 1---
+Opening hook. 3–5 sentences. Make the reader feel seen — speak directly to someone living with ${condition}. Warm, no jargon.
+
+---BODY PARAGRAPH 2---
+Move Better's perspective. 3–5 sentences on what makes the approach different for ${condition}. Use "we" and "our team." May reference "one of our clinicians, ${firstName}" once for credibility.
+
+---BODY PARAGRAPH 3---
+Patient story + bridge to action. 3–4 sentences. Anonymized case from the blog if available, framed as a Move Better patient. End with a natural transition toward booking.
+
+---CTA TEXT---
+Button label only. 4–7 words. Action-oriented. E.g. "Book Your Movement Assessment" or "Start Moving Better Today".
+
+---CTA URL---
+https://www.movebetter.co/
+
+---PS---
+One optional P.S. line. 1–2 sentences. Add urgency, a secondary CTA, or a human touch. Keep it brief.
+
+Tone: warm, educational, knowledgeable friend. No medical jargon.
 
 ---LANDING PAGE---
 Conversion-focused landing page copy for a condition-specific Move Better page about ${condition}.

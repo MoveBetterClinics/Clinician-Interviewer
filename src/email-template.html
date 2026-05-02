@@ -24,7 +24,7 @@
     a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
     @media screen and (max-width: 620px) {
       .email-container { width: 100% !important; }
-      .hero-img { height: 180px !important; }
+      .hero-img { height: 100px !important; }
       .headline { font-size: 22px !important; line-height: 1.25 !important; }
       .body-text { font-size: 15px !important; }
       .cta-button { padding: 14px 28px !important; font-size: 15px !important; }
@@ -62,26 +62,26 @@
             <!--<![endif]-->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
-                  <td align="center" style="padding: 20px 40px 16px 40px;">
+                  <td align="center" style="padding: 40px 40px 20px 40px;">
                     <a href="https://www.movebetter.co/" target="_blank">
                       <img src="https://assets.cdn.filesafe.space/55VqA3IoxvCxZyjszdj7/media/69f569ac6b07ab3303f24482.svg" alt="Move Better" width="300" style="display:block; margin:0 auto; max-width:300px; height:auto;">
                     </a>
                   </td>
                 </tr>
               </table>
+              <div style="line-height:0; font-size:0; display:block;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 52" width="600" height="52" style="display:block; width:100%;" preserveAspectRatio="none">
+                  <polygon points="0,52 600,10 600,52" fill="#FFFFFF"/>
+                </svg>
+              </div>
             </td>
           </tr>
 
           <!-- HERO IMAGE (delete this row for text-only sends) -->
           <tr>
             <td style="padding: 0; line-height:0; font-size:0;">
-              <!-- Diagonal: orange above the cut, white below — seamless with header -->
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 52" width="600" height="52" style="display:block; width:100%;" preserveAspectRatio="none">
-                <polygon points="0,0 600,0 600,10 0,52" fill="#E36525"/>
-                <polygon points="0,52 600,10 600,52" fill="#FFFFFF"/>
-              </svg>
               <a href="{{cta_url}}" target="_blank">
-                <img src="{{hero_image_url}}" alt="{{headline}}" class="hero-img fluid" width="600" style="display:block; width:100%; height:240px; object-fit:cover; object-position:center;">
+                <img src="{{hero_image_url}}" alt="{{headline}}" class="hero-img fluid" width="600" style="display:block; width:100%; height:120px; object-fit:cover; object-position:center;">
               </a>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 36" width="600" height="36" style="display:block; width:100%; margin-top:-1px;" preserveAspectRatio="none">
                 <polygon points="0,0 600,0 600,36 0,14" fill="#FFFFFF"/>
@@ -140,14 +140,14 @@
             </td>
           </tr>
 
-          <!-- BODY PARAGRAPH 2 (hide if unused) -->
+          <!-- BODY PARAGRAPH 2 -->
           <tr>
             <td class="pad-sides body-text" style="background-color:#FFFFFF; padding: 8px 40px; font-family:'Titillium Web', Arial, Helvetica, sans-serif; font-size:16px; font-weight:400; color:#2C2C2C; line-height:1.75;">
               {{body_paragraph_2}}
             </td>
           </tr>
 
-          <!-- BODY PARAGRAPH 3 (hide if unused) -->
+          <!-- BODY PARAGRAPH 3 -->
           <tr>
             <td class="pad-sides body-text" style="background-color:#FFFFFF; padding: 8px 40px 28px 40px; font-family:'Titillium Web', Arial, Helvetica, sans-serif; font-size:16px; font-weight:400; color:#2C2C2C; line-height:1.75;">
               {{body_paragraph_3}}
@@ -183,7 +183,7 @@
             </td>
           </tr>
 
-          <!-- P.S. BLOCK (delete if unused) -->
+          <!-- P.S. BLOCK -->
           <tr>
             <td class="pad-sides" style="background-color:#FFFFFF; padding: 4px 40px 32px 40px; font-family:'Titillium Web', Arial, Helvetica, sans-serif; font-size:14px; color:#6E7072; line-height:1.7;">
               <strong style="color:#83957C;">P.S.</strong> &mdash; {{ps_text}}

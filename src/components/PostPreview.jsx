@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Heart, MessageCircle, Send, Bookmark, ThumbsUp, Repeat2, Globe, MapPin, Video, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import emailTemplateHtml from '../email-template.html?raw'
 
 // Move Better brand colors / identity used in mock cards
 const MB_HANDLE   = 'movebetterclinic'
@@ -295,12 +296,166 @@ function BlogPreview({ content }) {
   )
 }
 
-// ── Plain formatted (email, ads, landing page, video scripts) ────────────────
+// ── Plain formatted (ads, landing page, video scripts) ───────────────────────
 function PlainPreview({ content }) {
   return (
     <div className="max-w-2xl mx-auto bg-white border rounded-xl shadow-sm overflow-hidden">
       <div className="px-6 py-6">
         <pre className="text-sm leading-relaxed font-sans whitespace-pre-wrap text-slate-800">{content}</pre>
+      </div>
+    </div>
+  )
+}
+
+// ── Email — parse sections + visual mock matching the TDC master template ────
+function parseEmailSections(content) {
+  if (!content) return {}
+  const result = {}
+  const regex  = /^---([A-Z][A-Z 0-9]+)---$/gm
+  const matches = []
+  let m
+  while ((m = regex.exec(content)) !== null) {
+    matches.push({ key: m[1].trim(), start: m.index + m[0].length })
+  }
+  matches.forEach((match, i) => {
+    const end   = i < matches.length - 1 ? matches[i + 1].start - matches[i + 1].key.length - 7 : content.length
+    result[match.key] = content.slice(match.start, end).trim()
+  })
+  return result
+}
+
+function CopyButton({ value }) {
+  const [copied, setCopied] = React.useState(false)
+  function copy() {
+    navigator.clipboard.writeText(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <button
+      onClick={copy}
+      className={`shrink-0 text-[11px] px-2 py-1 rounded border transition-colors ${
+        copied ? 'border-green-500 text-green-600 bg-green-50' : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+      }`}
+    >
+      {copied ? '✓ Copied' : 'Copy'}
+    </button>
+  )
+}
+
+const EMAIL_FIELDS = [
+  { key: 'SUBJECT LINE',    tag: null,                    label: 'Subject Line',      hint: 'Set in TrustDrivenCare send settings' },
+  { key: 'PREVIEW TEXT',   tag: '{{preview_text}}',      label: 'Preview Text',      hint: 'Inbox snippet — 50–90 chars' },
+  { key: 'HEADLINE',       tag: '{{headline}}',           label: 'Headline',          hint: 'Large bold heading at top of email' },
+  { key: 'PULL QUOTE',     tag: '{{pull_quote}}',         label: 'Pull Quote',        hint: 'Styled callout block — most compelling line' },
+  { key: 'BODY PARAGRAPH 1', tag: '{{body_paragraph_1}}', label: 'Body Paragraph 1', hint: 'Opening hook' },
+  { key: 'BODY PARAGRAPH 2', tag: '{{body_paragraph_2}}', label: 'Body Paragraph 2', hint: 'Move Better perspective' },
+  { key: 'BODY PARAGRAPH 3', tag: '{{body_paragraph_3}}', label: 'Body Paragraph 3', hint: 'Patient story + bridge to action' },
+  { key: 'CTA TEXT',       tag: '{{cta_text}}',           label: 'CTA Button Text',   hint: 'Button label only' },
+  { key: 'CTA URL',        tag: '{{cta_url}}',            label: 'CTA URL',           hint: 'Button destination URL' },
+  { key: 'PS',             tag: '{{ps_text}}',            label: 'P.S.',              hint: 'Optional postscript line' },
+]
+
+function escapeForHtml(str) {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function fillTemplate(html, s, heroSrc) {
+  const year = new Date().getFullYear()
+  return html
+    .replace(/\{\{preview_text\}\}/g,    escapeForHtml(s['PREVIEW TEXT'] || ''))
+    .replace(/\{\{headline\}\}/g,         escapeForHtml(s['HEADLINE'] || ''))
+    .replace(/\{\{pull_quote\}\}/g,       escapeForHtml(s['PULL QUOTE'] || ''))
+    .replace(/\{\{body_paragraph_1\}\}/g, escapeForHtml(s['BODY PARAGRAPH 1'] || ''))
+    .replace(/\{\{body_paragraph_2\}\}/g, escapeForHtml(s['BODY PARAGRAPH 2'] || ''))
+    .replace(/\{\{body_paragraph_3\}\}/g, escapeForHtml(s['BODY PARAGRAPH 3'] || ''))
+    .replace(/\{\{cta_text\}\}/g,         escapeForHtml(s['CTA TEXT'] || 'Book Now'))
+    .replace(/\{\{cta_url\}\}/g,          escapeForHtml(s['CTA URL'] || 'https://www.movebetter.co/'))
+    .replace(/\{\{ps_text\}\}/g,          escapeForHtml(s['PS'] || ''))
+    .replace(/\{\{hero_image_url\}\}/g,   heroSrc || 'https://assets.cdn.filesafe.space/55VqA3IoxvCxZyjszdj7/media/698ce4a13fdd0e24c8bf6754.svg')
+    .replace(/\{\{year\}\}/g,             String(year))
+    .replace(/\{\{unsubscribe_url\}\}/g,  '#')
+    .replace(/\{\{webview_url\}\}/g,      '#')
+}
+
+function EmailPreview({ content, mediaUrls = [] }) {
+  const s = parseEmailSections(content)
+  const hasSections = Object.keys(s).length > 0
+  const heroMedia = mediaUrls.find((m) => m.type === 'image' || m.kind === 'image')
+  const heroSrc   = heroMedia ? (heroMedia.proxyUrl || (heroMedia.id ? `/api/drive/media?id=${heroMedia.id}` : heroMedia.url)) : null
+
+  // Old-format email: show a notice + raw content instead of the broken shell
+  if (!hasSections) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex gap-3">
+          <span className="text-amber-500 text-lg shrink-0">⚠</span>
+          <div>
+            <p className="text-sm font-medium text-amber-800">This email needs to be regenerated</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              It was created before the structured template format. Switch to <strong>Edit</strong>, delete the content,
+              and re-run <em>Generate Content</em> from the interview to get the new section layout with one-click copy into TrustDrivenCare.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-xl border bg-white shadow-sm">
+          <div className="px-5 py-4 border-b bg-slate-50">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Current content (raw)</p>
+          </div>
+          <pre className="px-5 py-4 text-xs leading-relaxed font-sans whitespace-pre-wrap text-slate-700">{content}</pre>
+        </div>
+      </div>
+    )
+  }
+
+  const filledHtml = fillTemplate(emailTemplateHtml, s, heroSrc)
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+
+      {/* Email subject / preview chrome bar */}
+      <div className="rounded-t-lg overflow-hidden border border-slate-200 bg-slate-800">
+        <div className="px-4 py-2">
+          <p className="text-[11px] text-slate-400"><span className="text-slate-300 font-medium">Subject: </span>{s['SUBJECT LINE'] || '—'}</p>
+          <p className="text-[10px] text-slate-500 truncate">{s['PREVIEW TEXT'] || 'Preview text will appear here…'}</p>
+        </div>
+      </div>
+
+      {/* Iframe rendering actual TDC template */}
+      <iframe
+        srcDoc={filledHtml}
+        title="Email Preview"
+        style={{ width: '100%', height: 960, border: '1px solid #e2e8f0', borderRadius: 8, display: 'block' }}
+        sandbox="allow-same-origin"
+      />
+
+      {/* Section copy cards */}
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Copy into TrustDrivenCare — Move Better Newsletter · Master
+        </p>
+        {EMAIL_FIELDS.map(({ key, tag, label, hint }) => {
+          const value = s[key]
+          if (!value) return null
+          return (
+            <div key={key} className="border rounded-lg bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b">
+                <div>
+                  <span className="text-xs font-semibold text-slate-700">{label}</span>
+                  {tag && <span className="ml-2 text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">{tag}</span>}
+                  <span className="ml-2 text-[10px] text-muted-foreground">{hint}</span>
+                </div>
+                <CopyButton value={value} />
+              </div>
+              <p className="px-3 py-2 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{value}</p>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -322,6 +477,7 @@ export default function PostPreview({ platform, content, mediaUrls = [] }) {
     case 'linkedin':    return <LinkedInPreview  content={content} />
     case 'gbp':         return <GBPPreview       content={content} />
     case 'blog':        return <BlogPreview      content={content} />
+    case 'email':       return <EmailPreview     content={content} mediaUrls={mediaUrls} />
     default:            return <PlainPreview     content={content} />
   }
 }
