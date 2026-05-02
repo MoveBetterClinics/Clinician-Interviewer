@@ -169,6 +169,15 @@ export default async function handler(req) {
     if (!rows.length) return err('Not found', 404)
     if (rows[0].owner_id !== userId) return err('Forbidden', 403)
 
+    // Block deletion if any content items from this interview have been published
+    const pubChk = await sb(`content_items?interview_id=eq.${id}&status=eq.published&select=id&limit=1`)
+    if (pubChk.ok) {
+      const published = await pubChk.json()
+      if (published.length > 0) {
+        return err('This interview has published content and cannot be deleted. Archive the published posts first.', 409)
+      }
+    }
+
     const res = await sb(`interviews?id=eq.${id}`, { method: 'DELETE' })
     if (!res.ok) return err('Delete failed', 500)
     return ok({ ok: true })

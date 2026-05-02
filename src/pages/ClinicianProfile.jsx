@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
-import { ArrowLeft, Plus, FileText, Clock, Trash2, ChevronRight, MessageSquare, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, FileText, Clock, Trash2, ChevronRight, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +21,7 @@ export default function ClinicianProfile() {
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   async function refresh() {
     try {
@@ -38,12 +39,13 @@ export default function ClinicianProfile() {
 
   async function handleDeleteInterview(interviewId) {
     setDeleting(true)
+    setDeleteError('')
     try {
       await deleteInterview(interviewId, user.id)
       setDeleteTarget(null)
       await refresh()
     } catch (e) {
-      alert(e.message)
+      setDeleteError(e.message)
     } finally {
       setDeleting(false)
     }
@@ -163,7 +165,7 @@ export default function ClinicianProfile() {
         </div>
       )}
 
-      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setDeleteError('') } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -175,8 +177,13 @@ export default function ClinicianProfile() {
                 : 'This will permanently delete this interview and all generated content. This cannot be undone.'}
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 mx-1">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />{deleteError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteError('') }} disabled={deleting}>Cancel</Button>
             <Button
               variant="destructive"
               disabled={deleting}
