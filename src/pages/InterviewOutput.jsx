@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { fetchClinician, fetchInterview, fetchCampaign, updateInterview } from '@/lib/api'
-import { fetchContentItemsByInterview } from '@/lib/publish'
+import { fetchContentItemsByInterview, createContentItems } from '@/lib/publish'
 import { generateContent } from '@/lib/claude'
 import {
   getSocialBatchSystemPrompt,
@@ -99,6 +99,48 @@ export default function InterviewOutput() {
       setOutputs(newOutputs)
       if (user?.id) {
         await updateInterview(interviewId, { outputs: newOutputs }, user.id)
+      }
+
+      // Create content items in the database for each generated platform
+      const platformsByGroup = {
+        social: [
+          { platform: 'instagram',    key: 'instagram' },
+          { platform: 'facebook',     key: 'facebook' },
+          { platform: 'gbp',          key: 'gbpPost' },
+          { platform: 'linkedin',     key: 'linkedin' },
+          { platform: 'pinterest',    key: 'pinterest' },
+        ],
+        video: [
+          { platform: 'youtube',      key: 'youtubeScript' },
+          { platform: 'tiktok',       key: 'tiktokScript' },
+        ],
+        marketing: [
+          { platform: 'email',        key: 'emailNewsletter' },
+          { platform: 'landing_page', key: 'landingPage' },
+          { platform: 'google_ads',   key: 'googleAds' },
+        ],
+      }
+      const toCreate = (platformsByGroup[group] || [])
+        .filter(({ platform, key }) => updates[key] && !itemMap[platform])
+        .map(({ platform, key }) => ({
+          interview_id: interviewId,
+          clinician_id: clinicianId,
+          clinician_name: clinician.name,
+          topic: interview.topic,
+          platform,
+          content: updates[key],
+          status: 'draft',
+        }))
+      if (toCreate.length > 0) {
+        createContentItems(toCreate)
+          .then((created) => {
+            setItemMap((prev) => {
+              const next = { ...prev }
+              created.forEach((item) => { next[item.platform] = item.id })
+              return next
+            })
+          })
+          .catch(() => {})
       }
     } catch (err) {
       setGenError(err.message || 'Generation failed')

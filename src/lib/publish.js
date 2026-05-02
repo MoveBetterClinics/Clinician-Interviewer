@@ -38,6 +38,14 @@ export function deleteContentItem(id) {
   return apiFetch(`/api/db/content?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
+export function createContentItems(items) {
+  return apiFetch('/api/db/content', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Array.isArray(items) ? items : [items]),
+  })
+}
+
 // ── Publishing ────────────────────────────────────────────────────────────────
 
 const BUFFER_PLATFORMS = ['instagram', 'linkedin', 'pinterest']

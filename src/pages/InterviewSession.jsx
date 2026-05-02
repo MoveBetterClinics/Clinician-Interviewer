@@ -310,6 +310,19 @@ export default function InterviewSession() {
       )
       const outputs = { blogPost, generatedAt: new Date().toISOString() }
       await updateInterview(interviewId, { outputs, status: 'completed' }, user.id)
+      fetch('/api/db/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interviewId,
+          clinicianId,
+          clinicianName: clinician.name,
+          topic: interview.topic,
+          platform: 'blog',
+          content: blogPost,
+          status: 'draft',
+        }),
+      }).catch(() => {})
       navigate(`/output/${clinicianId}/${interviewId}`)
     } catch (err) {
       setError(`Failed to generate content: ${err.message}`)

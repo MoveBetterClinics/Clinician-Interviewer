@@ -69,12 +69,14 @@ export default async function handler(req) {
     }
 
     // Single insert
-    const { interviewId, clinicianId, clinicianName, topic, platform, content } = body
+    const { interviewId, clinicianId, clinicianName, topic, platform, content, status } = body
     if (!interviewId || !platform || !content) return err('Missing required fields')
 
+    const row = { interview_id: interviewId, clinician_id: clinicianId, clinician_name: clinicianName, topic, platform, content }
+    if (status) row.status = status
     const res = await sb('content_items', {
       method: 'POST',
-      body: JSON.stringify({ interview_id: interviewId, clinician_id: clinicianId, clinician_name: clinicianName, topic, platform, content }),
+      body: JSON.stringify(row),
     })
     if (!res.ok) return err('Insert failed', 500)
     const data = await res.json()

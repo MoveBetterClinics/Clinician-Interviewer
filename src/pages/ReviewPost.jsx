@@ -72,12 +72,17 @@ export default function ReviewPost() {
         setContent(i?.content || '')
         setScheduledAt(i?.scheduled_at ? i.scheduled_at.slice(0, 16) : '')
         setTimeout(() => { isFirstLoad.current = false }, 100)
-        // Fetch GBP locations if this is a GBP post
+        // Opening a draft marks it as in_review — someone is actively looking at it
+        if (i?.status === 'draft') {
+          updateContentItem(itemId, { status: 'in_review' })
+            .then((updated) => setItem(updated))
+            .catch(() => {})
+        }
         if (i?.platform === 'gbp') {
           fetchGBPLocations()
             .then(({ locations }) => {
               setGbpLocations(locations)
-              setSelectedLocs(locations.map((l) => l.id)) // default: all selected
+              setSelectedLocs(locations.map((l) => l.id))
             })
             .catch(() => {})
         }
@@ -195,7 +200,7 @@ export default function ReviewPost() {
       const newContent = extractSection(generated, startMarker, endMarker)
       if (!newContent) throw new Error('Could not parse content from the generated output.')
 
-      const updated = await updateContentItem(itemId, { content: newContent, status: 'draft' })
+      const updated = await updateContentItem(itemId, { content: newContent, status: 'in_review' })
       setItem(updated)
       setContent(newContent)
       setSuccess('Content regenerated!')
