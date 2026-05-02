@@ -21,7 +21,7 @@ This is the **equine chiropractic** brand (Move Better Equine). Separate busines
 - Core message: Movement as a system — joint function, posture, gait — not isolated symptoms
 - Always positioned as complementary to veterinary care, never a replacement
 
-There are two sibling projects — Move Better People (human) and Move Better Animal Chiropractic — which share this codebase but deploy separately. Do not mix brand-specific content, credentials, or data between projects.
+The underlying app is called **NarrateRx**. Move Better Equine, Move Better People, and Move Better Animal Chiropractic are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
 
 ## Key Conditions & Language
 Horse hotspots: poll/neck, shoulders/withers, thoracic back, lumbar/loin, hips/pelvis.
@@ -30,7 +30,7 @@ Tone: evidence-informed, systems-based, education-forward. "Subtle signs" not cr
 
 ## GitHub
 Always use the GitHub CLI (`gh`) for all GitHub interactions. This worktree is on the `equine` branch.
-Shared remote: https://github.com/MoveBetterClinics/Move-Better-People
+Shared remote: https://github.com/MoveBetterClinics/NarrateRx
 
 To pull core improvements from main into this branch:
 ```bash
