@@ -51,7 +51,8 @@ export default async function handler(req) {
   // Build query — only images and videos, from Team Drive
   const mimeFilter = "(mimeType contains 'image/' or mimeType contains 'video/')"
   const textFilter = query ? ` and name contains '${query.replace(/'/g, "\\'")}'` : ''
-  const folderFilter = ` and '${folderId}' in parents`
+  // Only filter by parent folder when browsing a specific subfolder — not the drive root
+  const folderFilter = (folderId && folderId !== driveId) ? ` and '${folderId}' in parents` : ''
   const fullQuery = `${mimeFilter}${textFilter}${folderFilter} and trashed=false`
 
   const params = new URLSearchParams({
