@@ -355,9 +355,11 @@ const EMAIL_FIELDS = [
   { key: 'PS',             tag: '{{ps_text}}',            label: 'P.S.',              hint: 'Optional postscript line' },
 ]
 
-function EmailPreview({ content }) {
+function EmailPreview({ content, mediaUrls = [] }) {
   const s = parseEmailSections(content)
   const hasSections = Object.keys(s).length > 0
+  const heroMedia = mediaUrls.find((m) => m.type === 'image' || m.kind === 'image')
+  const heroSrc   = heroMedia ? (heroMedia.proxyUrl || (heroMedia.id ? `/api/drive/media?id=${heroMedia.id}` : heroMedia.url)) : null
 
   // Old-format email: show a notice + raw content instead of the broken shell
   if (!hasSections) {
@@ -397,12 +399,25 @@ function EmailPreview({ content }) {
         {/* Orange header with angled cut */}
         <div style={{ background: '#E36525', padding: '24px 36px 0 36px' }}>
           <img src="/logo.svg" alt="Move Better" style={{ height: 32, filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
-          {/* Angled cut SVG */}
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 28" style={{ display: 'block', width: '100%', marginTop: 12 }} preserveAspectRatio="none">
             <polygon points="0,0 600,0 600,6 0,28" fill="#E36525" />
             <polygon points="0,28 600,6 600,28" fill="#FFFFFF" />
           </svg>
         </div>
+
+        {/* Hero image (matches {{hero_image_url}} block in TDC template) */}
+        {heroSrc && (
+          <div style={{ lineHeight: 0, fontSize: 0 }}>
+            <img
+              src={heroSrc}
+              alt="Hero"
+              style={{ display: 'block', width: '100%', height: 160, objectFit: 'cover', objectPosition: 'center' }}
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 24" style={{ display: 'block', width: '100%', marginTop: -1 }} preserveAspectRatio="none">
+              <polygon points="0,0 600,0 600,24 0,8" fill="#FFFFFF" />
+            </svg>
+          </div>
+        )}
 
         {/* White body */}
         <div style={{ background: '#FFFFFF', padding: '4px 40px 32px 40px' }}>
@@ -513,7 +528,7 @@ export default function PostPreview({ platform, content, mediaUrls = [] }) {
     case 'linkedin':    return <LinkedInPreview  content={content} />
     case 'gbp':         return <GBPPreview       content={content} />
     case 'blog':        return <BlogPreview      content={content} />
-    case 'email':       return <EmailPreview     content={content} />
+    case 'email':       return <EmailPreview     content={content} mediaUrls={mediaUrls} />
     default:            return <PlainPreview     content={content} />
   }
 }
