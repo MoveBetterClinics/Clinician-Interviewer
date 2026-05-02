@@ -6,3 +6,6 @@ dist
 
 # Per-developer Claude Code permission state — local-only by convention
 .claude/settings.local.json
+
+# Claude Code cowork session worktrees — local-only
+.claude/worktrees/
