@@ -1,4 +1,19 @@
-# Clinician Interviewer — Project Notes
+# Move Better People — Project Notes
+
+## Session Focus
+At the start of EVERY new conversation, before doing anything else, ask:
+"What are we working on today?" then confirm it fits one of these session types:
+
+- **Planning / Architecture** — decisions, structure, roadmap
+- **Feature: [name]** — building one specific feature end to end
+- **Prompts** — writing or tuning AI prompts
+- **Debug: [issue]** — one specific problem
+
+If the work drifts into a second unrelated area mid-session, name it and suggest: "That's a good next session — want to note it and come back to it?"
+
+## Brand
+This is the **human chiropractic / physical therapy** brand (Move Better People).
+There are two sibling projects — Move Better Equine and Move Better Animal Chiropractic — which share this codebase but deploy separately with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between projects.
 
 ## GitHub
 Always use the GitHub CLI (`gh`) for all GitHub interactions — pushing, PRs, issues, repo management. Do not use `git push` over HTTPS or SSH directly.
