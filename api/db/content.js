@@ -100,6 +100,7 @@ export default async function handler(req) {
       reviewed_by:     patch.reviewedBy,
       approved_by:     patch.approvedBy,
       notes:           patch.notes,
+      updated_at:      patch.updatedAt,
     }
     const body = Object.fromEntries(Object.entries(allowed).filter(([, v]) => v !== undefined))
 

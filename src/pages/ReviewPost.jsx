@@ -16,7 +16,7 @@ import { fetchInterview } from '@/lib/api'
 import { getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
 import { PLATFORM_META, STATUS_META } from './ContentHub'
 import MediaPicker from '@/components/MediaPicker'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatRelativeDate } from '@/lib/utils'
 
 const DIRECT_PLATFORMS  = ['facebook', 'gbp']
 const BUFFER_PLATFORMS  = ['instagram', 'linkedin', 'pinterest']
@@ -200,7 +200,7 @@ export default function ReviewPost() {
       const newContent = extractSection(generated, startMarker, endMarker)
       if (!newContent) throw new Error('Could not parse content from the generated output.')
 
-      const updated = await updateContentItem(itemId, { content: newContent, status: 'in_review' })
+      const updated = await updateContentItem(itemId, { content: newContent, status: 'in_review', updatedAt: new Date().toISOString() })
       setItem(updated)
       setContent(newContent)
       setSuccess('Content regenerated!')
@@ -440,6 +440,14 @@ export default function ReviewPost() {
             <div className="rounded-xl border p-4 space-y-2">
               <p className="text-sm font-medium">Regenerate content</p>
               <p className="text-xs text-muted-foreground">Re-runs AI generation for this platform using the original interview.</p>
+              {item.updated_at && new Date(item.updated_at) - new Date(item.created_at) > 60_000 ? (
+                <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 rounded-md px-2.5 py-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  Regenerated {formatRelativeDate(item.updated_at)}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Original AI output — not yet regenerated.</p>
+              )}
               <Button
                 variant="outline" size="sm" className="w-full"
                 onClick={regenerate}
