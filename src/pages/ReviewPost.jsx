@@ -3,8 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import {
   ArrowLeft, Send, CalendarDays, CheckCircle2, Loader2, Copy, Check,
-  AlertCircle, Image, Trash2, ExternalLink,
+  AlertCircle, Image, Trash2, ExternalLink, Eye, Pencil,
 } from 'lucide-react'
+import PostPreview from '@/components/PostPreview'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,7 @@ export default function ReviewPost() {
   const [error, setError]             = useState('')
   const [success, setSuccess]         = useState('')
   const [showPicker, setShowPicker]       = useState(false)
+  const [showPreview, setShowPreview]     = useState(false)
   const [scheduledAt, setScheduledAt]     = useState('')
   const [gbpLocations, setGbpLocations]   = useState([])
   const [selectedLocs, setSelectedLocs]   = useState([])
@@ -146,23 +148,52 @@ export default function ReviewPost() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: editor */}
+        {/* Left: editor / preview */}
         <div className="lg:col-span-2 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium">Content</label>
-              <Button variant="ghost" size="sm" onClick={handleCopy}>
-                {copied ? <><Check className="h-3.5 w-3.5 mr-1.5 text-green-600" />Copied</> : <><Copy className="h-3.5 w-3.5 mr-1.5" />Copy</>}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={showPreview ? 'ghost' : 'secondary'}
+                  size="sm"
+                  onClick={() => setShowPreview(false)}
+                  className="gap-1.5"
+                >
+                  <Pencil className="h-3.5 w-3.5" />Edit
+                </Button>
+                <Button
+                  variant={showPreview ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShowPreview(true)}
+                  className="gap-1.5"
+                >
+                  <Eye className="h-3.5 w-3.5" />Preview
+                </Button>
+                {!showPreview && (
+                  <Button variant="ghost" size="sm" onClick={handleCopy} className="ml-1">
+                    {copied ? <><Check className="h-3.5 w-3.5 mr-1.5 text-green-600" />Copied</> : <><Copy className="h-3.5 w-3.5 mr-1.5" />Copy</>}
+                  </Button>
+                )}
+              </div>
             </div>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={18}
-              className="font-mono text-sm resize-none"
-              disabled={isPublished}
-            />
-            <p className="text-xs text-muted-foreground mt-1.5">{content.length} characters · {content.split(/\s+/).filter(Boolean).length} words</p>
+
+            {showPreview ? (
+              <div className="min-h-[400px] rounded-xl border bg-slate-50 p-4 overflow-auto">
+                <PostPreview platform={item.platform} content={content} />
+              </div>
+            ) : (
+              <>
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={18}
+                  className="font-mono text-sm resize-none"
+                  disabled={isPublished}
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">{content.length} characters · {content.split(/\s+/).filter(Boolean).length} words</p>
+              </>
+            )}
           </div>
 
           {/* Media */}
