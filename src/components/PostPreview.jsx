@@ -197,7 +197,7 @@ function FacebookPreview({ content, mediaUrls = [] }) {
       {/* Link preview */}
       <div className="border-t bg-slate-50 px-4 py-3">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">movebetter.co</p>
-        <p className="text-xs font-semibold mt-0.5">Move Better Chiropractic · Portland, OR</p>
+        <p className="text-xs font-semibold mt-0.5">Move Better · Portland, OR</p>
         <p className="text-[11px] text-muted-foreground mt-0.5">Movement-first care for lasting pain relief.</p>
       </div>
 

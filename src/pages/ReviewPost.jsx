@@ -321,14 +321,20 @@ export default function ReviewPost() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium">Media</label>
+                <label className="text-sm font-medium">
+                  {item.platform === 'email' ? 'Hero Photo' : 'Media'}
+                </label>
                 {needsMedia && !hasMedia && (
                   <Badge className="text-xs bg-amber-100 text-amber-700 border-0">Required for {pm.label}</Badge>
+                )}
+                {item.platform === 'email' && (
+                  <Badge className="text-xs bg-slate-100 text-slate-500 border-0">Optional</Badge>
                 )}
               </div>
               {!isPublished && (
                 <Button variant="outline" size="sm" onClick={() => setShowPicker(true)}>
-                  <Image className="h-3.5 w-3.5 mr-1.5" />Add Media
+                  <Image className="h-3.5 w-3.5 mr-1.5" />
+                  {item.platform === 'email' ? 'Add Hero Photo' : 'Add Media'}
                 </Button>
               )}
             </div>
@@ -340,7 +346,11 @@ export default function ReviewPost() {
               >
                 <Image className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  {isPublished ? 'No media attached' : 'Click to add photos or videos from Google Drive or upload your own'}
+                  {isPublished
+                    ? 'No media attached'
+                    : item.platform === 'email'
+                      ? 'Add a header photo for this newsletter — skip for text-only sends like clinic updates'
+                      : 'Click to add photos or videos from Google Drive or upload your own'}
                 </p>
               </div>
             ) : (
