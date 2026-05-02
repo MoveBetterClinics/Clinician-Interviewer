@@ -122,7 +122,6 @@ export default async function handler(req) {
             { key: 'instagram',       platform: 'instagram' },
             { key: 'facebook',        platform: 'facebook' },
             { key: 'linkedin',        platform: 'linkedin' },
-            { key: 'pinterest',       platform: 'pinterest' },
             { key: 'gbpPost',         platform: 'gbp' },
             { key: 'googleAds',       platform: 'google_ads' },
             { key: 'landingPage',     platform: 'landing_page' },

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Instagram, Facebook, Linkedin, FileText, Mail, Video,
+  Instagram, Facebook, Linkedin, FileText, Mail,
   MapPin, ChevronRight, Clock, CheckCircle2, Send, CalendarDays,
   AlertCircle, Loader2, RefreshCw, Filter,
-  MousePointer2, LayoutTemplate, Clapperboard,
+  MousePointer2, LayoutTemplate, Clapperboard, Youtube, Music2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,7 +20,8 @@ const PLATFORM_META = {
   gbp:          { label: 'Google Business', icon: MapPin,     color: 'text-green-700',  bg: 'bg-green-50' },
   google_ads:   { label: 'Google Ads',      icon: MousePointer2, color: 'text-yellow-700', bg: 'bg-yellow-50' },
   landing_page: { label: 'Landing Page',    icon: LayoutTemplate, color: 'text-purple-600', bg: 'bg-purple-50' },
-  video_script: { label: 'Video Script',    icon: Clapperboard,  color: 'text-orange-600', bg: 'bg-orange-50' },
+  youtube:      { label: 'YouTube Script',  icon: Youtube,       color: 'text-red-600',    bg: 'bg-red-50' },
+  tiktok:       { label: 'TikTok / Reels', icon: Music2,        color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
   email:        { label: 'Email',           icon: Mail,       color: 'text-teal-600',   bg: 'bg-teal-50' },
 }
 
