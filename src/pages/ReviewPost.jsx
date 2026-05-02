@@ -183,7 +183,10 @@ export default function ReviewPost() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ messages: inputMessages, systemPrompt }),
       })
-      if (!res.ok) throw new Error(`Generation failed (${res.status})`)
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        throw new Error(errBody.error || `Generation failed (${res.status})`)
+      }
       const data = await res.json()
       const generated = data.content?.[0]?.text || ''
       if (!generated) throw new Error(data.error || 'No content returned from generation.')
