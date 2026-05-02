@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { fetchContentItem, updateContentItem, publishAndTrack, fetchGBPLocations } from '@/lib/publish'
+import { fetchContentItem, fetchContentItems, updateContentItem, publishAndTrack, fetchGBPLocations } from '@/lib/publish'
 import { fetchInterview } from '@/lib/api'
 import { getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
 import { PLATFORM_META, STATUS_META } from './ContentHub'
@@ -21,6 +21,40 @@ import { formatDate, formatRelativeDate } from '@/lib/utils'
 const DIRECT_PLATFORMS  = ['facebook', 'gbp']
 const BUFFER_PLATFORMS  = ['instagram', 'linkedin', 'pinterest']
 const NEEDS_MEDIA       = ['instagram', 'facebook', 'gbp']
+
+// Platform-specific preferred posting days (0=Sun…6=Sat) and hours (local time)
+const PLATFORM_SCHEDULE_PREFS = {
+  instagram:    { days: [2, 3, 4, 5],    hours: [11, 14, 18] },
+  facebook:     { days: [2, 3, 4],       hours: [12, 15] },
+  linkedin:     { days: [2, 3, 4],       hours: [8, 10] },
+  blog:         { days: [1, 2, 3],       hours: [8, 10] },
+  email:        { days: [2, 4],          hours: [10, 11] },
+  youtube:      { days: [5, 6],          hours: [17, 19] },
+  tiktok:       { days: [2, 3, 5],       hours: [19, 20] },
+  gbp:          { days: [1, 2, 3, 4, 5], hours: [9, 10] },
+  google_ads:   { days: [1, 2, 3],       hours: [9] },
+  landing_page: { days: [1, 2, 3],       hours: [9] },
+}
+
+function suggestScheduleTime(platform, scheduledItems) {
+  const { days, hours } = PLATFORM_SCHEDULE_PREFS[platform] || { days: [1, 2, 3, 4, 5], hours: [9, 14] }
+  const busy = scheduledItems.map((i) => new Date(i.scheduled_at).getTime()).filter(Boolean)
+  const MIN_GAP_MS = 2 * 60 * 60 * 1000 // no two posts within 2 hours of each other
+  const now = new Date()
+
+  for (let d = 1; d <= 60; d++) {
+    const candidate = new Date(now)
+    candidate.setDate(candidate.getDate() + d)
+    if (!days.includes(candidate.getDay())) continue
+    for (const h of hours) {
+      candidate.setHours(h, 0, 0, 0)
+      if (candidate <= now) continue
+      const conflict = busy.some((t) => Math.abs(t - candidate.getTime()) < MIN_GAP_MS)
+      if (!conflict) return new Date(candidate)
+    }
+  }
+  return null
+}
 
 export default function ReviewPost() {
   const { itemId }   = useParams()
@@ -41,7 +75,9 @@ export default function ReviewPost() {
   const [success, setSuccess]           = useState('')
   const [showPicker, setShowPicker]       = useState(false)
   const [showPreview, setShowPreview]     = useState(false)
-  const [scheduledAt, setScheduledAt]     = useState('')
+  const [scheduledAt, setScheduledAt]         = useState('')
+  const [scheduleSuggestion, setScheduleSuggestion] = useState(null) // Date | null
+  const [scheduleIsCustom, setScheduleIsCustom]     = useState(false)
   const [gbpLocations, setGbpLocations]   = useState([])
   const [selectedLocs, setSelectedLocs]   = useState([])
 
@@ -70,9 +106,11 @@ export default function ReviewPost() {
       .then((i) => {
         setItem(i)
         setContent(i?.content || '')
-        setScheduledAt(i?.scheduled_at ? i.scheduled_at.slice(0, 16) : '')
+        if (i?.scheduled_at) {
+          setScheduledAt(i.scheduled_at.slice(0, 16))
+          setScheduleIsCustom(true)
+        }
         setTimeout(() => { isFirstLoad.current = false }, 100)
-        // Opening a draft marks it as in_review — someone is actively looking at it
         if (i?.status === 'draft') {
           updateContentItem(itemId, { status: 'in_review' })
             .then((updated) => setItem(updated))
@@ -90,6 +128,20 @@ export default function ReviewPost() {
       .catch(() => navigate('/hub'))
       .finally(() => setLoading(false))
   }, [itemId])
+
+  // Auto-suggest a schedule time based on what's already queued
+  useEffect(() => {
+    if (!item || item.scheduled_at) return
+    fetchContentItems({ status: 'scheduled', limit: 100 })
+      .then((scheduled) => {
+        const suggestion = suggestScheduleTime(item.platform, scheduled)
+        if (suggestion) {
+          setScheduleSuggestion(suggestion)
+          setScheduledAt(suggestion.toISOString().slice(0, 16))
+        }
+      })
+      .catch(() => {})
+  }, [item?.id, item?.platform])
 
   async function save(patch = {}) {
     setSaving(true)
@@ -468,14 +520,37 @@ export default function ReviewPost() {
 
               {/* Schedule picker */}
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Schedule for (optional)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs text-muted-foreground">Schedule for</label>
+                  {scheduleSuggestion && (
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                      scheduleIsCustom
+                        ? 'bg-slate-100 text-slate-500'
+                        : 'bg-violet-100 text-violet-700'
+                    }`}>
+                      {scheduleIsCustom ? 'Custom' : '✦ Auto-suggested'}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="datetime-local"
                   value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
+                  onChange={(e) => { setScheduledAt(e.target.value); setScheduleIsCustom(true) }}
                   min={new Date().toISOString().slice(0, 16)}
                   className="w-full text-xs border rounded-md px-2.5 py-2 bg-background"
                 />
+                {scheduleSuggestion && !scheduleIsCustom && (
+                  <p className="text-xs text-muted-foreground">Spread across your current queue.</p>
+                )}
+                {scheduleSuggestion && scheduleIsCustom && (
+                  <button
+                    type="button"
+                    onClick={() => { setScheduledAt(scheduleSuggestion.toISOString().slice(0, 16)); setScheduleIsCustom(false) }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Reset to suggested time
+                  </button>
+                )}
               </div>
 
               <Separator />
