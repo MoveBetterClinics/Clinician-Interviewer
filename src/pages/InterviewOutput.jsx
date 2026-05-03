@@ -307,7 +307,7 @@ export default function InterviewOutput() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="youtube">
-                <OutputCard title="YouTube Video Script" subtitle="5–8 minute script with B-roll cues, patient story, and video description" content={outputs.youtubeScript} badge="YouTube" editId={itemMap['youtube']} />
+                <OutputCard title="YouTube Video Script" subtitle={`5–8 minute script with B-roll cues, ${brand.prompt.caseStoryLabel.toLowerCase()}, and video description`} content={outputs.youtubeScript} badge="YouTube" editId={itemMap['youtube']} />
               </TabsContent>
               <TabsContent value="tiktok">
                 <OutputCard title="TikTok / Reels Script" subtitle="45–60 second vertical video script with on-screen text cues and caption" content={outputs.tiktokScript} badge="TikTok / Reels" editId={itemMap['tiktok']} />

@@ -1,5 +1,5 @@
 import { brand } from './brand'
-import { formatPNWContextForPrompt } from './pnwQuestions'
+import { formatConditionContextForPrompt } from './conditionBank'
 
 export const TONES = [
   {
@@ -75,7 +75,7 @@ Skip anything already covered in depth above unless ${clinicianName}'s answer cl
   }
 
   return `You are a content facilitator helping ${clinicianName} at ${brand.name} think out loud about how they treat ${condition}. Your job is to pull out their clinical perspective efficiently so it can be turned into patient-facing content branded for ${brand.name} as a whole.
-${formatPNWContextForPrompt(condition)}${pastContext}
+${formatConditionContextForPrompt(condition)}${pastContext}
 ${brand.name} context: ${brand.prompt.clinicContext}
 
 CONTENT YOU NEED TO COLLECT — ask about these in any order that flows naturally:

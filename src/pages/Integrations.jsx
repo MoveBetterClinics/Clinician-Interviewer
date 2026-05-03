@@ -87,7 +87,7 @@ const EMAIL_MERGE_TAGS = [
   { tag: '{{pull_quote}}',      desc: 'Styled green callout block — most compelling line from the piece' },
   { tag: '{{body_paragraph_1}}', desc: 'Opening hook paragraph' },
   { tag: '{{body_paragraph_2}}', desc: `${brand.name} perspective paragraph` },
-  { tag: '{{body_paragraph_3}}', desc: 'Patient story + bridge to action paragraph' },
+  { tag: '{{body_paragraph_3}}', desc: `${brand.prompt.caseStoryLabel} + bridge to action paragraph` },
   { tag: '{{cta_text}}',        desc: 'Button label only (e.g. "Book a Free Consultation")' },
   { tag: '{{cta_url}}',         desc: 'Button destination URL' },
   { tag: '{{ps_text}}',         desc: 'Optional P.S. line after the CTA' },

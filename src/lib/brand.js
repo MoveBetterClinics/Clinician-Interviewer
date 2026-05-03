@@ -117,6 +117,31 @@ STRENGTH & REHAB:
     // Tone-modifier vocabulary that varies by audience.
     sportContext:
       'sport-specific scenarios relevant to the Pacific Northwest (running, lifting, cycling, climbing, hiking, skiing)',
+
+    // Audience nouns used by campaigns.js, Dashboard topic-gap callout, and
+    // a few leaf hint strings. Equine swaps these for owner-centric terms.
+    audienceTerm: 'patients',
+    audienceTermSingular: 'patient',
+
+    // Label used wherever a card subtitle/hint references the anonymized
+    // outcome story. Equine uses "Case story".
+    caseStoryLabel: 'Patient story',
+
+    // Sentence shown in the Dashboard "high-search topics with no content yet"
+    // callout. Whole sentence per brand — region/audience phrasing differs.
+    topicGapsBlurb:
+      'Patients in the Pacific Northwest are actively searching for these — consider scheduling interviews to cover them.',
+
+    // Used by the seminars campaign template — "free seminars at the
+    // ${locationKeyword} ${venueDescriptor}". Equine swaps this for "barn".
+    venueDescriptor: 'clinic',
+
+    // Referral-network campaign — who the brand is courting for referrals,
+    // and the verb form for the referral CTA.
+    referralPartnersDescription:
+      'coaches, personal trainers, physical therapists, orthopedic surgeons, and other Portland-area healthcare providers who can refer patients',
+    referralCtaVerb: 'Refer a patient to',
+    referralAudienceShort: 'fellow health and fitness professionals',
   },
 
   // Master template name used by the email-generation prompt and the Content
@@ -211,6 +236,29 @@ BLOG POSTS:
     // Tone-modifier vocabulary for performance/sport-focused content.
     sportContext:
       'discipline-specific scenarios across English, Western, and sport horse work — dressage, jumping, eventing, reining, ranch and trail riding common to the Pacific Northwest',
+
+    // Audience nouns. Owner-centric — content speaks to the rider/owner about
+    // their horse, never to the horse itself.
+    audienceTerm: 'horse owners',
+    audienceTermSingular: 'horse owner',
+
+    // Card subtitle/hint label for the anonymized outcome story.
+    caseStoryLabel: 'Case story',
+
+    // Sentence shown in the Dashboard "high-search topics with no content yet"
+    // callout for the equine deploy.
+    topicGapsBlurb:
+      'Horse owners across Southwest Washington and the Portland area are actively looking for guidance on these — consider scheduling interviews to cover them.',
+
+    // Equine practice has no fixed clinic — content is built around the
+    // mobile/haul-in service model, not a brick-and-mortar venue.
+    venueDescriptor: 'practice',
+
+    // Referral network — equine brand is courting riding/training/vet professionals.
+    referralPartnersDescription:
+      'trainers, riding instructors, barn managers, equine veterinarians, and farriers across Southwest Washington and the greater Portland area who work with horses that may benefit from chiropractic care',
+    referralCtaVerb: 'Refer a horse owner to',
+    referralAudienceShort: 'fellow equine professionals',
   },
 
   // Newsletter — the equine variant of the TrustDrivenCare master template

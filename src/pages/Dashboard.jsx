@@ -134,7 +134,7 @@ export default function Dashboard() {
                 High-search topics with no content yet
               </p>
               <p className="text-xs text-amber-700 mt-0.5 mb-3">
-                Patients in the Pacific Northwest are actively searching for these — consider scheduling interviews to cover them.
+                {brand.prompt.topicGapsBlurb}
               </p>
               <div className="flex flex-wrap gap-2">
                 {topicGaps.map((t) => (

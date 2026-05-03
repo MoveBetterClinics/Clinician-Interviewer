@@ -1,29 +1,33 @@
 /**
- * Pacific Northwest patient questionnaire database.
+ * Move Better (human) condition bank.
  *
  * Move Better serves Portland, OR and Vancouver, WA — a region defined by
  * trail runners, cyclists, hikers, skiers, kayakers, and tech desk workers.
  * Patients here tend to be active, health-conscious, skeptical of medication,
  * and highly motivated to maintain their outdoor lifestyle.
  *
+ * Per-bank exports (matched in every brand bank):
+ *   CONDITION_BANK — keyed by lowercase condition name
+ *   KEYWORD_MAP    — fuzzy keyword → canonical bank key
+ *   FALLBACK       — generic context when nothing matches
+ *
  * Each entry contains:
- *   - patientProfile: who typically walks in with this condition
- *   - lifestyleStakes: what they're afraid of losing
- *   - pnwAngles: regional hooks that make content resonate locally
- *   - interviewTopics: specific areas to probe in the interview
- *   - chronicRelevant: true when this condition commonly presents as chronic
- *     or when the acute-vs-chronic distinction is clinically meaningful
+ *   chronicRelevant — true when the acute-vs-chronic distinction matters
+ *   subjectProfile  — who typically walks in with this condition
+ *   stakes          — what they're afraid of losing
+ *   regionalAngles  — local hooks that make content resonate
+ *   interviewTopics — specific areas to probe in the interview
  */
 
-export const PNW_CONDITION_BANK = {
+export const CONDITION_BANK = {
   // ── BACK & SPINE ─────────────────────────────────────────────────────────
   'lower back pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Desk workers, hikers carrying heavy packs, cyclists in aggressive riding positions, and weekend warriors who overdo it on the trail.',
-    lifestyleStakes:
+    stakes:
       'Missing multi-day hikes on the Gorge, being unable to ski Mt. Hood or Mt. Bachelor, losing their morning run.',
-    pnwAngles: [
+    regionalAngles: [
       'How trail running and hiking with loaded packs loads the lumbar spine differently than everyday movement',
       'Why sitting at a standing desk all day in a Portland tech job can be just as damaging as heavy labor',
       'The connection between hip mobility and lower back pain in cyclists who spend hours in a forward-flexed position',
@@ -40,11 +44,11 @@ export const PNW_CONDITION_BANK = {
 
   'sciatica': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Cyclists with tight piriformis, long-haul commuters, desk workers, and trail runners with hip imbalances.',
-    lifestyleStakes:
+    stakes:
       'Inability to sit comfortably on long drives to hiking trailheads, cycling tours, or even airplane seats to reach ski resorts.',
-    pnwAngles: [
+    regionalAngles: [
       'How saddle position on road and mountain bikes creates piriformis compression that mimics true sciatica',
       'Why long drives out to trailheads or ski mountains aggravate symptoms',
       'The role of hip external rotation strength — critical for trail running on uneven PNW terrain',
@@ -59,11 +63,11 @@ export const PNW_CONDITION_BANK = {
 
   'disc herniation': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Weightlifters, CrossFitters, and hikers who\'ve had one too many heavy pack days.',
-    lifestyleStakes:
+    stakes:
       'Fear of permanent damage, surgery, and losing their active identity entirely.',
-    pnwAngles: [
+    regionalAngles: [
       'How PNW hikers\' habit of descending steep trails with heavy packs loads discs asymmetrically',
       'The CrossFit and gym culture in Portland and how improper hip hinge mechanics contribute',
       'Why fear of movement after a herniation often causes more long-term damage than the disc itself',
@@ -78,11 +82,11 @@ export const PNW_CONDITION_BANK = {
   // ── NECK & SHOULDERS ─────────────────────────────────────────────────────
   'neck pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Remote tech workers, cyclists in aggressive riding positions, climbers, and paddlers.',
-    lifestyleStakes:
+    stakes:
       'Headaches ruining morning runs, inability to look left/right on bike descents, losing the ability to climb.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s booming tech and remote-work culture has created an epidemic of screen-neck posture',
       'Road cyclists and gravel riders who spend hours in a dropped handlebar position',
       'Rock climbers who constantly look up on overhung routes load the cervical spine in a unique way',
@@ -98,11 +102,11 @@ export const PNW_CONDITION_BANK = {
 
   'shoulder pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Climbers, swimmers, paddlers, overhead athletes, and CrossFitters.',
-    lifestyleStakes:
+    stakes:
       'Losing climbing grades, being sidelined from kayaking season, giving up overhead lifts.',
-    pnwAngles: [
+    regionalAngles: [
       'The climbing boom in Portland — shoulder overuse injuries are at an all-time high at indoor gyms like Crux and Movement',
       'Sea kayaking and SUP on the Columbia River create sustained shoulder loading patterns',
       'Trail running with trekking poles — improper technique creates rotator cuff imbalances',
@@ -119,11 +123,11 @@ export const PNW_CONDITION_BANK = {
   // ── KNEES ─────────────────────────────────────────────────────────────────
   'knee pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Trail runners, cyclists, skiers, hikers on steep descents, and aging athletes refusing to slow down.',
-    lifestyleStakes:
+    stakes:
       'Hood to Coast relay, RAMROD cycling event, ski season at Timberline, and everyday stairs.',
-    pnwAngles: [
+    regionalAngles: [
       'IT band syndrome is almost a Portland rite of passage for trail runners — the hilly terrain makes it worse',
       'Patellar tendinopathy in cyclists from too much volume too fast on the spring cycling season return',
       'Ski knee injuries — ACL tears and meniscus issues — spike every winter on Mt. Hood and Mt. Bachelor',
@@ -140,11 +144,11 @@ export const PNW_CONDITION_BANK = {
   // ── HIPS ─────────────────────────────────────────────────────────────────
   'hip pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Cyclists, runners, desk workers, and aging active adults.',
-    lifestyleStakes:
+    stakes:
       'Losing the ability to run, hike, or cycle — the activities that define the PNW lifestyle.',
-    pnwAngles: [
+    regionalAngles: [
       'Hip flexor tightness is rampant in Portland\'s cycling commuter culture — hours in saddle + hours at desk',
       'Trail runners on technical PNW terrain need significant lateral hip stability that flat-road runners don\'t develop',
       'Hip labral issues in young active adults who do yoga and climbing — hypermobility with poor motor control',
@@ -160,11 +164,11 @@ export const PNW_CONDITION_BANK = {
   // ── FOOT & ANKLE ─────────────────────────────────────────────────────────
   'plantar fasciitis': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Runners increasing mileage for spring races, hikers returning to the trail after winter, and people who stand all day.',
-    lifestyleStakes:
+    stakes:
       'Missing the Eugene Marathon, Portland Marathon, or their first-morning steps on a backpacking trip.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s rainy winters push runners inside and change their stride — spring outdoor return spikes plantar fasciitis',
       'The Portland marathon training season creates a predictable surge of heel pain every spring',
       'Hiking in waterlogged trail shoes with compromised cushioning is a major PNW contributor',
@@ -180,11 +184,11 @@ export const PNW_CONDITION_BANK = {
 
   'ankle sprain': {
     chronicRelevant: false,
-    patientProfile:
+    subjectProfile:
       'Trail runners on technical terrain, basketball players, and hikers on rooty PNW trails.',
-    lifestyleStakes:
+    stakes:
       'Fear of chronic instability — rolling the ankle on every hike or run.',
-    pnwAngles: [
+    regionalAngles: [
       'Technical trails in the Columbia River Gorge and Forest Park create high ankle sprain risk even for experienced runners',
       'Many PNW patients treat their own sprains with ice and rest — and never address the underlying instability',
       'Trail running on wet roots (a constant in Oregon) demands exceptional ankle proprioception',
@@ -199,11 +203,11 @@ export const PNW_CONDITION_BANK = {
   // ── HEAD & NEUROLOGICAL ──────────────────────────────────────────────────
   'headaches': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Tech workers, cyclists, and anyone dealing with chronic tension and screen time.',
-    lifestyleStakes:
+    stakes:
       'Headaches ruining weekends, making trail runs miserable, or interfering with work.',
-    pnwAngles: [
+    regionalAngles: [
       'Cervicogenic headaches — driven by neck dysfunction — are common in Portland\'s screen-heavy tech workforce',
       'Cyclists getting headaches from sustained neck extension on long rides',
       'Weather-related headache patterns that PNW patients often experience with the barometric pressure swings of the rainy season',
@@ -219,11 +223,11 @@ export const PNW_CONDITION_BANK = {
   // ── CHRONIC PAIN ─────────────────────────────────────────────────────────
   'chronic pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Patients who have been in pain for months or years — often told by other providers that nothing more can be done. They\'ve tried medication, injections, or surgery with limited relief. Many are active PNW adults whose quality of life has quietly shrunk around their pain.',
-    lifestyleStakes:
+    stakes:
       'Getting their life back — not just reducing pain but returning to hiking, sleeping through the night, playing with grandkids, and feeling like themselves again.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s health-conscious culture means many chronic pain patients have already tried acupuncture, massage, PT, and medication — and are skeptical but still hopeful',
       'The PNW\'s active lifestyle makes chronic pain especially identity-threatening — patients define themselves by what they can do outdoors',
       'Rainy, grey winters in Oregon can amplify pain sensitivity and depression, creating seasonal pain flares that are often misunderstood',
@@ -244,11 +248,11 @@ export const PNW_CONDITION_BANK = {
 
   'fibromyalgia': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Predominantly women, often dismissed by prior providers. Active adults who have watched their world shrink as pain made everyday activities feel impossible.',
-    lifestyleStakes:
+    stakes:
       'Being believed, being understood, and finding any path back to the life they had before.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland has a large population of fibromyalgia patients who feel underserved by conventional medicine',
       'The rain and lack of sunlight in PNW winters can significantly worsen fibromyalgia symptoms — a local factor worth addressing',
       'Many fibromyalgia patients arrive at Move Better after years of being told their pain isn\'t real',
@@ -264,11 +268,11 @@ export const PNW_CONDITION_BANK = {
   // ── UPPER EXTREMITY ──────────────────────────────────────────────────────
   'tennis elbow': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Climbers, cyclists, paddlers, and desk workers with repetitive gripping or forearm strain.',
-    lifestyleStakes:
+    stakes:
       'Being unable to grip a paddle, handlebar, or climbing hold — activities that define their PNW life.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s indoor climbing boom has made lateral epicondylitis one of the most common overuse injuries at gyms like Crux and Movement',
       'Road and gravel cyclists gripping handlebars for 4–6 hour rides develop chronic forearm tendon stress',
       'Kayakers and SUP paddlers with high stroke volume overload the forearm extensors in a way most patients don\'t anticipate',
@@ -284,11 +288,11 @@ export const PNW_CONDITION_BANK = {
 
   'golfer\'s elbow': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Climbers, paddlers, and anyone with heavy gripping demands — despite the name, rarely golfers.',
-    lifestyleStakes:
+    stakes:
       'Losing the ability to crimp holds, paddle strokes, or even carry grocery bags without pain.',
-    pnwAngles: [
+    regionalAngles: [
       'Medial epicondylitis is extremely common in Portland\'s climbing community — crimping and pinching create enormous flexor tendon load',
       'Paddlers with high stroke volume on the Columbia and Willamette develop medial elbow stress over a season',
       'CrossFitters doing high-rep kipping pull-ups or muscle-ups frequently present with medial elbow pain',
@@ -303,11 +307,11 @@ export const PNW_CONDITION_BANK = {
 
   'carpal tunnel': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Tech workers, cyclists, and anyone with sustained wrist flexion demands — often misdiagnosed or overtreated with surgery.',
-    lifestyleStakes:
+    stakes:
       'Numbness and weakness that interfere with typing, cycling, and anything requiring grip.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s large tech and creative workforce makes carpal tunnel one of the most common repetitive strain presentations',
       'Road cyclists in a dropped handlebar position put sustained pressure on the median nerve at the wrist',
       'Many patients arrive after being told surgery is their only option — and are surprised there\'s a movement-based alternative',
@@ -323,11 +327,11 @@ export const PNW_CONDITION_BANK = {
   // ── SPINE & PELVIS ────────────────────────────────────────────────────────
   'mid-back pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Cyclists in aggressive positions, desk workers with poor thoracic mobility, and climbers with restricted upper back extension.',
-    lifestyleStakes:
+    stakes:
       'Inability to rotate fully on the bike, reach overhead in climbing, or sit comfortably at a desk for a full workday.',
-    pnwAngles: [
+    regionalAngles: [
       'Road and gravel cyclists spending hours in thoracic flexion develop progressively worse mid-back stiffness over a season',
       'Remote tech workers in Portland sit in the same position for 8+ hours — the thoracic spine bears the cost',
       'Climbers need thoracic extension and rotation for overhanging routes — restriction here limits performance and causes pain',
@@ -343,11 +347,11 @@ export const PNW_CONDITION_BANK = {
 
   'si joint pain': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Runners, hikers, pregnant and postpartum women, and anyone with asymmetrical loading patterns.',
-    lifestyleStakes:
+    stakes:
       'One-sided hip and low back pain that makes running, hiking stairs, or even rolling over in bed unbearable.',
-    pnwAngles: [
+    regionalAngles: [
       'Trail runners on cambered PNW trails — one foot always higher than the other — develop asymmetrical SI joint stress',
       'Pregnant and postpartum women in Portland\'s active community frequently experience SI joint dysfunction and are underserved',
       'Single-leg activities like hiking steep switchbacks on Gorge trails load the SI joint in ways flat-surface running doesn\'t',
@@ -362,11 +366,11 @@ export const PNW_CONDITION_BANK = {
 
   'whiplash': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Auto accident patients, often dismissed or undertreated, arriving weeks or months after the initial injury.',
-    lifestyleStakes:
+    stakes:
       'Chronic neck pain, headaches, and cognitive fog that have quietly derailed their work, workouts, and quality of life.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s rainy winters and congested bridges create higher rear-end collision rates — whiplash is a consistent referral source',
       'Many whiplash patients are told to rest and wait it out — and arrive at Move Better months later with entrenched dysfunction',
       'Cyclists who crash on wet roads present with both whiplash and other orthopedic injuries that need coordinated care',
@@ -381,11 +385,11 @@ export const PNW_CONDITION_BANK = {
 
   'osteoarthritis': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Aging active adults — the 50+ hiker, cyclist, or runner who has been told their pain is "just arthritis" and to expect decline.',
-    lifestyleStakes:
+    stakes:
       'Being told to stop doing the outdoor activities that have defined their identity for decades.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland has a large and growing population of active adults in their 50s, 60s, and 70s who refuse to accept "just take it easy" as a care plan',
       'The PNW\'s aging outdoor community wants to keep hiking the Gorge and skiing Mt. Hood — and they\'re looking for providers who will help them, not bench them',
       'Many osteoarthritis patients arrive having been told by orthopedists that their only option is replacement surgery',
@@ -401,11 +405,11 @@ export const PNW_CONDITION_BANK = {
   // ── NEUROLOGICAL / NERVE ─────────────────────────────────────────────────
   'numbness and tingling': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Cyclists, desk workers, and anyone with nerve compression from the neck, thoracic outlet, elbow, or wrist.',
-    lifestyleStakes:
+    stakes:
       'Pins and needles that make cycling uncomfortable, disrupt sleep, or create fear of a serious neurological condition.',
-    pnwAngles: [
+    regionalAngles: [
       'Road cyclists gripping handlebars for hours compress the ulnar nerve at the wrist and elbow — a very common Portland presentation',
       'Remote tech workers with forward head posture develop cervical nerve root compression that radiates into the arms and hands',
       'Many patients come in convinced they have carpal tunnel when the source is actually the neck or thoracic outlet',
@@ -420,11 +424,11 @@ export const PNW_CONDITION_BANK = {
 
   'vertigo': {
     chronicRelevant: false,
-    patientProfile:
+    subjectProfile:
       'Anyone experiencing dizziness, spinning sensations, or balance disturbances — often mismanaged or left untreated.',
-    lifestyleStakes:
+    stakes:
       'Fear of falling on the trail, dizziness on the bike, or simply not feeling safe in their own body.',
-    pnwAngles: [
+    regionalAngles: [
       'Hikers who experience sudden vertigo on exposed trails — where balance failure has real consequences — are highly motivated to get treated',
       'Many PNW patients don\'t know that chiropractic care can effectively treat cervicogenic dizziness and BPPV',
       'Cyclists who get dizzy during or after rides often have a cervical spine component that\'s never been evaluated',
@@ -440,11 +444,11 @@ export const PNW_CONDITION_BANK = {
   // ── PREGNANCY & POSTPARTUM ────────────────────────────────────────────────
   'pregnancy pain': {
     chronicRelevant: false,
-    patientProfile:
+    subjectProfile:
       'Active pregnant women who want to stay mobile and comfortable through their pregnancy — and postpartum patients returning to activity.',
-    lifestyleStakes:
+    stakes:
       'Staying active through pregnancy, recovering fully after birth, and not accepting pain as an inevitable part of having a baby.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s active culture means many pregnant patients were trail running or cycling before pregnancy and want to stay as active as safely possible',
       'Postpartum women in the PNW are often returning to trail running, yoga, or cycling sooner than conventional guidance recommends — and need smart, individualized support',
       'SI joint pain, pubic symphysis dysfunction, and pelvic girdle pain are undertreated in the obstetric system — chiropractic fills that gap',
@@ -460,11 +464,11 @@ export const PNW_CONDITION_BANK = {
   // ── TENDONS ───────────────────────────────────────────────────────────────
   'achilles tendinitis': {
     chronicRelevant: true,
-    patientProfile:
+    subjectProfile:
       'Runners ramping up mileage, hikers doing back-to-back days, and anyone returning to activity after a period of rest.',
-    lifestyleStakes:
+    stakes:
       'Missing race season, losing the morning run that anchors their day, or being unable to hike the trails they love.',
-    pnwAngles: [
+    regionalAngles: [
       'The Portland spring running season — runners returning after rainy winter indoor training — is peak Achilles tendinopathy season',
       'Hilly trail terrain in Forest Park and the Gorge places heavy eccentric load on the Achilles with every descent',
       'Many PNW runners try to push through Achilles pain until it becomes a chronic tendinopathy that takes months to resolve',
@@ -480,11 +484,11 @@ export const PNW_CONDITION_BANK = {
 
   'it band syndrome': {
     chronicRelevant: false,
-    patientProfile:
+    subjectProfile:
       'Trail runners and cyclists — especially those ramping mileage for a race or returning after a break.',
-    lifestyleStakes:
+    stakes:
       'DNS at Hood to Coast, dropping out of a gravel race, or being unable to run the Forest Park trails that are part of their daily rhythm.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s hilly terrain — Forest Park, the West Hills, Gorge trails — makes IT band syndrome almost inevitable for high-mileage trail runners',
       'The spring cycling season return sees a surge of cyclists with lateral knee pain from too much volume too fast',
       'Hood to Coast training cycles are a predictable driver — runners push weekly mileage too aggressively in August',
@@ -501,11 +505,11 @@ export const PNW_CONDITION_BANK = {
   // ── GENERAL / MOVEMENT ───────────────────────────────────────────────────
   'movement assessment': {
     chronicRelevant: false,
-    patientProfile:
+    subjectProfile:
       'Athletes who want to prevent injury before it happens — proactive PNW types.',
-    lifestyleStakes:
+    stakes:
       'Staying injury-free through another ski season, marathon cycle, or climbing season.',
-    pnwAngles: [
+    regionalAngles: [
       'Portland\'s active population is increasingly proactive — they want to know their movement weaknesses before they become injuries',
       'Seasonal sport transitions (cycling summer → skiing winter) create predictable injury windows that a movement screen can catch',
       'CrossFit and gym culture here means many patients have strength but poor movement quality — a dangerous combination',
@@ -520,11 +524,11 @@ export const PNW_CONDITION_BANK = {
 
   'sports performance': {
     chronicRelevant: false,
-    patientProfile:
+    subjectProfile:
       'Competitive runners, cyclists, climbers, and triathletes looking for an edge.',
-    lifestyleStakes:
+    stakes:
       'PR at Hood to Coast, podium at a gravel race, sending a hard climb at Smith Rock.',
-    pnwAngles: [
+    regionalAngles: [
       'The PNW has a deep endurance sports culture — Portland Marathon, RAMROD, Gorge Waterfalls 50K, Wildflower Triathlon',
       'Smith Rock State Park draws climbers from across the region — performance at altitude and on technical rock',
       'Mt. Hood year-round skiing creates a unique demand for ski-specific strength and conditioning',
@@ -538,118 +542,77 @@ export const PNW_CONDITION_BANK = {
   },
 }
 
-/**
- * Returns the most relevant PNW context for a given condition string.
- * Does a fuzzy keyword match against the database keys.
- */
-export function getPNWContext(condition) {
-  const lower = condition.toLowerCase()
-
-  if (PNW_CONDITION_BANK[lower]) return PNW_CONDITION_BANK[lower]
-
-  const keywordMap = {
-    'back': 'lower back pain',
-    'lumbar': 'lower back pain',
-    'sciatica': 'sciatica',
-    'disc': 'disc herniation',
-    'herniat': 'disc herniation',
-    'neck': 'neck pain',
-    'cervical': 'neck pain',
-    'shoulder': 'shoulder pain',
-    'rotator': 'shoulder pain',
-    'knee': 'knee pain',
-    'it band': 'knee pain',
-    'patell': 'knee pain',
-    'hip': 'hip pain',
-    'plantar': 'plantar fasciitis',
-    'heel': 'plantar fasciitis',
-    'ankle': 'ankle sprain',
-    'headache': 'headaches',
-    'migraine': 'headaches',
-    'chronic': 'chronic pain',
-    'fibromyalgia': 'fibromyalgia',
-    'fibro': 'fibromyalgia',
-    'persistent': 'chronic pain',
-    'tennis elbow': 'tennis elbow',
-    'lateral epicondyl': 'tennis elbow',
-    'golfer': 'golfer\'s elbow',
-    'medial epicondyl': 'golfer\'s elbow',
-    'carpal': 'carpal tunnel',
-    'wrist': 'carpal tunnel',
-    'mid-back': 'mid-back pain',
-    'thoracic': 'mid-back pain',
-    'upper back': 'mid-back pain',
-    'si joint': 'si joint pain',
-    'sacroiliac': 'si joint pain',
-    'whiplash': 'whiplash',
-    'auto accident': 'whiplash',
-    'car accident': 'whiplash',
-    'osteoarthritis': 'osteoarthritis',
-    'arthritis': 'osteoarthritis',
-    'numb': 'numbness and tingling',
-    'tingling': 'numbness and tingling',
-    'nerve pain': 'numbness and tingling',
-    'vertigo': 'vertigo',
-    'dizziness': 'vertigo',
-    'dizzy': 'vertigo',
-    'pregnan': 'pregnancy pain',
-    'postpartum': 'pregnancy pain',
-    'achilles': 'achilles tendinitis',
-    'it band': 'it band syndrome',
-    'iliotibial': 'it band syndrome',
-    'movement': 'movement assessment',
-    'performance': 'sports performance',
-    'athletic': 'sports performance',
-    'sport': 'sports performance',
-  }
-
-  for (const [keyword, key] of Object.entries(keywordMap)) {
-    if (lower.includes(keyword)) return PNW_CONDITION_BANK[key]
-  }
-
-  // Generic PNW fallback — no chronic angle assumed
-  return {
-    chronicRelevant: false,
-    patientProfile:
-      'Active Portland and Vancouver residents — trail runners, cyclists, climbers, hikers, desk workers — who want to stay active and avoid medication or surgery.',
-    lifestyleStakes:
-      'Maintaining their outdoor lifestyle: hiking the Gorge, running Forest Park, skiing Mt. Hood, or simply keeping up with their kids.',
-    pnwAngles: [
-      'Portland\'s active, health-conscious culture means patients have often tried everything before arriving',
-      'The PNW patient wants to understand the WHY — they respond to education over prescription',
-      'Seasonal outdoor activities create predictable injury patterns throughout the year',
-      'Tech-worker culture means many patients sit for 8+ hours before and after their athletic pursuits',
-    ],
-    interviewTopics: [
-      'What does this condition look like in an active PNW patient vs. a more sedentary patient?',
-      'What lifestyle factors unique to the Pacific Northwest contribute to or worsen this condition?',
-      'What does success look like — what activity do patients want to get back to?',
-      'What makes the Move Better approach different from what patients have already tried?',
-    ],
-  }
+export const KEYWORD_MAP = {
+  'back': 'lower back pain',
+  'lumbar': 'lower back pain',
+  'sciatica': 'sciatica',
+  'disc': 'disc herniation',
+  'herniat': 'disc herniation',
+  'neck': 'neck pain',
+  'cervical': 'neck pain',
+  'shoulder': 'shoulder pain',
+  'rotator': 'shoulder pain',
+  'knee': 'knee pain',
+  'patell': 'knee pain',
+  'hip': 'hip pain',
+  'plantar': 'plantar fasciitis',
+  'heel': 'plantar fasciitis',
+  'ankle': 'ankle sprain',
+  'headache': 'headaches',
+  'migraine': 'headaches',
+  'chronic': 'chronic pain',
+  'fibromyalgia': 'fibromyalgia',
+  'fibro': 'fibromyalgia',
+  'persistent': 'chronic pain',
+  'tennis elbow': 'tennis elbow',
+  'lateral epicondyl': 'tennis elbow',
+  'golfer': 'golfer\'s elbow',
+  'medial epicondyl': 'golfer\'s elbow',
+  'carpal': 'carpal tunnel',
+  'wrist': 'carpal tunnel',
+  'mid-back': 'mid-back pain',
+  'thoracic': 'mid-back pain',
+  'upper back': 'mid-back pain',
+  'si joint': 'si joint pain',
+  'sacroiliac': 'si joint pain',
+  'whiplash': 'whiplash',
+  'auto accident': 'whiplash',
+  'car accident': 'whiplash',
+  'osteoarthritis': 'osteoarthritis',
+  'arthritis': 'osteoarthritis',
+  'numb': 'numbness and tingling',
+  'tingling': 'numbness and tingling',
+  'nerve pain': 'numbness and tingling',
+  'vertigo': 'vertigo',
+  'dizziness': 'vertigo',
+  'dizzy': 'vertigo',
+  'pregnan': 'pregnancy pain',
+  'postpartum': 'pregnancy pain',
+  'achilles': 'achilles tendinitis',
+  'it band': 'it band syndrome',
+  'iliotibial': 'it band syndrome',
+  'movement': 'movement assessment',
+  'performance': 'sports performance',
+  'athletic': 'sports performance',
+  'sport': 'sports performance',
 }
 
-/**
- * Formats PNW context into a string block for injection into a system prompt.
- * Includes a chronic pain angle only for conditions where it is clinically relevant.
- */
-export function formatPNWContextForPrompt(condition) {
-  const ctx = getPNWContext(condition)
-
-  return `
-PACIFIC NORTHWEST PATIENT CONTEXT — use this to shape your questions:
-- Who walks through the door: ${ctx.patientProfile}
-- What they're afraid of losing: ${ctx.lifestyleStakes}
-- Regional angles that make content resonate with PNW patients:
-${ctx.pnwAngles.map(a => `  • ${a}`).join('\n')}
-- Key interview areas specific to this condition and audience:
-${ctx.interviewTopics.map(q => `  • ${q}`).join('\n')}
-${ctx.chronicRelevant ? `
-CHRONIC VS. ACUTE ANGLE — explore this when it fits naturally:
-${condition} often presents as a chronic, long-standing problem rather than a fresh injury. Where relevant, draw out:
-  • How does treating someone with chronic ${condition} (months or years of pain) differ from an acute case?
-  • Why do chronic ${condition} patients often exhaust conventional options (medication, injections, imaging) before finding lasting relief?
-  • What does the Move Better root-cause, movement-first approach offer these patients?
-  • What does recovery realistically look like — and how do you manage a patient's expectations when they've been hurting for a long time?
-` : ''}`
+export const FALLBACK = {
+  chronicRelevant: false,
+  subjectProfile:
+    'Active Portland and Vancouver residents — trail runners, cyclists, climbers, hikers, desk workers — who want to stay active and avoid medication or surgery.',
+  stakes:
+    'Maintaining their outdoor lifestyle: hiking the Gorge, running Forest Park, skiing Mt. Hood, or simply keeping up with their kids.',
+  regionalAngles: [
+    'Portland\'s active, health-conscious culture means patients have often tried everything before arriving',
+    'The PNW patient wants to understand the WHY — they respond to education over prescription',
+    'Seasonal outdoor activities create predictable injury patterns throughout the year',
+    'Tech-worker culture means many patients sit for 8+ hours before and after their athletic pursuits',
+  ],
+  interviewTopics: [
+    'What does this condition look like in an active PNW patient vs. a more sedentary patient?',
+    'What lifestyle factors unique to the Pacific Northwest contribute to or worsen this condition?',
+    'What does success look like — what activity do patients want to get back to?',
+    'What makes the Move Better approach different from what patients have already tried?',
+  ],
 }

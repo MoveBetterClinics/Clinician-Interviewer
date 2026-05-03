@@ -90,6 +90,13 @@ const AUTOMATION_ROWS = [
 ]
 
 export default function Strategy() {
+  // The strategy guide below is written for the Move Better (human) brand —
+  // it references human-clinic conditions, audiences, and channels. Other
+  // brand deployments will get their own strategy content when authored.
+  if (brand.id !== 'human') {
+    return <StrategyPlaceholder />
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
 
@@ -470,6 +477,46 @@ export default function Strategy() {
       </div>
 
       {/* Footer CTA */}
+      <div className="rounded-xl border bg-muted/30 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold">Ready to generate content?</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Start a new interview to produce all 10 assets from a single session.</p>
+        </div>
+        <Link
+          to="/new"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
+        >
+          <Zap className="h-4 w-4" />
+          Start New Interview
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function StrategyPlaceholder() {
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <h1 className="text-2xl font-bold tracking-tight">Content Distribution Strategy</h1>
+          <Badge variant="secondary">{brand.name}</Badge>
+        </div>
+        <p className="text-muted-foreground text-sm">
+          A brand-specific deployment guide for {brand.name} is in development.
+        </p>
+      </div>
+
+      <div className="rounded-xl border bg-card p-6 space-y-3">
+        <h2 className="font-semibold text-base">Coming soon</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          The strategy guide currently published is written for the human-clinic brand and references audiences, channels, and conditions that don&apos;t map cleanly to {brand.name}. A version tailored to this brand — its disciplines, referral partners, and the channels its audience actually uses — will live here once it&apos;s written.
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          In the meantime, NarrateRx will still generate fully on-brand content for every channel from any interview. Head to a new interview to start producing assets.
+        </p>
+      </div>
+
       <div className="rounded-xl border bg-muted/30 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold">Ready to generate content?</p>
