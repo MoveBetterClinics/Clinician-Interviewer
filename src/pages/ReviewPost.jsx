@@ -33,6 +33,7 @@ const PLATFORM_SCHEDULE_PREFS = {
   tiktok:       { days: [2, 3, 5],       hours: [19, 20] },
   gbp:          { days: [1, 2, 3, 4, 5], hours: [9, 10] },
   google_ads:   { days: [1, 2, 3],       hours: [9] },
+  instagram_ads:{ days: [1, 2, 3],       hours: [9] },
   landing_page: { days: [1, 2, 3],       hours: [9] },
 }
 
@@ -202,7 +203,8 @@ export default function ReviewPost() {
     tiktok:       ['---TIKTOK SCRIPT---',   null],
     email:        ['---EMAIL NEWSLETTER---','---LANDING PAGE---'],
     landing_page: ['---LANDING PAGE---',    '---GOOGLE ADS---'],
-    google_ads:   ['---GOOGLE ADS---',      null],
+    google_ads:   ['---GOOGLE ADS---',      '---INSTAGRAM ADS---'],
+    instagram_ads:['---INSTAGRAM ADS---',   null],
   }
 
   async function regenerate() {

@@ -372,6 +372,30 @@ SITELINK EXTENSIONS — 4, with title and 2-line description each:
    Line 2: [line 2]
 [continue to 4]
 
-Mix brand terms (${brand.name}, ${brand.prompt.locationKeyword}), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.${campaignContext}
+Mix brand terms (${brand.name}, ${brand.prompt.locationKeyword}), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.
+
+---INSTAGRAM ADS---
+Meta Ads creative copy for ${brand.name}, targeting ${condition} on Instagram in ${brand.prompt.locationKeyword}. This will be pasted into Meta Ads Manager — output each field on its own line with the exact label shown.
+
+PRIMARY TEXT: (125 chars recommended for above-the-fold, 2200 max — hook in the first sentence, lead with the problem or a counterintuitive insight about ${condition}, frame as ${brand.name}'s perspective using "we"/"our team", end with a clear next step. No URLs in the body.)
+[primary text]
+
+HEADLINE: (max 40 chars — appears under the creative in bold; benefit-driven, names the condition or outcome)
+[headline]
+
+DESCRIPTION: (optional, max 30 chars — brief supporting detail or location signal)
+[description]
+
+CTA BUTTON: (pick one of: Learn More, Book Now, Sign Up, Get Offer, Contact Us)
+[CTA]
+
+DESTINATION URL:
+${brand.prompt.bookingUrl}
+
+CREATIVE NOTES:
+- Required: square (1:1) or vertical (4:5) image or 9:16 video
+- Keep key text away from edges (Meta crops the top/bottom for placements)
+- Avoid text-heavy creatives; let the primary text carry the message
+- Recommend a real photo of ${brand.name} clinicians or patients in motion over stock${campaignContext}
 ${getToneModifier(tone)}`
 }
