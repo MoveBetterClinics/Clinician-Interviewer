@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
 import { getInterviewSystemPrompt, getBlogPostSystemPrompt } from '@/lib/prompts'
+import { fetchTopExemplars } from '@/lib/exemplars'
 import { getInitials } from '@/lib/utils'
 import { brand } from '@/lib/brand'
 
@@ -305,9 +306,15 @@ export default function InterviewSession() {
     try {
       const apiMessages = messages.map((m) => ({ role: m.role, content: m.content }))
       const tone = interview.tone || 'smart'
+      // Pull top-performing past blog posts for the same topic. When no
+      // engagement data exists yet (cold start), fetchTopExemplars returns []
+      // and the prompt's exemplars block renders empty — same behavior as
+      // before the feedback loop existed. Once ingest crons populate
+      // engagement_snapshots, exemplars start steering tone/structure.
+      const exemplars = await fetchTopExemplars({ platform: 'blog', topic: interview.topic, limit: 3 }).catch(() => [])
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        getBlogPostSystemPrompt(clinician.name, interview.topic, tone)
+        getBlogPostSystemPrompt(clinician.name, interview.topic, tone, exemplars)
       )
       const outputs = { blogPost, generatedAt: new Date().toISOString() }
       await updateInterview(interviewId, { outputs, status: 'completed' }, user.id)

@@ -11,6 +11,9 @@ At the start of EVERY new conversation, before doing anything else, ask:
 
 If the work drifts into a second unrelated area mid-session, name it and suggest: "That's a good next session — want to note it and come back to it?"
 
+## Architecture session rule
+For **Planning / Architecture** sessions, before sketching any schema or code, propose 2-3 different approaches at different complexity levels. For each, name what would have to be true for it to be the right approach (data volume needed, assumptions baked in, infrastructure required). Flag the simplest one explicitly. Default to recommending the simplest approach that could plausibly work — building infrastructure ahead of demand is the most common architecture mistake, and "we can always add complexity later" beats "we built complexity we don't need."
+
 ## Brand
 This is the **human chiropractic / physical therapy** brand (Move Better People).
 The underlying app is called **NarrateRx** — a multi-brand SaaS product. Move Better People, Move Better Equine, and Move Better Animal Chiropractic are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.

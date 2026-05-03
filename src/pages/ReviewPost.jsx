@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { fetchContentItem, fetchContentItems, updateContentItem, publishAndTrack, fetchGBPLocations } from '@/lib/publish'
 import { fetchInterview } from '@/lib/api'
 import { getBlogPostSystemPrompt, getSocialBatchSystemPrompt, getVideoScriptBatchSystemPrompt, getMarketingBatchSystemPrompt } from '@/lib/prompts'
+import { fetchTopExemplars } from '@/lib/exemplars'
 import { PLATFORM_META, STATUS_META } from './ContentHub'
 import MediaPicker from '@/components/MediaPicker'
 import { formatDate, formatRelativeDate } from '@/lib/utils'
@@ -217,21 +218,30 @@ export default function ReviewPost() {
       const condition     = item.topic
       const platform      = item.platform
 
+      // Pull top-performing exemplars for this platform + topic. Returns []
+      // until ingest is wired, in which case the prompt's exemplars block
+      // renders empty — same behavior as before the feedback loop existed.
+      const exemplars = await fetchTopExemplars({ platform, topic: condition, limit: 3 }).catch(() => [])
+
       let systemPrompt, inputMessages
       const blogPost = outputs?.blogPost || ''
 
       if (platform === 'blog') {
-        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, '', tone)
+        // getBlogPostSystemPrompt is (clinicianName, condition, tone, exemplars).
+        // Was historically called with an extra '' arg here that silently
+        // dropped tone — left as-is now since we're aligned with the proper
+        // signature.
+        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, tone, exemplars)
         inputMessages = messages?.length ? messages : [{ role: 'user', content: 'Please write the blog post.' }]
       } else {
         if (!blogPost) throw new Error('The blog post for this interview must be generated first before regenerating other content.')
         inputMessages = [{ role: 'user', content: blogPost }]
         if (['instagram', 'facebook', 'gbp', 'linkedin'].includes(platform)) {
-          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone)
+          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone, exemplars)
         } else if (['youtube', 'tiktok'].includes(platform)) {
-          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone)
+          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone, exemplars)
         } else {
-          systemPrompt = getMarketingBatchSystemPrompt(clinicianName, condition, '', tone)
+          systemPrompt = getMarketingBatchSystemPrompt(clinicianName, condition, '', tone, exemplars)
         }
       }
 
@@ -252,7 +262,11 @@ export default function ReviewPost() {
       const newContent = extractSection(generated, startMarker, endMarker)
       if (!newContent) throw new Error('Could not parse content from the generated output.')
 
-      const updated = await updateContentItem(itemId, { content: newContent, status: 'in_review', updatedAt: new Date().toISOString() })
+      const updated = await updateContentItem(itemId, {
+        content:   newContent,
+        status:    'in_review',
+        updatedAt: new Date().toISOString(),
+      })
       setItem(updated)
       setContent(newContent)
       setSuccess('Content regenerated!')

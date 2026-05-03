@@ -52,6 +52,32 @@ Optimize for maximum patient connection and engagement. Write at an accessible l
   }
 }
 
+// Renders a "what's resonated with our audience" block from a list of
+// high-performing past posts. The LLM is asked to extract patterns
+// (register, structure, framing) — not copy phrases. Engagement-driven
+// adaptation lives entirely in this block: pick better exemplars, get
+// better outputs. No discrete axes, no bandit, no enums.
+//
+// `exemplars` shape: [{ platform, content, engagement_score, captured_at? }]
+// When the array is empty (cold start), this returns an empty string and the
+// prompt behaves exactly as it did before any feedback loop existed.
+function getExemplarsBlock(exemplars) {
+  if (!exemplars || exemplars.length === 0) return ''
+  const items = exemplars.map((ex, i) => {
+    const score = ex.engagement_score ? ` — ${ex.engagement_score.toFixed(1)}× platform median engagement` : ''
+    const platform = ex.platform ? ` (${ex.platform})` : ''
+    return `[Example ${i + 1}${platform}${score}]
+${ex.content}`
+  }).join('\n\n')
+
+  return `
+
+EXAMPLES OF WHAT'S RESONATED WITH OUR AUDIENCE:
+Below are recent posts from ${brand.name} that performed especially well. Match the editorial register, voice, and structural patterns these examples demonstrate. Extract the patterns; do not copy specific phrases verbatim.
+
+${items}`
+}
+
 export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = []) {
   let pastContext = ''
   if (pastInterviews.length > 0) {
@@ -102,7 +128,7 @@ ENDING THE INTERVIEW:
 Start immediately with your first question. No greeting, no introduction.`
 }
 
-export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart') {
+export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart', exemplars = []) {
   return `You are a content writer for ${brand.name} in ${brand.location}. Based on the interview transcript below with ${clinicianName} about treating ${condition}, write an engaging, on-brand blog post targeted at ${brand.region} readers.
 
 CRITICAL FRAMING RULE:
@@ -156,10 +182,10 @@ BLOG POST FORMAT (write in Markdown):
 *${brand.name} · ${brand.location}*
 
 TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.
-${getToneModifier(tone)}`
+${getToneModifier(tone)}${getExemplarsBlock(exemplars)}`
 }
 
-export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
+export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', exemplars = []) {
   return `Based on the blog post provided, generate social media content for ${brand.name}. The post is about ${condition}.
 
 CRITICAL FRAMING RULE:
@@ -211,10 +237,10 @@ Create 3 Pinterest pin variations. For each:
 PIN TITLE: (max 100 characters, include keywords naturally — brand as ${brand.name})
 PIN DESCRIPTION: (200–400 characters, keyword-rich natural language, include ${brand.website})
 BOARD: (${brand.prompt.pinterestBoards})${campaignContext}
-${getToneModifier(tone)}`
+${getToneModifier(tone)}${getExemplarsBlock(exemplars)}`
 }
 
-export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
+export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', exemplars = []) {
   const firstName = clinicianName.split(' ')[0]
   return `Based on the blog post provided, write two video scripts for ${brand.name} about ${condition}.
 
@@ -270,10 +296,10 @@ Soft CTA: "If you're dealing with ${condition} in ${brand.prompt.locationKeyword
 
 CAPTION:
 50–80 word TikTok caption with 5–6 relevant hashtags. Brand as ${brand.name}.${campaignContext}
-${getToneModifier(tone)}`
+${getToneModifier(tone)}${getExemplarsBlock(exemplars)}`
 }
 
-export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
+export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', exemplars = []) {
   const firstName = clinicianName.split(' ')[0]
   const conditionSlug = condition.toLowerCase().replace(/\s+/g, '-').slice(0, 20)
   return `Based on the blog post provided, generate three marketing assets for ${brand.name} about ${condition}. Use the blog post as your source of truth.
@@ -373,5 +399,5 @@ SITELINK EXTENSIONS — 4, with title and 2-line description each:
 [continue to 4]
 
 Mix brand terms (${brand.name}, ${brand.prompt.locationKeyword}), condition terms (${condition}), and benefit terms (pain relief, root cause, movement assessment). Avoid superlatives unless substantiated. No prices.${campaignContext}
-${getToneModifier(tone)}`
+${getToneModifier(tone)}${getExemplarsBlock(exemplars)}`
 }

@@ -18,6 +18,7 @@ import {
   getVideoScriptBatchSystemPrompt,
   getMarketingBatchSystemPrompt,
 } from '@/lib/prompts'
+import { fetchTopExemplars } from '@/lib/exemplars'
 import { getCampaignPromptContext } from '@/lib/campaigns'
 import { formatDate } from '@/lib/utils'
 
@@ -72,8 +73,19 @@ export default function InterviewOutput() {
       const campaignContext = getCampaignPromptContext(campaign)
       let updates = {}
 
+      // Pull top-performing exemplars for this batch using a representative
+      // platform per batch (the one with the strongest engagement signal we
+      // expect once ingest is wired). When ingest is dark, fetchTopExemplars
+      // returns [] and exemplar blocks render empty.
+      const REP_PLATFORM = { social: 'instagram', video: 'youtube', marketing: 'email' }
+      const exemplars = await fetchTopExemplars({
+        platform: REP_PLATFORM[group],
+        topic:    interview.topic,
+        limit:    3,
+      }).catch(() => [])
+
       if (group === 'social') {
-        const result = await generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone))
+        const result = await generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone, exemplars))
         updates = {
           instagram: parseSection(result, '---INSTAGRAM---', '---FACEBOOK---'),
           facebook: parseSection(result, '---FACEBOOK---', '---GBP POST---'),
@@ -82,13 +94,13 @@ export default function InterviewOutput() {
           pinterest: parseSection(result, '---PINTEREST---', null),
         }
       } else if (group === 'video') {
-        const result = await generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone))
+        const result = await generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone, exemplars))
         updates = {
           youtubeScript: parseSection(result, '---YOUTUBE SCRIPT---', '---TIKTOK SCRIPT---'),
           tiktokScript: parseSection(result, '---TIKTOK SCRIPT---', null),
         }
       } else if (group === 'marketing') {
-        const result = await generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone))
+        const result = await generateContent(blogInput, getMarketingBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone, exemplars))
         updates = {
           emailNewsletter: parseSection(result, '---EMAIL NEWSLETTER---', '---LANDING PAGE---'),
           landingPage: parseSection(result, '---LANDING PAGE---', '---GOOGLE ADS---'),
