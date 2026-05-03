@@ -145,6 +145,31 @@ export default function NewInterview() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Tone selector */}
+            <div className="space-y-2">
+              <Label className="text-sm">Content tone</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {TONES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTone(t.id)}
+                    className={`flex items-start gap-2 rounded-lg border p-3 text-left transition-all ${
+                      tone === t.id
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                        : 'border-input hover:border-primary/40 hover:bg-accent/30'
+                    }`}
+                  >
+                    <span className="text-base shrink-0 mt-0.5">{t.emoji}</span>
+                    <div>
+                      <p className="text-xs font-semibold leading-tight">{t.label}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{t.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="condition">Condition, treatment, or topic</Label>
               <Input
@@ -228,31 +253,6 @@ export default function NewInterview() {
                 </div>
               </div>
             )}
-
-            {/* Tone selector */}
-            <div className="space-y-2 pt-1">
-              <Label className="text-sm">Content tone</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {TONES.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setTone(t.id)}
-                    className={`flex items-start gap-2 rounded-lg border p-3 text-left transition-all ${
-                      tone === t.id
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'border-input hover:border-primary/40 hover:bg-accent/30'
-                    }`}
-                  >
-                    <span className="text-base shrink-0 mt-0.5">{t.emoji}</span>
-                    <div>
-                      <p className="text-xs font-semibold leading-tight">{t.label}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{t.description}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="flex gap-2 pt-1">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1" disabled={loading}>
