@@ -302,6 +302,147 @@ function BlogPreview({ content }) {
   )
 }
 
+// ── Instagram Ads — Meta Ads Manager creative ────────────────────────────────
+function parseInstagramAdFields(content) {
+  if (!content) return {}
+  const labels = ['PRIMARY TEXT', 'HEADLINE', 'DESCRIPTION', 'CTA BUTTON', 'DESTINATION URL', 'CREATIVE NOTES']
+  const fields = {}
+  let current = null
+  let buf = []
+
+  const flush = () => {
+    if (!current || current === 'CREATIVE NOTES') return
+    let val = buf.join('\n').trim()
+    if (val.startsWith('[') && val.endsWith(']')) val = val.slice(1, -1).trim()
+    if (val) fields[current] = val
+  }
+
+  for (const line of content.split('\n')) {
+    const hit = labels.find((l) => line.startsWith(`${l}:`))
+    if (hit) {
+      flush()
+      current = hit
+      buf = []
+    } else if (current) {
+      buf.push(line)
+    }
+  }
+  flush()
+  return fields
+}
+
+const IG_AD_FIELDS = [
+  { key: 'PRIMARY TEXT',    label: 'Primary Text',    hint: 'Main caption above the creative' },
+  { key: 'HEADLINE',        label: 'Headline',        hint: 'Bold text under the creative' },
+  { key: 'DESCRIPTION',     label: 'Description',     hint: 'Optional supporting line' },
+  { key: 'CTA BUTTON',      label: 'CTA Button',      hint: 'Pick from Meta’s preset options' },
+  { key: 'DESTINATION URL', label: 'Destination URL', hint: 'Where the ad sends clicks' },
+]
+
+function InstagramAdsPreview({ content, mediaUrls = [] }) {
+  const f = parseInstagramAdFields(content)
+  const hasFields = Object.keys(f).length > 0
+  const [showFull, setShowFull] = React.useState(false)
+
+  if (!hasFields) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex gap-3">
+          <span className="text-amber-500 text-lg shrink-0">⚠</span>
+          <div>
+            <p className="text-sm font-medium text-amber-800">Regenerate to use the structured Instagram Ads format</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              This ad copy was created before the labeled-field format. Click <strong>Regenerate</strong> to get
+              Primary Text, Headline, Description, CTA Button, and Destination URL as separate one-click-copy fields.
+            </p>
+          </div>
+        </div>
+        <PlainPreview content={content} />
+      </div>
+    )
+  }
+
+  const primary = f['PRIMARY TEXT'] || ''
+  const lines = primary.split('\n')
+  const previewText = lines.slice(0, 2).join('\n').slice(0, 125)
+  const hasMore = primary.length > previewText.length
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Mock feed ad */}
+      <div className="max-w-sm mx-auto border rounded-xl overflow-hidden bg-white shadow-sm font-sans">
+        <div className="flex items-center gap-3 px-4 py-3 border-b">
+          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
+            {MB_INITIALS}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold">{MB_HANDLE}</p>
+            <p className="text-[10px] text-muted-foreground">Sponsored · {MB_LOCATION}</p>
+          </div>
+        </div>
+
+        <MediaCarousel mediaUrls={mediaUrls} aspectClass="aspect-square" />
+
+        <div className="px-4 pt-3 pb-1 flex items-center gap-4">
+          <Heart className="h-6 w-6" />
+          <MessageCircle className="h-6 w-6" />
+          <Send className="h-6 w-6" />
+          <Bookmark className="h-6 w-6 ml-auto" />
+        </div>
+
+        {/* CTA bar — Meta renders this directly under reactions for ads */}
+        <div className="border-t px-4 py-2.5 flex items-center justify-between bg-slate-50">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold leading-tight truncate">{f['HEADLINE'] || '—'}</p>
+            {f['DESCRIPTION'] && (
+              <p className="text-[10px] text-muted-foreground leading-tight truncate">{f['DESCRIPTION']}</p>
+            )}
+          </div>
+          <button className="ml-3 shrink-0 text-[11px] font-semibold bg-slate-900 text-white px-3 py-1.5 rounded">
+            {f['CTA BUTTON'] || 'Learn More'}
+          </button>
+        </div>
+
+        {/* Primary text */}
+        <div className="px-4 pb-4 pt-2">
+          <p className="text-xs leading-relaxed whitespace-pre-wrap">
+            <span className="font-semibold">{MB_HANDLE}</span>{' '}
+            <SocialText text={showFull ? primary : previewText} />
+            {!showFull && hasMore && (
+              <button onClick={() => setShowFull(true)} className="text-muted-foreground ml-1">… more</button>
+            )}
+          </p>
+        </div>
+      </div>
+
+      {/* Per-field copy cards — paste into Meta Ads Manager */}
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Paste into Meta Ads Manager
+        </p>
+        {IG_AD_FIELDS.map(({ key, label, hint }) => {
+          const value = f[key]
+          if (!value) return null
+          const charCount = value.length
+          return (
+            <div key={key} className="border rounded-lg bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b">
+                <div>
+                  <span className="text-xs font-semibold text-slate-700">{label}</span>
+                  <span className="ml-2 text-[10px] text-muted-foreground">{hint}</span>
+                  <span className="ml-2 text-[10px] font-mono text-slate-500">{charCount} chars</span>
+                </div>
+                <CopyButton value={value} />
+              </div>
+              <p className="px-3 py-2 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{value}</p>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Plain formatted (ads, landing page, video scripts) ───────────────────────
 function PlainPreview({ content }) {
   return (
@@ -484,6 +625,7 @@ export default function PostPreview({ platform, content, mediaUrls = [] }) {
     case 'gbp':         return <GBPPreview       content={content} />
     case 'blog':        return <BlogPreview      content={content} />
     case 'email':       return <EmailPreview     content={content} mediaUrls={mediaUrls} />
+    case 'instagram_ads': return <InstagramAdsPreview content={content} mediaUrls={mediaUrls} />
     default:            return <PlainPreview     content={content} />
   }
 }

@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import {
   ArrowLeft, Copy, Check, Instagram, Facebook, FileText, RefreshCw, Loader2,
-  Globe, Video, Mail, Linkedin, Youtube, MapPin, Search, Layout, Smartphone, Pin, Share2, Pencil, Sparkles,
+  Globe, Video, Mail, Linkedin, Youtube, MapPin, Search, Layout, Smartphone, Pin, Share2, Pencil, Sparkles, Megaphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -92,7 +92,8 @@ export default function InterviewOutput() {
         updates = {
           emailNewsletter: parseSection(result, '---EMAIL NEWSLETTER---', '---LANDING PAGE---'),
           landingPage: parseSection(result, '---LANDING PAGE---', '---GOOGLE ADS---'),
-          googleAds: parseSection(result, '---GOOGLE ADS---', null),
+          googleAds: parseSection(result, '---GOOGLE ADS---', '---INSTAGRAM ADS---'),
+          instagramAds: parseSection(result, '---INSTAGRAM ADS---', null),
         }
       }
 
@@ -116,9 +117,10 @@ export default function InterviewOutput() {
           { platform: 'tiktok',       key: 'tiktokScript' },
         ],
         marketing: [
-          { platform: 'email',        key: 'emailNewsletter' },
-          { platform: 'landing_page', key: 'landingPage' },
-          { platform: 'google_ads',   key: 'googleAds' },
+          { platform: 'email',         key: 'emailNewsletter' },
+          { platform: 'landing_page',  key: 'landingPage' },
+          { platform: 'google_ads',    key: 'googleAds' },
+          { platform: 'instagram_ads', key: 'instagramAds' },
         ],
       }
       const toCreate = (platformsByGroup[group] || [])
@@ -185,7 +187,7 @@ export default function InterviewOutput() {
       </div>
 
       <Tabs defaultValue="blog">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="blog" className="gap-1.5 text-xs">
             <FileText className="h-3.5 w-3.5" />
             Blog
@@ -193,6 +195,10 @@ export default function InterviewOutput() {
           <TabsTrigger value="social" className="gap-1.5 text-xs">
             <Share2 className="h-3.5 w-3.5" />
             Social
+          </TabsTrigger>
+          <TabsTrigger value="instagram_ads" className="gap-1.5 text-xs">
+            <Megaphone className="h-3.5 w-3.5" />
+            IG Ads
           </TabsTrigger>
           <TabsTrigger value="google" className="gap-1.5 text-xs">
             <Globe className="h-3.5 w-3.5" />
@@ -259,6 +265,21 @@ export default function InterviewOutput() {
           )}
         </TabsContent>
 
+        {/* ── Instagram Ads ── */}
+        <TabsContent value="instagram_ads">
+          {outputs.instagramAds ? (
+            <OutputCard
+              title="Instagram Ads Copy"
+              subtitle="Meta Ads Manager creative — primary text, headline, description, CTA, destination URL"
+              content={outputs.instagramAds}
+              badge="Instagram Ads"
+              editId={itemMap['instagram_ads']}
+            />
+          ) : (
+            <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Instagram Ads" description="Meta Ads Manager creative — generated alongside GBP, Google Ads, landing page, and email" />
+          )}
+        </TabsContent>
+
         {/* ── Google ── */}
         <TabsContent value="google">
           {outputs.googleAds ? (
@@ -288,7 +309,7 @@ export default function InterviewOutput() {
               </TabsContent>
             </Tabs>
           ) : (
-            <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Google & Marketing" description="GBP post, Google Ads, and landing page copy" />
+            <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Google & Marketing" description="GBP post, Google Ads, Instagram Ads, and landing page copy" />
           )}
         </TabsContent>
 
