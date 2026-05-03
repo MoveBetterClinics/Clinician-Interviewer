@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Instagram, Facebook, Linkedin, FileText, Mail,
   MapPin, ChevronRight, Clock, CheckCircle2, Send, CalendarDays,
-  AlertCircle, Loader2, RefreshCw, Filter,
-  MousePointer2, LayoutTemplate, Clapperboard, Youtube, Music2,
+  AlertCircle, Loader2, RefreshCw,
+  MousePointer2, LayoutTemplate, Clapperboard, Youtube, Music2, Megaphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +19,7 @@ const PLATFORM_META = {
   linkedin:     { label: 'LinkedIn',        icon: Linkedin,   color: 'text-sky-700',    bg: 'bg-sky-50' },
   gbp:          { label: 'Google Business', icon: MapPin,     color: 'text-green-700',  bg: 'bg-green-50' },
   google_ads:   { label: 'Google Ads',      icon: MousePointer2, color: 'text-yellow-700', bg: 'bg-yellow-50' },
+  instagram_ads:{ label: 'Instagram Ads',   icon: Megaphone,  color: 'text-rose-600',   bg: 'bg-rose-50' },
   landing_page: { label: 'Landing Page',    icon: LayoutTemplate, color: 'text-purple-600', bg: 'bg-purple-50' },
   youtube:      { label: 'YouTube Script',  icon: Youtube,       color: 'text-red-600',    bg: 'bg-red-50' },
   tiktok:       { label: 'TikTok / Reels', icon: Music2,        color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
@@ -34,6 +35,16 @@ const STATUS_META = {
 }
 
 const STATUS_TABS = ['all', 'draft', 'in_review', 'approved', 'scheduled', 'published']
+
+// Chip groups for the platform filter — IG Ads sits alone between Social and Google.
+const PLATFORM_GROUPS = [
+  ['blog'],
+  ['instagram', 'facebook', 'linkedin', 'gbp'],
+  ['instagram_ads'],
+  ['google_ads', 'landing_page'],
+  ['youtube', 'tiktok'],
+  ['email'],
+]
 
 export default function ContentHub() {
   const [items, setItems]         = useState([])
@@ -107,36 +118,57 @@ export default function ContentHub() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
-          {STATUS_TABS.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className={`px-3 py-1 text-xs rounded-md font-medium transition-colors capitalize ${
-                activeStatus === s ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {s === 'all' ? 'All' : STATUS_META[s]?.label}
-              {s !== 'all' && counts[s] ? ` (${counts[s]})` : ''}
-            </button>
-          ))}
-        </div>
+      {/* Platform chip filter — separators denote category boundaries */}
+      <div className="flex flex-wrap gap-1.5 items-center">
+        <button
+          onClick={() => setPlatform('all')}
+          className={`flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            platform === 'all'
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          All platforms
+        </button>
+        {PLATFORM_GROUPS.map((group, gi) => (
+          <Fragment key={gi}>
+            <span className="h-5 w-px bg-border mx-0.5" aria-hidden />
+            {group.map((k) => {
+              const meta = PLATFORM_META[k]
+              if (!meta) return null
+              const Icon = meta.icon
+              const selected = platform === k
+              return (
+                <button
+                  key={k}
+                  onClick={() => setPlatform(k)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    selected ? `${meta.bg} ${meta.color}` : 'bg-muted text-muted-foreground hover:bg-accent'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {meta.label}
+                </button>
+              )
+            })}
+          </Fragment>
+        ))}
+      </div>
 
-        <div className="flex items-center gap-1.5">
-          <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
-            className="text-xs border rounded-md px-2 py-1.5 bg-background"
+      {/* Status tabs */}
+      <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
+        {STATUS_TABS.map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`px-3 py-1 text-xs rounded-md font-medium transition-colors capitalize ${
+              activeStatus === s ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}
           >
-            <option value="all">All platforms</option>
-            {Object.entries(PLATFORM_META).map(([k, v]) => (
-              <option key={k} value={k}>{v.label}</option>
-            ))}
-          </select>
-        </div>
+            {s === 'all' ? 'All' : STATUS_META[s]?.label}
+            {s !== 'all' && counts[s] ? ` (${counts[s]})` : ''}
+          </button>
+        ))}
       </div>
 
       {/* Content list */}
