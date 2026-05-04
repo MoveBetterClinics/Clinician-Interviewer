@@ -1,0 +1,102 @@
+name: Cascade main to brand branches
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  cascade:
+    strategy:
+      fail-fast: false
+      matrix:
+        brand: [people, equine, animals]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Skip if brand is already up to date
+        id: check
+        run: |
+          BEHIND=$(git rev-list --count origin/${{ matrix.brand }}..origin/main)
+          echo "behind=$BEHIND" >> "$GITHUB_OUTPUT"
+          if [ "$BEHIND" = "0" ]; then
+            echo "Brand ${{ matrix.brand }} already contains origin/main — nothing to cascade."
+          fi
+
+      - name: Create cascade branch
+        if: steps.check.outputs.behind != '0'
+        id: branch
+        run: |
+          SHORT_SHA=$(git rev-parse --short origin/main)
+          BRANCH="cascade/${SHORT_SHA}-${{ matrix.brand }}"
+          git checkout -B "$BRANCH" "origin/${{ matrix.brand }}"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Attempt merge
+        if: steps.check.outputs.behind != '0'
+        id: merge
+        run: |
+          if git merge --no-ff origin/main \
+              -m "Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }})"; then
+            echo "status=clean" >> "$GITHUB_OUTPUT"
+          else
+            git add -A
+            git commit -m "Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }}) — CONFLICTS"
+            echo "status=conflict" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push cascade branch
+        if: steps.check.outputs.behind != '0'
+        run: git push origin "${{ steps.branch.outputs.branch }}"
+
+      - name: Build cascaded-commits list
+        if: steps.check.outputs.behind != '0'
+        id: commits
+        run: |
+          {
+            echo "list<<COMMITS_EOF"
+            git log --pretty=format:'- %h %s' "origin/${{ matrix.brand }}..origin/main"
+            echo
+            echo "COMMITS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open PR (clean) and auto-merge
+        if: steps.check.outputs.behind != '0' && steps.merge.outputs.status == 'clean'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --base "${{ matrix.brand }}" \
+            --head "${{ steps.branch.outputs.branch }}" \
+            --title "Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }})" \
+            --body "Auto-cascade from main. Clean merge — merging automatically.
+
+          **Commits being cascaded:**
+          ${{ steps.commits.outputs.list }}")
+          echo "Opened $PR_URL"
+          gh pr merge "$PR_URL" --merge --delete-branch
+
+      - name: Open PR (conflict) for manual resolution
+        if: steps.check.outputs.behind != '0' && steps.merge.outputs.status == 'conflict'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base "${{ matrix.brand }}" \
+            --head "${{ steps.branch.outputs.branch }}" \
+            --title "⚠️ Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }}) — CONFLICTS" \
+            --body $'Auto-cascade from main hit merge conflicts.\n\nThe branch was pushed with conflict markers committed so you can see the diff. To resolve:\n\n```\ngit fetch origin\ngit checkout ${{ steps.branch.outputs.branch }}\ngit reset --hard origin/${{ matrix.brand }}\ngit merge origin/main\n# resolve conflicts, then:\ngit commit\ngit push --force-with-lease\n```\n\nThen merge this PR.'
