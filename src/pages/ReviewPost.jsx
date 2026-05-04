@@ -122,7 +122,11 @@ export default function ReviewPost() {
           fetchGBPLocations()
             .then(({ locations }) => {
               setGbpLocations(locations)
-              setSelectedLocs(locations.map((l) => l.id))
+              const allIds = locations.map((l) => l.id)
+              // If the row already has a saved selection, restore it (filtered
+              // against currently-configured locations). NULL = "all locations".
+              const saved = Array.isArray(i.target_locations) ? i.target_locations.filter((id) => allIds.includes(id)) : null
+              setSelectedLocs(saved && saved.length ? saved : allIds)
             })
             .catch(() => {})
         }
@@ -225,7 +229,7 @@ export default function ReviewPost() {
       const blogPost = outputs?.blogPost || ''
 
       if (platform === 'blog') {
-        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, '', tone)
+        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, tone)
         inputMessages = messages?.length ? messages : [{ role: 'user', content: 'Please write the blog post.' }]
       } else {
         if (!blogPost) throw new Error('The blog post for this interview must be generated first before regenerating other content.')
