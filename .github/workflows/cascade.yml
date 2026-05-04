@@ -103,14 +103,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          BODY=$(cat <<'BODY_EOF'
+          Auto-cascade from main. Clean merge — merging automatically.
+
+          **Commits being cascaded:**
+          ${{ steps.commits.outputs.list }}
+          BODY_EOF
+          )
           PR_URL=$(gh pr create \
             --base "${{ matrix.brand }}" \
             --head "${{ steps.branch.outputs.branch }}" \
             --title "Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }})" \
-            --body "Auto-cascade from main. Clean merge — merging automatically.
-
-          **Commits being cascaded:**
-          ${{ steps.commits.outputs.list }}")
+            --body "$BODY")
           echo "Opened $PR_URL"
           gh pr merge "$PR_URL" --merge --delete-branch
 
