@@ -172,6 +172,7 @@ export default function InterviewOutput() {
             </Link>
           </Button>
           <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Interview Output</p>
             <h1 className="text-xl font-bold">{interview.topic}</h1>
             <p className="text-sm text-muted-foreground">
               {clinician.name} · Generated {formatDate(outputs.generatedAt)}
