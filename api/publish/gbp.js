@@ -1,11 +1,15 @@
 export const config = { runtime: 'edge' }
 
+import { brand } from '../../src/lib/brand.js'
+
 // Google Business Profile posting via service account
 // Required env vars:
 //   GBP_ACCOUNT_ID    - e.g. accounts/123456789
 //   GBP_LOCATION_IDS  - comma-separated, e.g. "locations/111,locations/222"
 //   GOOGLE_SERVICE_ACCOUNT_EMAIL
 //   GOOGLE_SERVICE_ACCOUNT_KEY  (private key — paste as-is with \n newlines)
+// Optional:
+//   BRAND_URL         - overrides the brand's bookingUrl for the GBP post CTA
 
 const ok  = (data)       => new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } })
 const err = (msg, status = 400) => new Response(JSON.stringify({ error: msg }), { status, headers: { 'Content-Type': 'application/json' } })
@@ -71,7 +75,7 @@ export function buildPost(content, mediaUrls = []) {
     languageCode: 'en-US',
     summary: content,
     topicType: 'STANDARD',
-    callToAction: { actionType: 'BOOK', url: process.env.BRAND_URL || 'https://www.movebetter.co' },
+    callToAction: { actionType: 'BOOK', url: process.env.BRAND_URL || brand.prompt.bookingUrl },
   }
   const media = Array.isArray(mediaUrls) ? mediaUrls : []
   if (media.length > 0) {
