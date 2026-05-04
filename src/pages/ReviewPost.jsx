@@ -79,6 +79,7 @@ export default function ReviewPost() {
   const [scheduledAt, setScheduledAt]         = useState('')
   const [scheduleSuggestion, setScheduleSuggestion] = useState(null) // Date | null
   const [scheduleIsCustom, setScheduleIsCustom]     = useState(false)
+  const [publishMode, setPublishMode]               = useState('schedule') // 'schedule' | 'now'
   const [gbpLocations, setGbpLocations]   = useState([])
   const [selectedLocs, setSelectedLocs]   = useState([])
 
@@ -171,9 +172,10 @@ export default function ReviewPost() {
     try {
       // Save latest content first
       await save({ status: 'approved' })
-      const latest = { ...item, content, scheduledAt: scheduledAt || null, mediaUrls: item.media_urls || [], locationIds: item.platform === 'gbp' ? selectedLocs : undefined }
+      const effectiveScheduledAt = publishMode === 'schedule' ? (scheduledAt || null) : null
+      const latest = { ...item, content, scheduledAt: effectiveScheduledAt, mediaUrls: item.media_urls || [], locationIds: item.platform === 'gbp' ? selectedLocs : undefined }
       await publishAndTrack(latest, user?.primaryEmailAddress?.emailAddress)
-      setSuccess(scheduledAt ? 'Scheduled successfully!' : 'Published successfully!')
+      setSuccess(effectiveScheduledAt ? 'Scheduled successfully!' : 'Published successfully!')
       setTimeout(() => navigate('/hub'), 1500)
     } catch (e) {
       setError(`Publish failed: ${e.message}`)
@@ -520,40 +522,70 @@ export default function ReviewPost() {
             <div className="rounded-xl border p-4 space-y-3">
               <p className="text-sm font-medium">Publish this post</p>
 
+              {/* Mode toggle: Schedule vs. Publish now */}
+              <div className="grid grid-cols-2 rounded-md border p-0.5 bg-muted/40 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setPublishMode('schedule')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 rounded-sm transition-colors ${
+                    publishMode === 'schedule'
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Schedule
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPublishMode('now')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 rounded-sm transition-colors ${
+                    publishMode === 'now'
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  Publish now
+                </button>
+              </div>
+
               {/* Schedule picker */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs text-muted-foreground">Schedule for</label>
-                  {scheduleSuggestion && (
-                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                      scheduleIsCustom
-                        ? 'bg-slate-100 text-slate-500'
-                        : 'bg-violet-100 text-violet-700'
-                    }`}>
-                      {scheduleIsCustom ? 'Custom' : '✦ Auto-suggested'}
-                    </span>
+              {publishMode === 'schedule' && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-muted-foreground">Schedule for</label>
+                    {scheduleSuggestion && (
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                        scheduleIsCustom
+                          ? 'bg-slate-100 text-slate-500'
+                          : 'bg-violet-100 text-violet-700'
+                      }`}>
+                        {scheduleIsCustom ? 'Custom' : '✦ Auto-suggested'}
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="datetime-local"
+                    value={scheduledAt}
+                    onChange={(e) => { setScheduledAt(e.target.value); setScheduleIsCustom(true) }}
+                    min={new Date().toISOString().slice(0, 16)}
+                    className="w-full text-xs border rounded-md px-2.5 py-2 bg-background"
+                  />
+                  {scheduleSuggestion && !scheduleIsCustom && (
+                    <p className="text-xs text-muted-foreground">Spread across your current queue.</p>
+                  )}
+                  {scheduleSuggestion && scheduleIsCustom && (
+                    <button
+                      type="button"
+                      onClick={() => { setScheduledAt(scheduleSuggestion.toISOString().slice(0, 16)); setScheduleIsCustom(false) }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Reset to suggested time
+                    </button>
                   )}
                 </div>
-                <input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => { setScheduledAt(e.target.value); setScheduleIsCustom(true) }}
-                  min={new Date().toISOString().slice(0, 16)}
-                  className="w-full text-xs border rounded-md px-2.5 py-2 bg-background"
-                />
-                {scheduleSuggestion && !scheduleIsCustom && (
-                  <p className="text-xs text-muted-foreground">Spread across your current queue.</p>
-                )}
-                {scheduleSuggestion && scheduleIsCustom && (
-                  <button
-                    type="button"
-                    onClick={() => { setScheduledAt(scheduleSuggestion.toISOString().slice(0, 16)); setScheduleIsCustom(false) }}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Reset to suggested time
-                  </button>
-                )}
-              </div>
+              )}
 
               <Separator />
 
@@ -595,11 +627,15 @@ export default function ReviewPost() {
               >
                 {publishing
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                  : scheduledAt
+                  : publishMode === 'schedule'
                     ? <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                     : <Send className="h-3.5 w-3.5 mr-1.5" />
                 }
-                {publishing ? 'Publishing…' : scheduledAt ? 'Schedule Post' : 'Publish Now'}
+                {publishing
+                  ? 'Publishing…'
+                  : publishMode === 'schedule'
+                    ? 'Schedule Post'
+                    : 'Publish Now'}
               </Button>
 
               {needsMedia && !hasMedia && (
