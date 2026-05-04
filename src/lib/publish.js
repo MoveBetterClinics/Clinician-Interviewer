@@ -78,6 +78,28 @@ export function fetchGBPLocations() {
   return apiFetch('/api/gbp/locations')
 }
 
+// ── Website publish (animals brand → movebetteranimal.co) ────────────────────
+// Throws an Error whose `.code` is one of: slug_taken, invalid_payload,
+// auth_failed, website_misconfigured, github_error, network_error,
+// not_configured, upstream_error. The UI keys off `.code` to render the right
+// message (slug-taken in particular needs to highlight the slug input).
+export async function publishBlogToWebsite(post) {
+  const res = await fetch('/api/publish/website', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(post),
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const error = new Error(json.message || `Publish failed (${res.status})`)
+    error.code = json.error || 'upstream_error'
+    error.status = res.status
+    error.details = json
+    throw error
+  }
+  return json
+}
+
 // Publish one item to all relevant platforms at once
 export async function publishAndTrack(item, userId) {
   // GBP's localPosts API has no native scheduling. Any GBP post with a
