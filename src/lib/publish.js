@@ -80,6 +80,22 @@ export function fetchGBPLocations() {
 
 // Publish one item to all relevant platforms at once
 export async function publishAndTrack(item, userId) {
+  // GBP's localPosts API has no native scheduling. Any GBP post with a
+  // scheduledAt routes through the internal queue: api/cron/publish-due picks
+  // it up when scheduled_at <= now(). target_locations is persisted so the
+  // user's location selection survives the queue.
+  const isGbpScheduled = item.platform === 'gbp' && item.scheduledAt
+
+  if (isGbpScheduled) {
+    await updateContentItem(item.id, {
+      status: 'scheduled',
+      scheduledAt: item.scheduledAt,
+      targetLocations: item.locationIds?.length ? item.locationIds : null,
+      approvedBy: userId,
+    })
+    return { queued: true }
+  }
+
   const result = await publishItem(item)
   const postId = result.direct?.postId || result.buffer?.bufferId
 
