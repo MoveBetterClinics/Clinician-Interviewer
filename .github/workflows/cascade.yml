@@ -1,3 +1,15 @@
+# Cascades commits from main into the per-brand branches (people/equine/animals).
+#
+# Prerequisites (one-time repo setup):
+# - Settings → Actions → General → "Allow GitHub Actions to create and approve
+#   pull requests" must be ON. Without it, gh pr create fails with
+#   "GitHub Actions is not permitted to create or approve pull requests".
+# - Brand branches must NOT have branch protection that requires reviews or
+#   passing checks — gh pr merge --merge runs as github-actions[bot] and would
+#   be blocked. If protection is added later, switch to gh pr merge --auto.
+# - Uses GITHUB_TOKEN (not a PAT). Side effect: PRs opened by this workflow
+#   do NOT trigger downstream workflows (anti-recursion guard). Swap to a PAT
+#   secret if brand-branch CI is added later.
 name: Cascade main to brand branches
 
 on:
@@ -11,6 +23,11 @@ jobs:
       fail-fast: false
       matrix:
         brand: [people, equine, animals]
+    # Per-brand serialization — two near-simultaneous pushes to main queue
+    # rather than racing the cascade/<sha>-<brand> branch push.
+    concurrency:
+      group: cascade-${{ matrix.brand }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -54,6 +71,13 @@ jobs:
               -m "Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }})"; then
             echo "status=clean" >> "$GITHUB_OUTPUT"
           else
+            # Capture the conflicting paths before staging so we can surface
+            # them in the conflict PR body (saves the resolver a step).
+            {
+              echo "conflicted<<CONFLICTED_EOF"
+              git diff --name-only --diff-filter=U | sed 's/^/- /'
+              echo "CONFLICTED_EOF"
+            } >> "$GITHUB_OUTPUT"
             git add -A
             git commit -m "Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }}) — CONFLICTS"
             echo "status=conflict" >> "$GITHUB_OUTPUT"
@@ -95,8 +119,29 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          BODY=$(cat <<'BODY_EOF'
+          Auto-cascade from main hit merge conflicts.
+
+          **Conflicted files:**
+          ${{ steps.merge.outputs.conflicted }}
+
+          The branch was pushed with conflict markers committed so you can see the diff. To resolve:
+
+          ```
+          git fetch origin
+          git checkout ${{ steps.branch.outputs.branch }}
+          git reset --hard origin/${{ matrix.brand }}
+          git merge origin/main
+          # resolve conflicts, then:
+          git commit
+          git push --force-with-lease
+          ```
+
+          Then merge this PR.
+          BODY_EOF
+          )
           gh pr create \
             --base "${{ matrix.brand }}" \
             --head "${{ steps.branch.outputs.branch }}" \
             --title "⚠️ Cascade main → ${{ matrix.brand }} (${{ steps.branch.outputs.short_sha }}) — CONFLICTS" \
-            --body $'Auto-cascade from main hit merge conflicts.\n\nThe branch was pushed with conflict markers committed so you can see the diff. To resolve:\n\n```\ngit fetch origin\ngit checkout ${{ steps.branch.outputs.branch }}\ngit reset --hard origin/${{ matrix.brand }}\ngit merge origin/main\n# resolve conflicts, then:\ngit commit\ngit push --force-with-lease\n```\n\nThen merge this PR.'
+            --body "$BODY"
