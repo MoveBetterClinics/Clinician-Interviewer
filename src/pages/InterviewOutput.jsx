@@ -164,27 +164,32 @@ export default function InterviewOutput() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Interview Output</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Content generated from this interview, organized by platform. Copy what you need, or open a piece to edit and publish it.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/interview/${clinicianId}/${interviewId}`}>
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+              View Interview
+            </Link>
+          </Button>
+        </div>
+        <div className="flex items-center gap-2 -ml-2">
           <Button variant="ghost" size="icon" asChild>
             <Link to={`/clinician/${clinicianId}`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Interview Output</p>
-            <h1 className="text-xl font-bold">{interview.topic}</h1>
-            <p className="text-sm text-muted-foreground">
-              {clinician.name} · Generated {formatDate(outputs.generatedAt)}
-            </p>
+          <div className="text-sm">
+            <span className="font-medium">{interview.topic}</span>
+            <span className="text-muted-foreground"> · {clinician.name} · Generated {formatDate(outputs.generatedAt)}</span>
           </div>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link to={`/interview/${clinicianId}/${interviewId}`}>
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-            View Interview
-          </Link>
-        </Button>
       </div>
 
       <Tabs defaultValue="blog">
