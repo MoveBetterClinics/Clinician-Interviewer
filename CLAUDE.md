@@ -25,7 +25,7 @@ Brand-specific values (name, domain, location, social handles, prompt context, i
 When adding a feature, never hardcode "Move Better," `movebetter.co`, "Portland," "patients/clinicians" terminology, or human-specific assumptions in `src/`. Read those values from `brand` instead. To add a new brand deployment (Phase 2: equine, Phase 3: animals), add a sibling entry to `BRANDS` in `brand.js` and set `VITE_BRAND` / `BRAND` on the new Vercel project.
 
 ## GitHub
-Always use the GitHub CLI (`gh`) for all GitHub interactions — pushing, PRs, issues, repo management. Do not use `git push` over HTTPS or SSH directly.
+Use the GitHub CLI (`gh`) for GitHub-specific interactions — PRs, issues, releases, repo management. `gh` is configured as the git credential helper, so plain `git push` / `git fetch` are fine for ref operations (they authenticate through `gh` under the hood). Do not set up separate HTTPS basic auth or raw SSH credentials.
 
 ## Email Template
 The email newsletter preview renders the actual TrustDrivenCare (TDC) HTML template via `<iframe srcDoc>`. The template lives at `src/email-template.html` and is imported with Vite's `?raw` loader in `src/components/PostPreview.jsx`.
