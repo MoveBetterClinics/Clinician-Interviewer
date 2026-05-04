@@ -87,7 +87,9 @@ export default function ContentHub() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Content Hub</h1>
-          <p className="text-muted-foreground text-sm mt-1">Review, approve, and publish your interview content.</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Every piece of content across all interviews, organized by status. Track items from draft through review, scheduling, and publishing.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
