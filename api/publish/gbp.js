@@ -105,10 +105,17 @@ export default async function handler(req) {
     targets.map((locationId) => postToLocation(token, accountId, locationId, post))
   )
 
-  const succeeded = results.filter((r) => r.status === 'fulfilled').map((r) => r.value)
-  const failed    = results.filter((r) => r.status === 'rejected').map((r, i) => ({ locationId: targets[i], error: r.reason?.message }))
+  // Tag each result with its target locationId BEFORE filtering, so failure
+  // messages line up with the right location even when some succeed.
+  const tagged    = results.map((r, i) => ({ r, locationId: targets[i] }))
+  const succeeded = tagged.filter(({ r }) => r.status === 'fulfilled').map(({ r }) => r.value)
+  const failed    = tagged.filter(({ r }) => r.status === 'rejected')
+                          .map(({ r, locationId }) => ({ locationId, error: r.reason?.message }))
 
   if (!succeeded.length) return err(`All GBP posts failed: ${failed.map((f) => f.error).join('; ')}`, 502)
 
-  return ok({ success: true, posted: succeeded, failed })
+  // postId surfaces in publish.js as result.direct?.postId — comma-join the
+  // localPost names so multi-location publishes still get tracked.
+  const postId = succeeded.map((s) => s.name).filter(Boolean).join(',')
+  return ok({ success: true, postId, posted: succeeded, failed })
 }
