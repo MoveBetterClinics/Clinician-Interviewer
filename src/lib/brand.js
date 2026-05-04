@@ -283,9 +283,6 @@ const ANIMALS = {
 
     // Internal-link library used by the blog post prompt. Each brand keeps
     // its own equivalent. Drop in verbatim — the prompt expects markdown.
-    //
-    // NOTE: Blog post URLs below assume the slugs we plan to use on movebetteranimal.co.
-    // Verify and update once the site is live.
     internalLinksMarkdown: `CORE PAGES:
 - Move Better Animal (homepage): https://movebetteranimal.co/
 - About Dr. Whitney Phillips: https://movebetteranimal.co/about
@@ -299,7 +296,8 @@ BLOG POSTS:
 - "Everything You Need to Know About Chiropractic Care for Pets and Animals": https://movebetteranimal.co/blog/everything-you-need-to-know-about-chiropractic-care-for-pets-and-animals
 - "Animal Chiropractor vs. Veterinarian: What's the Difference?": https://movebetteranimal.co/blog/animal-chiropractor-vs-veterinarian
 - "An Outsider's View of Animal Chiropractic": https://movebetteranimal.co/blog/an-outsiders-view-of-animal-chiropractic
-- "A Dog's Toenail Length Matters": https://movebetteranimal.co/blog/a-dogs-toenail-length-matters`,
+- "A Dog's Toenail Length Matters": https://movebetteranimal.co/blog/a-dogs-toenail-length-matters
+- "When Your Dog's Limp Might Be a Nail Trim Away From Better": https://movebetteranimal.co/blog/when-your-dogs-limp-might-be-a-nail-trim-away-from-better-what-we-see-at-move-better-animal-chiropractic`,
 
     // The single anchor link the blog CTA must always land on. The animal
     // brand uses the same Jane booking instance as the human brand.
