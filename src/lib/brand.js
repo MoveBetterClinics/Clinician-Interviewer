@@ -220,11 +220,122 @@ BLOG POSTS:
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Equine Newsletter · Master',
 }
 
-// Phase 2 / Phase 3 brand entries land here as siblings.
+const ANIMALS = {
+  id: 'animals',
+
+  // Identity
+  name: 'Move Better Animal Chiropractic',
+  appName: 'Move Better Animal Chiropractic — NarrateRx',
+  tagline: 'Chiropractic care for the pets you love',
+  signInBlurb: 'Move Better Animal Chiropractic · Sign in with your @movebetter.co account',
+
+  // Auth — Whitney signs in with her existing @movebetter.co Workspace email.
+  // The animals brand has no email hosting on its own domain. Same auth pool
+  // as the human brand, but a separate Clerk app keeps sessions and the user
+  // list distinct per deployment.
+  authDomain: 'movebetter.co',
+
+  // Web presence
+  website: 'https://movebetteranimal.co/',
+  websiteHostname: 'movebetteranimal.co',
+
+  // Location — two operational clinics; primary listed first.
+  location: 'Portland, OR & Vancouver, WA',
+  region: 'Pacific Northwest',
+  regionShort: 'PNW',
+
+  // Visual identity. Logos reuse the Move Better marks per brand-owner direction —
+  // public/ in this deployment will hold the same SVGs as the human deployment.
+  logo: { main: '/logo.svg', icon: '/icon.svg' },
+  colors: { primary: '#E36525', grey: '#6E7072' },
+  socialAvatarInitials: 'MBA',
+  linkPreviewBlurb: 'AVCA-certified animal chiropractic in Portland and Vancouver — gentle adjustments for dogs, cats, and small animals.',
+  linkedInIndustry: 'Veterinary',
+
+  // Social handles — none claimed yet. Placeholders mirror expected usernames so
+  // PostPreview mocks render coherently. Update once handles are claimed.
+  social: {
+    instagram: 'movebetteranimal',
+    facebook: 'movebetteranimal',
+  },
+
+  // Strings injected into AI system prompts. Mirror HUMAN/EQUINE structure exactly
+  // so prompts.js stays brand-agnostic.
+  prompt: {
+    clinicContext:
+      'AVCA-certified animal chiropractic practice with two clinics in Portland, OR and Vancouver, WA. Dr. Whitney Phillips treats dogs, cats, and small animals (bunnies, rats, others case-by-case) with gentle hands-on adjustments and complementary modalities. Visits include full history, gait and joint evaluation, soft tissue work, and targeted adjustments. Most issues resolve within 3–4 visits. Care is positioned as a first-resort option for musculoskeletal complaints — and explicitly complementary to veterinary care, never a replacement.',
+
+    audienceDescription:
+      'pet owners in Portland, OR and Vancouver, WA — the people whose dogs are slowing down on walks, whose cats are stiff getting off the couch, whose senior pets are losing the spark they used to have. They have often already been to the vet and either heard "it\'s just aging" or been quoted expensive surgical and medication options. They want a less invasive first step. Many are juggling pet health alongside human family demands; they value providers who explain things plainly, charge transparently, and respect their relationship with their veterinarian.',
+
+    audienceShort:
+      'pet owners in Portland and Vancouver who notice their dog or cat slowing down, getting stiff, or behaving differently — and want a less invasive option than surgery or long-term meds before things escalate.',
+
+    brandVoice: `- Warm but credentialed — sound like a doctor who happens to also be a pet owner, not a marketing brochure
+- Patient-centered — lead with what the owner is worried about ("your dog can't get up the stairs"), not what the clinic offers
+- Educational, not salesy — explain the why before the call to book
+- Plain analogies over jargon — "imagine walking in high heels all day" beats "biomechanical loading"
+- Specific, not abstract — "a dog who can't climb stairs" beats "mobility-impaired companion animals"
+- Always complementary to veterinary care, never a replacement — name vets as the right call for emergencies, infections, or anything that needs imaging, medication, or surgery
+- Reference Dr. Whitney's AVCA certification when relevant — it's the credential that matters in this field
+- Avoid "fur baby" / "spa for pets" framing — this is healthcare, not luxury
+- Recurring beliefs to surface: chiropractic should be a first resort, not a last resort; the body is an integrated system; the goal is to reduce unnecessary suffering`,
+
+    // Internal-link library used by the blog post prompt. Each brand keeps
+    // its own equivalent. Drop in verbatim — the prompt expects markdown.
+    //
+    // NOTE: Blog post URLs below assume the slugs we plan to use on movebetteranimal.co.
+    // Verify and update once the site is live.
+    internalLinksMarkdown: `CORE PAGES:
+- Move Better Animal (homepage): https://movebetteranimal.co/
+- About Dr. Whitney Phillips: https://movebetteranimal.co/about
+- Services & pricing: https://movebetteranimal.co/services
+- Is my pet a candidate?: https://movebetteranimal.co/candidate
+- Visit Portland: https://movebetteranimal.co/visit/portland
+- Visit Vancouver: https://movebetteranimal.co/visit/vancouver
+- Blog index: https://movebetteranimal.co/blog
+
+BLOG POSTS:
+- "Everything You Need to Know About Chiropractic Care for Pets and Animals": https://movebetteranimal.co/blog/everything-you-need-to-know-about-chiropractic-care-for-pets-and-animals
+- "Animal Chiropractor vs. Veterinarian: What's the Difference?": https://movebetteranimal.co/blog/animal-chiropractor-vs-veterinarian
+- "An Outsider's View of Animal Chiropractic": https://movebetteranimal.co/blog/an-outsiders-view-of-animal-chiropractic
+- "A Dog's Toenail Length Matters": https://movebetteranimal.co/blog/a-dogs-toenail-length-matters`,
+
+    // The single anchor link the blog CTA must always land on. The animal
+    // brand uses the same Jane booking instance as the human brand.
+    bookingUrl: 'https://movebetter.janeapp.com/',
+
+    // No proprietary signature assessment system for the animal brand yet.
+    // prompts.js checks for null and omits the relevant sentences when these
+    // are absent — same behavior as EQUINE.
+    signatureSystemName: null,
+    signatureSystemUrl: null,
+
+    pinterestBoards:
+      'Dog Health & Wellness / Cat Health / Senior Pet Care / Pet Mobility / Pacific Northwest Pets',
+
+    locationKeyword: 'Portland',
+    locationHashtag: '#PortlandPets',
+    brandHashtag: '#MoveBetterAnimal',
+    spokenUrl: 'MoveBetterAnimal.co',
+
+    // Tone-modifier vocabulary for working- and athletic-dog scenarios common
+    // to PNW pet owners.
+    sportContext:
+      'working- and athletic-dog scenarios common to the Pacific Northwest — agility competition, hunting and field work, dock diving, herding, and trail/hiking companionship',
+  },
+
+  // Newsletter — the animal variant of the TrustDrivenCare master template
+  // hasn't been authored yet. Names mirror the HUMAN/EQUINE convention; update
+  // once the actual TDC template exists.
+  newsletterTemplateName: 'Move Better Animal Newsletter - Master',
+  newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Animal Newsletter · Master',
+}
+
 const BRANDS = {
   human: HUMAN,
   equine: EQUINE,
-  // animals: { id: 'animals', name: 'Move Better Animal Chiropractic', ... },
+  animals: ANIMALS,
 }
 
 function readBrandId() {
