@@ -1,16 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import {
   ArrowLeft, Copy, Check, Instagram, Facebook, FileText, RefreshCw, Loader2,
-  Globe, Video, Mail, Linkedin, Youtube, MapPin, Search, Layout, Smartphone, Pin, Share2, Pencil, Sparkles, Megaphone,
+  Globe, Video, Mail, Linkedin, Youtube, MapPin, Search, Layout, Smartphone, Pin, Share2, Pencil, Sparkles, Megaphone, Send, ExternalLink, AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { fetchClinician, fetchInterview, fetchCampaign, updateInterview } from '@/lib/api'
-import { fetchContentItemsByInterview, createContentItems } from '@/lib/publish'
+import { fetchContentItemsByInterview, createContentItems, publishBlogToWebsite } from '@/lib/publish'
 import { generateContent } from '@/lib/claude'
 import { brand } from '@/lib/brand'
 import {
@@ -229,6 +232,12 @@ export default function InterviewOutput() {
             badge="Markdown"
             editId={itemMap['blog']}
           />
+          {brand.id === 'animals' && outputs.blogPost && (
+            <WebsitePublishPanel
+              markdown={outputs.blogPost}
+              fallbackTitle={interview.topic}
+            />
+          )}
         </TabsContent>
 
         {/* ── Social Media ── */}
@@ -447,6 +456,266 @@ function OutputCard({ title, subtitle, content, badge, editId }) {
           {content}
         </pre>
       </ScrollArea>
+    </div>
+  )
+}
+
+// Strips an opening H1 from markdown and returns { title, body }. The website
+// generates its own <h1> from the frontmatter title — leaving the H1 in the
+// body would render twice.
+function splitH1(md) {
+  const lines = (md || '').split('\n')
+  let title = ''
+  let i = 0
+  while (i < lines.length && !lines[i].trim()) i++
+  if (i < lines.length && /^#\s+/.test(lines[i])) {
+    title = lines[i].replace(/^#\s+/, '').trim()
+    lines.splice(0, i + 1)
+    while (lines.length && !lines[0].trim()) lines.shift()
+  }
+  return { title, body: lines.join('\n').trim() }
+}
+
+function deriveDescription(body) {
+  const para = (body || '').split(/\n\s*\n/).find((b) => b.trim() && !b.trim().startsWith('#'))
+  if (!para) return ''
+  const flat = para.replace(/\s+/g, ' ').replace(/[*_`[\]()]/g, '').trim()
+  return flat.length > 280 ? flat.slice(0, 277).replace(/\s+\S*$/, '') + '…' : flat
+}
+
+function slugify(s) {
+  return (s || '')
+    .toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120)
+    .replace(/-+$/g, '')
+}
+
+function todayIso() {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function WebsitePublishPanel({ markdown, fallbackTitle }) {
+  const { title: h1Title, body: bodyWithoutH1 } = useMemo(() => splitH1(markdown), [markdown])
+  const defaultTitle = h1Title || fallbackTitle || ''
+  const defaultDescription = useMemo(() => deriveDescription(bodyWithoutH1), [bodyWithoutH1])
+
+  const [title, setTitle]             = useState(defaultTitle)
+  const [slug, setSlug]               = useState(slugify(defaultTitle))
+  const [slugEdited, setSlugEdited]   = useState(false)
+  const [description, setDescription] = useState(defaultDescription)
+  const [tagsInput, setTagsInput]     = useState('')
+  const [draft, setDraft]             = useState(false)
+  const [pubDate, setPubDate]         = useState(todayIso())
+
+  const [status, setStatus] = useState('idle') // 'idle' | 'publishing' | 'success' | 'error'
+  const [result, setResult] = useState(null)   // { postUrl, commitUrl, slug } on success
+  const [error, setError]   = useState(null)   // { code, message } on error
+
+  function handleTitleChange(next) {
+    setTitle(next)
+    if (!slugEdited) setSlug(slugify(next))
+  }
+
+  function handleSlugChange(next) {
+    setSlug(slugify(next))
+    setSlugEdited(true)
+    if (error?.code === 'slug_taken') setError(null)
+  }
+
+  async function handlePublish() {
+    setStatus('publishing')
+    setError(null)
+    setResult(null)
+
+    const tags = tagsInput
+      .split(',')
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean)
+
+    try {
+      const res = await publishBlogToWebsite({
+        slug,
+        title,
+        description,
+        pubDate,
+        markdown: bodyWithoutH1 || markdown,
+        tags,
+        draft,
+      })
+      setResult(res)
+      setStatus('success')
+    } catch (e) {
+      setError({ code: e.code, message: e.message })
+      setStatus('error')
+    }
+  }
+
+  if (status === 'success') {
+    return (
+      <div className="rounded-xl border border-green-200 bg-green-50 p-5 mt-3 space-y-3">
+        <div className="flex items-start gap-3">
+          <Check className="h-5 w-5 text-green-700 mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <p className="font-medium text-sm text-green-900">Published to movebetteranimal.co</p>
+            <p className="text-xs text-green-800">
+              The website is rebuilding now — the post will be live in about 30–60 seconds. The link below will 404 until then; that's expected.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 pl-8">
+          <Button size="sm" variant="outline" asChild>
+            <a href={result.postUrl} target="_blank" rel="noreferrer">
+              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+              View post
+            </a>
+          </Button>
+          {result.commitUrl && (
+            <Button size="sm" variant="outline" asChild>
+              <a href={result.commitUrl} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                View commit
+              </a>
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => setStatus('idle')}>
+            Publish another
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const slugTaken = error?.code === 'slug_taken'
+  const isPublishing = status === 'publishing'
+
+  return (
+    <div className="rounded-xl border bg-card shadow-sm overflow-hidden mt-3">
+      <div className="flex items-center justify-between px-5 py-4 border-b bg-muted/30">
+        <div>
+          <p className="font-medium text-sm flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            Publish to movebetteranimal.co
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Commits a markdown file to the site repo. Build takes ~30–60 seconds after publish.
+          </p>
+        </div>
+        <Badge variant="outline" className="text-xs">Animals</Badge>
+      </div>
+
+      <div className="p-5 space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="publish-title" className="text-xs">Title</Label>
+          <Input
+            id="publish-title"
+            value={title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            disabled={isPublishing}
+            maxLength={200}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="publish-slug" className="text-xs">
+            Slug
+            <span className="ml-1.5 text-muted-foreground font-normal">/blog/{slug || '…'}</span>
+          </Label>
+          <Input
+            id="publish-slug"
+            value={slug}
+            onChange={(e) => handleSlugChange(e.target.value)}
+            disabled={isPublishing}
+            maxLength={120}
+            className={slugTaken ? 'border-destructive focus-visible:ring-destructive' : ''}
+          />
+          {slugTaken && (
+            <p className="text-xs text-destructive flex items-start gap-1.5">
+              <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              That slug is already used on the website. Rename it and try again — the website never overwrites.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="publish-description" className="text-xs">Description</Label>
+          <Textarea
+            id="publish-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={isPublishing}
+            rows={2}
+            maxLength={500}
+          />
+          <p className="text-xs text-muted-foreground">{description.length}/500 — used on the blog index, meta description, and social previews.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="publish-pubdate" className="text-xs">Publish date</Label>
+            <Input
+              id="publish-pubdate"
+              type="date"
+              value={pubDate}
+              onChange={(e) => setPubDate(e.target.value)}
+              disabled={isPublishing}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="publish-tags" className="text-xs">Tags <span className="text-muted-foreground font-normal">(optional, comma-separated)</span></Label>
+            <Input
+              id="publish-tags"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              disabled={isPublishing}
+              placeholder="dogs, senior-pets, education"
+            />
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-xs text-muted-foreground select-none">
+          <input
+            type="checkbox"
+            checked={draft}
+            onChange={(e) => setDraft(e.target.checked)}
+            disabled={isPublishing}
+            className="h-3.5 w-3.5"
+          />
+          Save as draft (commits the file but hides it from listings until you flip the field in the repo)
+        </label>
+
+        {error && !slugTaken && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium">{error.code || 'error'}</p>
+              <p className="mt-0.5">{error.message}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-end gap-2 pt-1">
+          <Button onClick={handlePublish} disabled={isPublishing || !title.trim() || !slug.trim() || !description.trim()}>
+            {isPublishing ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                Publishing…
+              </>
+            ) : (
+              <>
+                <Send className="h-3.5 w-3.5 mr-1.5" />
+                Publish to website
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
