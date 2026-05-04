@@ -477,7 +477,9 @@ function deriveDescription(body) {
   return flat.length > 280 ? flat.slice(0, 277).replace(/\s+\S*$/, '') + '…' : flat
 }
 
-function slugify(s) {
+// 120 matches the receiver's max so anything that survives this passes the
+// server's kebab-case regex too.
+function sanitizeSlug(s) {
   return (s || '')
     .toLowerCase()
     .replace(/['']/g, '')
@@ -485,6 +487,18 @@ function slugify(s) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 120)
     .replace(/-+$/g, '')
+}
+
+// Soft cap is well under the API max so long titles produce readable URLs
+// instead of slugging the whole sentence (incl. marketing tails).
+const SLUG_TARGET_LEN = 50
+
+function autoSlug(s) {
+  const base = sanitizeSlug(s)
+  if (base.length <= SLUG_TARGET_LEN) return base
+  const cut = base.slice(0, SLUG_TARGET_LEN)
+  const lastHyphen = cut.lastIndexOf('-')
+  return lastHyphen > 0 ? cut.slice(0, lastHyphen) : cut
 }
 
 function todayIso() {
@@ -501,7 +515,7 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
   const defaultDescription = useMemo(() => deriveDescription(bodyWithoutH1), [bodyWithoutH1])
 
   const [title, setTitle]             = useState(defaultTitle)
-  const [slug, setSlug]               = useState(slugify(defaultTitle))
+  const [slug, setSlug]               = useState(autoSlug(defaultTitle))
   const [slugEdited, setSlugEdited]   = useState(false)
   const [description, setDescription] = useState(defaultDescription)
   const [tagsInput, setTagsInput]     = useState('')
@@ -514,11 +528,11 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
 
   function handleTitleChange(next) {
     setTitle(next)
-    if (!slugEdited) setSlug(slugify(next))
+    if (!slugEdited) setSlug(autoSlug(next))
   }
 
   function handleSlugChange(next) {
-    setSlug(slugify(next))
+    setSlug(sanitizeSlug(next))
     setSlugEdited(true)
     if (error?.code === 'slug_taken') setError(null)
   }
