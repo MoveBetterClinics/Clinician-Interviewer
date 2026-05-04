@@ -1,4 +1,4 @@
-# NarrateRx — Project Notes
+# Move Better People — Project Notes
 
 ## Session Focus
 At the start of EVERY new conversation, before doing anything else, ask:
@@ -11,19 +11,18 @@ At the start of EVERY new conversation, before doing anything else, ask:
 
 If the work drifts into a second unrelated area mid-session, name it and suggest: "That's a good next session — want to note it and come back to it?"
 
-## Multi-brand
-NarrateRx is a multi-brand SaaS product. Move Better People, Move Better Equine, and Move Better Animal Chiropractic are separate deployments with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
-
-**Brand-specific working notes live in `brands/$BRAND/CLAUDE.md`.** Set `VITE_BRAND` / `BRAND` locally to match the deployment you're working on, or just `cat brands/<people|equine|animals>/CLAUDE.md` directly. The brand-side file is the source of truth for paradigm-specific guidance (audience, vocabulary, conditions, mobile vs. clinic, etc.).
+## Brand
+This is the **human chiropractic / physical therapy** brand (Move Better People).
+The underlying app is called **NarrateRx** — a multi-brand SaaS product. Move Better People, Move Better Equine, and Move Better Animal Chiropractic are all separate deployments of NarrateRx with their own brand configs, databases, and API keys. Do not mix brand-specific content, credentials, or data between deployments.
 
 ### Brand config
-Structured brand values (name, domain, location, social handles, prompt context, internal-link library, signature system, etc.) live in [src/lib/brand.js](src/lib/brand.js). Each deployment selects its brand via env vars:
+Brand-specific values (name, domain, location, social handles, prompt context, internal-link library, signature system, etc.) live in [src/lib/brand.js](src/lib/brand.js). Each deployment selects its brand via env vars:
 
-- `VITE_BRAND` — read by browser code (Vite replaces at build time). Set on the Vercel project, e.g. `VITE_BRAND=people`.
+- `VITE_BRAND` — read by browser code (Vite replaces at build time). Set on the Vercel project, e.g. `VITE_BRAND=human`.
 - `BRAND` — read by Vercel serverless functions in `api/`. Set the same value alongside `VITE_BRAND`.
-- `BRAND_URL` — used by `api/publish/gbp.js` for the GBP "Book" call-to-action URL.
+- `BRAND_URL` — used by `api/publish/gbp.js` for the GBP "Book" call-to-action URL. Falls back to `https://www.movebetter.co` if unset.
 
-To add a new brand deployment, add a sibling entry to `BRANDS` in `brand.js`, scaffold `brands/<newbrand>/`, and set `VITE_BRAND` / `BRAND` on the new Vercel project.
+When adding a feature, never hardcode "Move Better," `movebetter.co`, "Portland," "patients/clinicians" terminology, or human-specific assumptions in `src/`. Read those values from `brand` instead. To add a new brand deployment (Phase 2: equine, Phase 3: animals), add a sibling entry to `BRANDS` in `brand.js` and set `VITE_BRAND` / `BRAND` on the new Vercel project.
 
 ## GitHub
 Use the GitHub CLI (`gh`) for GitHub-specific interactions — PRs, issues, releases, repo management. `gh` is configured as the git credential helper, so plain `git push` / `git fetch` are fine for ref operations (they authenticate through `gh` under the hood). Do not set up separate HTTPS basic auth or raw SSH credentials.
