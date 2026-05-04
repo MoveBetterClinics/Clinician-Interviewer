@@ -10,7 +10,7 @@ export const config = { runtime: 'edge' }
 const ok  = (data)       => new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } })
 const err = (msg, status = 400) => new Response(JSON.stringify({ error: msg }), { status, headers: { 'Content-Type': 'application/json' } })
 
-async function getGoogleToken() {
+export async function getGoogleToken() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
   const key   = (process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '').replace(/\\n/g, '\n')
   if (!email || !key) throw new Error('Google service account not configured')
@@ -54,7 +54,7 @@ async function getGoogleToken() {
   return tokenData.access_token
 }
 
-async function postToLocation(token, accountId, locationId, post) {
+export async function postToLocation(token, accountId, locationId, post) {
   const url = `https://mybusiness.googleapis.com/v4/${accountId}/${locationId}/localPosts`
   const res = await fetch(url, {
     method: 'POST',
@@ -64,6 +64,23 @@ async function postToLocation(token, accountId, locationId, post) {
   const data = await res.json()
   if (!res.ok) throw new Error(data.error?.message || `GBP post failed for ${locationId}`)
   return { locationId, name: data.name }
+}
+
+export function buildPost(content, mediaUrls = []) {
+  const post = {
+    languageCode: 'en-US',
+    summary: content,
+    topicType: 'STANDARD',
+    callToAction: { actionType: 'BOOK', url: process.env.BRAND_URL || 'https://www.movebetter.co' },
+  }
+  const media = Array.isArray(mediaUrls) ? mediaUrls : []
+  if (media.length > 0) {
+    post.media = media.slice(0, 1).map((m) => ({
+      mediaFormat: m.type?.startsWith('video') ? 'VIDEO' : 'PHOTO',
+      sourceUrl: m.url,
+    }))
+  }
+  return post
 }
 
 export default async function handler(req) {
@@ -86,19 +103,7 @@ export default async function handler(req) {
   try { token = await getGoogleToken() }
   catch (e) { return err(`Google auth failed: ${e.message}`, 503) }
 
-  const post = {
-    languageCode: 'en-US',
-    summary: content,
-    topicType: 'STANDARD',
-    callToAction: { actionType: 'BOOK', url: process.env.BRAND_URL || 'https://www.movebetter.co' },
-  }
-
-  if (mediaUrls.length > 0) {
-    post.media = mediaUrls.slice(0, 1).map((m) => ({
-      mediaFormat: m.type?.startsWith('video') ? 'VIDEO' : 'PHOTO',
-      sourceUrl: m.url,
-    }))
-  }
+  const post = buildPost(content, mediaUrls)
 
   // Post to all selected locations in parallel
   const results = await Promise.allSettled(
