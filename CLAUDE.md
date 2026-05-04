@@ -38,6 +38,7 @@ Behavioral indicators: lead refusal, tail swishing, bit grinding, reluctance to 
 Tone: evidence-informed, systems-based, education-forward. "Subtle signs" not crisis language.
 
 ## GitHub
+<<<<<<< HEAD
 Always use the GitHub CLI (`gh`) for all GitHub interactions. This worktree is on the `equine` branch.
 Shared remote: https://github.com/MoveBetterClinics/NarrateRx
 
@@ -45,6 +46,9 @@ To pull core improvements from main into this branch:
 ```bash
 git fetch origin && git merge origin/people
 ```
+=======
+Use the GitHub CLI (`gh`) for GitHub-specific interactions — PRs, issues, releases, repo management. `gh` is configured as the git credential helper, so plain `git push` / `git fetch` are fine for ref operations (they authenticate through `gh` under the hood). Do not set up separate HTTPS basic auth or raw SSH credentials.
+>>>>>>> origin/main
 
 ## Email Template
 Same TrustDrivenCare template as Move Better People — see the main branch CLAUDE.md for merge tag details.
