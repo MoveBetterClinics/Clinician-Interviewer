@@ -1,10 +1,8 @@
 import { brand } from './brand'
-
-// Brand-specific interview context (PNW patient questionnaires for people,
-// equivalents for equine/animals) lives on each brand branch only — NOT on
-// main. See feedback memory `feedback_brand_context_per_branch.md`. If a
-// brand wants to overlay context, it adds its own module on its branch and
-// re-imports here.
+// PNW patient context lives ON THE PEOPLE BRANCH ONLY — main has no equivalent.
+// See feedback memory `feedback_brand_context_per_branch.md`. Equine and
+// animals branches author their own overlays; do not move this back to main.
+import { formatPNWContextForPrompt } from './pnwQuestions'
 
 export const TONES = [
   {
@@ -80,7 +78,7 @@ Skip anything already covered in depth above unless ${clinicianName}'s answer cl
   }
 
   return `You are a content facilitator helping ${clinicianName} at ${brand.name} think out loud about how they treat ${condition}. Your job is to pull out their clinical perspective efficiently so it can be turned into patient-facing content branded for ${brand.name} as a whole.
-${pastContext}
+${formatPNWContextForPrompt(condition)}${pastContext}
 ${brand.name} context: ${brand.prompt.clinicContext}
 
 CONTENT YOU NEED TO COLLECT — ask about these in any order that flows naturally:
