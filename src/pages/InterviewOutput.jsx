@@ -232,7 +232,7 @@ export default function InterviewOutput() {
             badge="Markdown"
             editId={itemMap['blog']}
           />
-          {brand.id === 'animals' && outputs.blogPost && (
+          {brand.capabilities?.websitePublish && outputs.blogPost && (
             <WebsitePublishPanel
               markdown={outputs.blogPost}
               fallbackTitle={interview.topic}
