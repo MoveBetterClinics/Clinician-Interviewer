@@ -118,7 +118,7 @@ export async function publishAndTrack(item, userId) {
     return { queued: true }
   }
 
-  const result = await publishItem(item)
+  const result = await publishItem(item, { scheduledAt: item.scheduledAt })
   const postId = result.direct?.postId || result.buffer?.bufferId
 
   await updateContentItem(item.id, {

@@ -8,10 +8,10 @@ export default async function handler(req, res) {
     return
   }
 
-  let messages, systemPrompt
+  let messages, systemPrompt, model
   try {
     // req.body is auto-parsed by Vercel when Content-Type is application/json
-    ;({ messages, systemPrompt } = req.body || {})
+    ;({ messages, systemPrompt, model } = req.body || {})
   } catch {
     res.status(400).json({ error: 'Invalid request body' })
     return
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: model || 'claude-sonnet-4-6',
         max_tokens: 4096,
         system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
         messages,

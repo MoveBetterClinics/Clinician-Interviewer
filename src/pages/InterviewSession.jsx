@@ -307,7 +307,8 @@ export default function InterviewSession() {
       const tone = interview.tone || 'smart'
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        getBlogPostSystemPrompt(clinician.name, interview.topic, tone)
+        getBlogPostSystemPrompt(clinician.name, interview.topic, tone),
+        { model: 'claude-opus-4-7' }
       )
       const outputs = { blogPost, generatedAt: new Date().toISOString() }
       await updateInterview(interviewId, { outputs, status: 'completed' }, user.id)
