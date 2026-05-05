@@ -3,8 +3,8 @@
 // object is selected here. Add equine and animals as sibling entries when
 // those deployments come online (Phase 2 / Phase 3).
 
-const HUMAN = {
-  id: 'human',
+const PEOPLE = {
+  id: 'people',
 
   // Identity
   name: 'Move Better',
@@ -168,7 +168,7 @@ const EQUINE = {
     facebook: 'movebetterequine',
   },
 
-  // Strings injected into AI system prompts. Mirror the HUMAN structure exactly
+  // Strings injected into AI system prompts. Mirror the PEOPLE structure exactly
   // so prompts.js stays brand-agnostic.
   prompt: {
     clinicContext:
@@ -221,7 +221,7 @@ BLOG POSTS:
   },
 
   // Newsletter — the equine variant of the TrustDrivenCare master template
-  // hasn't been authored yet. Names mirror the HUMAN convention; update once
+  // hasn't been authored yet. Names mirror the PEOPLE convention; update once
   // the actual TDC template exists.
   newsletterTemplateName: 'Move Better Equine Newsletter - Master',
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Equine Newsletter · Master',
@@ -270,7 +270,7 @@ const ANIMALS = {
     facebook: 'movebetteranimal',
   },
 
-  // Strings injected into AI system prompts. Mirror HUMAN/EQUINE structure exactly
+  // Strings injected into AI system prompts. Mirror PEOPLE/EQUINE structure exactly
   // so prompts.js stays brand-agnostic.
   prompt: {
     clinicContext:
@@ -337,7 +337,7 @@ BLOG POSTS:
   },
 
   // Newsletter — the animal variant of the TrustDrivenCare master template
-  // hasn't been authored yet. Names mirror the HUMAN/EQUINE convention; update
+  // hasn't been authored yet. Names mirror the PEOPLE/EQUINE convention; update
   // once the actual TDC template exists.
   newsletterTemplateName: 'Move Better Animal Newsletter - Master',
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Animal Newsletter · Master',
@@ -348,9 +348,18 @@ BLOG POSTS:
 }
 
 const BRANDS = {
-  human: HUMAN,
+  people: PEOPLE,
   equine: EQUINE,
   animals: ANIMALS,
+}
+
+// Legacy: pre-rename, the people deployment used VITE_BRAND/BRAND=human and
+// no env var was set on Vercel (deployment relied on the codebase default).
+// The shim normalizes the legacy 'human' value if anything still emits it
+// — safe to remove once we've confirmed no consumer (env vars, scripts,
+// docs) sets 'human' anymore.
+function normalizeBrandId(id) {
+  return id === 'human' ? 'people' : id
 }
 
 function readBrandId() {
@@ -359,15 +368,15 @@ function readBrandId() {
   // import.meta exists but import.meta.env does not).
   let viteBrand
   try { viteBrand = import.meta.env.VITE_BRAND } catch {}
-  if (viteBrand) return String(viteBrand).toLowerCase()
+  if (viteBrand) return normalizeBrandId(String(viteBrand).toLowerCase())
 
   if (typeof process !== 'undefined' && process.env && process.env.BRAND) {
-    return String(process.env.BRAND).toLowerCase()
+    return normalizeBrandId(String(process.env.BRAND).toLowerCase())
   }
-  return 'human'
+  return 'people'
 }
 
 const activeId = readBrandId()
-export const brand = BRANDS[activeId] || HUMAN
+export const brand = BRANDS[activeId] || PEOPLE
 export function getBrand() { return brand }
-export function getBrandById(id) { return BRANDS[id] || HUMAN }
+export function getBrandById(id) { return BRANDS[normalizeBrandId(id)] || PEOPLE }
