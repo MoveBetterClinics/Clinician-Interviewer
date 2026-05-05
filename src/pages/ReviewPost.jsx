@@ -221,6 +221,7 @@ export default function ReviewPost() {
     try {
       const interview = await fetchInterview(item.interview_id)
       const { messages, outputs, tone } = interview
+      const voiceMode     = interview.voice_mode || 'practice'
       const clinicianName = item.clinician_name
       const condition     = item.topic
       const platform      = item.platform
@@ -229,15 +230,15 @@ export default function ReviewPost() {
       const blogPost = outputs?.blogPost || ''
 
       if (platform === 'blog') {
-        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, tone)
+        systemPrompt  = getBlogPostSystemPrompt(clinicianName, condition, tone, voiceMode)
         inputMessages = messages?.length ? messages : [{ role: 'user', content: 'Please write the blog post.' }]
       } else {
         if (!blogPost) throw new Error('The blog post for this interview must be generated first before regenerating other content.')
         inputMessages = [{ role: 'user', content: blogPost }]
         if (['instagram', 'facebook', 'gbp', 'linkedin'].includes(platform)) {
-          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone)
+          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone, voiceMode)
         } else if (['youtube', 'tiktok'].includes(platform)) {
-          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone)
+          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone, voiceMode)
         } else {
           systemPrompt = getMarketingBatchSystemPrompt(clinicianName, condition, '', tone)
         }

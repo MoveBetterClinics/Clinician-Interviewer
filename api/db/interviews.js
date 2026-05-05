@@ -29,7 +29,7 @@ export default async function handler(req) {
   if (req.method === 'GET') {
     if (id) {
       const res = await sb(
-        `interviews?id=eq.${id}&select=id,clinician_id,topic,status,messages,outputs,owner_id,owner_email,tone,created_at,updated_at`
+        `interviews?id=eq.${id}&select=id,clinician_id,topic,status,messages,outputs,owner_id,owner_email,tone,voice_mode,created_at,updated_at`
       )
       if (!res.ok) return err('Database error', 500)
       const data = await res.json()
@@ -52,7 +52,7 @@ export default async function handler(req) {
   }
 
   if (req.method === 'POST') {
-    const { clinicianId, topic, ownerId, ownerEmail, tone } = await req.json()
+    const { clinicianId, topic, ownerId, ownerEmail, tone, voiceMode } = await req.json()
     if (!clinicianId) return err('Missing clinicianId')
     if (!topic?.trim()) return err('Topic required')
     if (!ownerId) return err('Unauthorized', 401)
@@ -67,6 +67,7 @@ export default async function handler(req) {
         status: 'in_progress',
         messages: [],
         tone: tone || 'smart',
+        voice_mode: voiceMode === 'personal' ? 'personal' : 'practice',
       }),
     })
     if (!res.ok) return err('Create failed', 500)

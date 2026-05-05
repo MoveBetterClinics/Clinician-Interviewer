@@ -71,12 +71,13 @@ export default function InterviewOutput() {
     setGenError('')
     try {
       const tone = interview.tone || 'smart'
+      const voiceMode = interview.voice_mode || 'practice'
       const blogInput = [{ role: 'user', content: outputs.blogPost }]
       const campaignContext = getCampaignPromptContext(campaign)
       let updates = {}
 
       if (group === 'social') {
-        const result = await generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone))
+        const result = await generateContent(blogInput, getSocialBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone, voiceMode))
         updates = {
           instagram: parseSection(result, '---INSTAGRAM---', '---FACEBOOK---'),
           facebook: parseSection(result, '---FACEBOOK---', '---GBP POST---'),
@@ -85,7 +86,7 @@ export default function InterviewOutput() {
           pinterest: parseSection(result, '---PINTEREST---', null),
         }
       } else if (group === 'video') {
-        const result = await generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone))
+        const result = await generateContent(blogInput, getVideoScriptBatchSystemPrompt(clinician.name, interview.topic, campaignContext, tone, voiceMode))
         updates = {
           youtubeScript: parseSection(result, '---YOUTUBE SCRIPT---', '---TIKTOK SCRIPT---'),
           tiktokScript: parseSection(result, '---TIKTOK SCRIPT---', null),
@@ -165,6 +166,8 @@ export default function InterviewOutput() {
 
   if (!clinician || !interview || !outputs) return null
 
+  const isPersonal = interview.voice_mode === 'personal'
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="space-y-4">
@@ -196,7 +199,7 @@ export default function InterviewOutput() {
       </div>
 
       <Tabs defaultValue="blog">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className={`grid w-full ${isPersonal ? 'grid-cols-3' : 'grid-cols-6'}`}>
           <TabsTrigger value="blog" className="gap-1.5 text-xs">
             <FileText className="h-3.5 w-3.5" />
             Blog
@@ -205,22 +208,28 @@ export default function InterviewOutput() {
             <Share2 className="h-3.5 w-3.5" />
             Social
           </TabsTrigger>
-          <TabsTrigger value="instagram_ads" className="gap-1.5 text-xs">
-            <Megaphone className="h-3.5 w-3.5" />
-            IG Ads
-          </TabsTrigger>
-          <TabsTrigger value="google" className="gap-1.5 text-xs">
-            <Globe className="h-3.5 w-3.5" />
-            Google
-          </TabsTrigger>
+          {!isPersonal && (
+            <TabsTrigger value="instagram_ads" className="gap-1.5 text-xs">
+              <Megaphone className="h-3.5 w-3.5" />
+              IG Ads
+            </TabsTrigger>
+          )}
+          {!isPersonal && (
+            <TabsTrigger value="google" className="gap-1.5 text-xs">
+              <Globe className="h-3.5 w-3.5" />
+              Google
+            </TabsTrigger>
+          )}
           <TabsTrigger value="video" className="gap-1.5 text-xs">
             <Video className="h-3.5 w-3.5" />
             Video
           </TabsTrigger>
-          <TabsTrigger value="email" className="gap-1.5 text-xs">
-            <Mail className="h-3.5 w-3.5" />
-            Email
-          </TabsTrigger>
+          {!isPersonal && (
+            <TabsTrigger value="email" className="gap-1.5 text-xs">
+              <Mail className="h-3.5 w-3.5" />
+              Email
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Blog ── */}
@@ -281,21 +290,24 @@ export default function InterviewOutput() {
         </TabsContent>
 
         {/* ── Instagram Ads ── */}
-        <TabsContent value="instagram_ads">
-          {outputs.instagramAds ? (
-            <OutputCard
-              title="Instagram Ads Copy"
-              subtitle="Meta Ads Manager creative — primary text, headline, description, CTA, destination URL"
-              content={outputs.instagramAds}
-              badge="Instagram Ads"
-              editId={itemMap['instagram_ads']}
-            />
-          ) : (
-            <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Instagram Ads" description="Meta Ads Manager creative — generated alongside GBP, Google Ads, landing page, and email" />
-          )}
-        </TabsContent>
+        {!isPersonal && (
+          <TabsContent value="instagram_ads">
+            {outputs.instagramAds ? (
+              <OutputCard
+                title="Instagram Ads Copy"
+                subtitle="Meta Ads Manager creative — primary text, headline, description, CTA, destination URL"
+                content={outputs.instagramAds}
+                badge="Instagram Ads"
+                editId={itemMap['instagram_ads']}
+              />
+            ) : (
+              <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Instagram Ads" description="Meta Ads Manager creative — generated alongside GBP, Google Ads, landing page, and email" />
+            )}
+          </TabsContent>
+        )}
 
         {/* ── Google ── */}
+        {!isPersonal && (
         <TabsContent value="google">
           {outputs.googleAds ? (
             <Tabs defaultValue="gbp">
@@ -327,6 +339,7 @@ export default function InterviewOutput() {
             <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Google & Marketing" description="GBP post, Google Ads, Instagram Ads, and landing page copy" />
           )}
         </TabsContent>
+        )}
 
         {/* ── Video ── */}
         <TabsContent value="video">
@@ -355,19 +368,21 @@ export default function InterviewOutput() {
         </TabsContent>
 
         {/* ── Email ── */}
-        <TabsContent value="email">
-          {outputs.emailNewsletter ? (
-            <OutputCard
-              title="Email Newsletter"
-              subtitle="GoHighLevel-ready — subject lines, preview text, and body copy included"
-              content={outputs.emailNewsletter}
-              badge="Newsletter"
-              editId={itemMap['email']}
-            />
-          ) : (
-            <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Email Newsletter" description="Subject lines, preview text, and full newsletter body" />
-          )}
-        </TabsContent>
+        {!isPersonal && (
+          <TabsContent value="email">
+            {outputs.emailNewsletter ? (
+              <OutputCard
+                title="Email Newsletter"
+                subtitle="GoHighLevel-ready — subject lines, preview text, and body copy included"
+                content={outputs.emailNewsletter}
+                badge="Newsletter"
+                editId={itemMap['email']}
+              />
+            ) : (
+              <GeneratePrompt group="marketing" generating={generating} error={genError} onGenerate={generateGroup} label="Email Newsletter" description="Subject lines, preview text, and full newsletter body" />
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
