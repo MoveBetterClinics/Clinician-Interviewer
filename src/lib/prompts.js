@@ -1,6 +1,7 @@
 import { brand } from './brand'
 import { getToneModifier as getBrandToneModifier } from '@brand-overlay/toneModifiers'
 import { formatPNWContextForPrompt } from '@brand-overlay/interviewContext'
+import { getPatientContextForPrompt } from '@brand-overlay/patientContext'
 
 // Paradigm content (tone-modifier strings, interview context per condition)
 // lives under brands/<brand>/ and is selected at build time via the
@@ -96,6 +97,8 @@ Skip anything already covered in depth above unless ${clinicianName}'s answer cl
 ${formatPNWContextForPrompt(condition)}${pastContext}
 ${brand.name} context: ${brand.prompt.clinicContext}
 
+${getPatientContextForPrompt()}
+
 CONTENT YOU NEED TO COLLECT — ask about these in any order that flows naturally:
 1. Their actual assessment and treatment process for ${condition}
 2. What conventional treatment usually gets wrong
@@ -128,6 +131,8 @@ ${getFramingRule({ voiceMode, clinicianName, assetType: 'blog' })}
 
 ${brand.name.toUpperCase()} BRAND VOICE:
 ${brand.prompt.brandVoice}
+
+${getPatientContextForPrompt()}
 
 LINK BUILDING — this is required, not optional:
 

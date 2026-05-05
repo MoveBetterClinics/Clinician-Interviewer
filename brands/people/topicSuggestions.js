@@ -1,5 +1,6 @@
 // Curated topic database built from PNW chiropractic search patterns,
-// common conditions at Move Better, and regional activity-specific injuries.
+// common conditions at Move Better, regional activity-specific injuries,
+// and patient avatar research (staff profiles + primary avatar, May 2026).
 // priority: 'high' = very high patient search volume, 'medium' = solid volume,
 //           'low' = niche but relevant to Move Better's patient base
 
@@ -410,6 +411,217 @@ export const TOPIC_SUGGESTIONS = [
     priority: 'medium',
     keywords: ['post-surgical', 'post surgery', 'after surgery', 'surgical rehab'],
     pnwNote: 'Patients searching for conservative care after or instead of surgery',
+  },
+
+  // ── Trust & Differentiation ───────────────────────────────────────────────
+  // Topics derived from common patient frustrations with prior providers.
+  // These build trust and set Move Better apart without attacking competitors.
+  {
+    topic: 'What a real treatment plan looks like',
+    category: 'Trust & Differentiation',
+    priority: 'high',
+    keywords: ['treatment plan', 'care plan', 'what to expect', 'realistic results'],
+    pnwNote: 'Patients frustrated by open-ended "3x/week forever" plans — content that explains a clear roadmap wins trust',
+  },
+  {
+    topic: 'Why we explain the "why" behind your care',
+    category: 'Trust & Differentiation',
+    priority: 'high',
+    keywords: ['why chiropractic', 'understand your pain', 'explain diagnosis', 'patient education'],
+    pnwNote: 'Primary avatar explicitly wants to understand what\'s wrong — not just be adjusted and sent home',
+  },
+  {
+    topic: 'Active care vs. passive care — what\'s the difference',
+    category: 'Trust & Differentiation',
+    priority: 'high',
+    keywords: ['active care', 'passive care', 'adjustments only', 'exercise rehab', 'chiropractic vs PT'],
+    pnwNote: 'Core differentiator for Move Better — directly addresses the "I tried chiropractic before" objection',
+  },
+  {
+    topic: 'What "maintenance care" should actually look like',
+    category: 'Trust & Differentiation',
+    priority: 'medium',
+    keywords: ['maintenance care', 'ongoing care', 'long term chiropractic', 'how long do I need care'],
+    pnwNote: 'Patients burned by open-ended maintenance plans need a reframe — Move Better\'s philosophy is progress, not dependency',
+  },
+  {
+    topic: 'How we track your progress — and what to do if you\'re not seeing it',
+    category: 'Trust & Differentiation',
+    priority: 'medium',
+    keywords: ['track progress', 'measurable results', 'goal setting', 'is it working'],
+    pnwNote: 'Pain point: patients don\'t feel improvement or have no benchmarks — content that speaks to accountability stands out',
+  },
+  {
+    topic: 'One patient at a time — why undivided attention matters',
+    category: 'Trust & Differentiation',
+    priority: 'medium',
+    keywords: ['one on one', 'individual attention', 'not rushed', 'personalized care'],
+    pnwNote: 'Staff value: undivided attention per visit is a differentiator vs. PT mills where patients are delegated to aides',
+  },
+  {
+    topic: 'Why your exercises need to actually progress',
+    category: 'Trust & Differentiation',
+    priority: 'medium',
+    keywords: ['exercise progression', 'individualized exercises', 'generic PT', 'rehab that works'],
+    pnwNote: 'PT pain point: one-size-fits-all exercises that never change — Move Better\'s individualized approach is the counterpoint',
+  },
+  {
+    topic: 'What to expect after your first chiropractic adjustment',
+    category: 'Trust & Differentiation',
+    priority: 'medium',
+    keywords: ['after adjustment', 'post treatment symptoms', 'soreness after chiro', 'what to expect'],
+    pnwNote: 'Pain point: unexpected post-treatment symptoms with no communication — setting expectations builds trust',
+  },
+  {
+    topic: 'How to know if your provider is right for you',
+    category: 'Trust & Differentiation',
+    priority: 'low',
+    keywords: ['right provider', 'find a chiropractor', 'finding the right PT', 'questions to ask'],
+    pnwNote: 'Empowers the patient to advocate for themselves — positions Move Better as confident in its approach',
+  },
+
+  // ── Patient Journey & Archetypes ──────────────────────────────────────────
+  // Topics aligned to the Reconnect / Continue / Excel prototype framework.
+  {
+    topic: 'Getting back to the activity you love after injury or life got in the way',
+    category: 'Patient Journey',
+    priority: 'high',
+    keywords: ['return to activity', 'get back to sport', 'after injury', 'postpartum return', 'reconnect'],
+    pnwNote: 'Reconnect archetype — the largest patient segment; includes postpartum, post-surgical, chronic pain that stopped activity',
+  },
+  {
+    topic: 'Staying active as you age — protecting what you\'ve built',
+    category: 'Patient Journey',
+    priority: 'high',
+    keywords: ['aging and exercise', 'staying active over 40', 'longevity', 'active aging', 'continue'],
+    pnwNote: 'Continue archetype — proactive patients who want to protect their ability to hike, bike, and ski well into their 60s+',
+  },
+  {
+    topic: 'Breaking through a performance plateau — training smarter, not just harder',
+    category: 'Patient Journey',
+    priority: 'medium',
+    keywords: ['performance plateau', 'training smarter', 'athletic performance', 'weekend warrior', 'excel'],
+    pnwNote: 'Excel archetype — results-oriented patients; respond to data, timelines, and measurable outcomes',
+  },
+  {
+    topic: 'When "I just have to manage this" is no longer acceptable',
+    category: 'Patient Journey',
+    priority: 'high',
+    keywords: ['chronic pain management', 'learned to live with pain', 'accepting pain', 'there has to be another way'],
+    pnwNote: 'Primary avatar belief to disrupt — patients who\'ve normalized pain need permission to expect more',
+  },
+  {
+    topic: 'You\'re not broken — what that chronic pain is actually telling you',
+    category: 'Patient Journey',
+    priority: 'high',
+    keywords: ['am I broken', 'chronic pain meaning', 'pain signals', 'fear avoidance', 'body not working'],
+    pnwNote: 'Fear-avoidance patients (Sophie\'s specialty) — reframe from "broken body" to "fixable problem"',
+  },
+  {
+    topic: 'Showing up for your kids — why your health is a family decision',
+    category: 'Patient Journey',
+    priority: 'medium',
+    keywords: ['health for family', 'active parent', 'keeping up with kids', 'family motivation'],
+    pnwNote: 'Primary avatar motivation — family-oriented patients respond when health is framed as a family investment',
+  },
+
+  // ── Combat Sports & Body Composition ─────────────────────────────────────
+  {
+    topic: 'Grappling & combat sports injury prevention and recovery',
+    category: 'Combat Sports & Body Composition',
+    priority: 'medium',
+    keywords: ['grappling', 'bjj', 'wrestling', 'combat sports', 'fighter', 'mma', 'jiu jitsu'],
+    pnwNote: 'Zach\'s specialty — Portland has a strong BJJ and grappling community; underserved by most chiro content',
+  },
+  {
+    topic: 'Training around injuries — how to keep competing without breaking down',
+    category: 'Combat Sports & Body Composition',
+    priority: 'medium',
+    keywords: ['train through injury', 'training around pain', 'compete with injury', 'fight prep'],
+    pnwNote: 'Combat athlete pain point — they won\'t stop training; content that helps them do it smarter earns trust',
+  },
+  {
+    topic: 'MCL and ACL injuries — what recovery actually looks like',
+    category: 'Combat Sports & Body Composition',
+    priority: 'medium',
+    keywords: ['mcl injury', 'acl injury', 'knee ligament', 'acl recovery', 'mcl sprain'],
+    pnwNote: 'Zach specialty + active PNW population; high search volume post-injury',
+  },
+  {
+    topic: 'Body composition, metabolic health, and movement — they\'re all connected',
+    category: 'Combat Sports & Body Composition',
+    priority: 'medium',
+    keywords: ['body composition', 'metabolic health', 'weight loss movement', 'overweight pain', 'obesity and joints'],
+    pnwNote: 'Zach\'s patient focus — body comp and pain are intertwined; content that addresses both is rare and resonant',
+  },
+  {
+    topic: 'Getting back to the gym when you\'re afraid of it',
+    category: 'Combat Sports & Body Composition',
+    priority: 'high',
+    keywords: ['gym anxiety', 'fear of exercise', 'intimidated by gym', 'gym relationship', 'return to exercise'],
+    pnwNote: 'Common pain point Zach and Sophie both see — emotional component to exercise is underaddressed in chiro content',
+  },
+
+  // ── Powerlifting & Strength Sports ───────────────────────────────────────
+  {
+    topic: 'Powerlifting injuries — squat, deadlift, and bench pain',
+    category: 'Powerlifting & Strength Sports',
+    priority: 'medium',
+    keywords: ['powerlifting', 'deadlift pain', 'squat injury', 'bench press shoulder', 'strength sport'],
+    pnwNote: 'Sophie\'s passion area — Portland has an active strength community; very little quality chiro content in this niche',
+  },
+  {
+    topic: 'Training the powerlifter — how to coach around injury, not through it',
+    category: 'Powerlifting & Strength Sports',
+    priority: 'low',
+    keywords: ['powerlifter rehab', 'strength athlete rehab', 'lifting with back pain', 'deadlift back pain'],
+    pnwNote: 'Niche but high-loyalty audience — powerlifters who trust a clinic refer aggressively within their community',
+  },
+
+  // ── Older Adults & Active Aging ───────────────────────────────────────────
+  {
+    topic: 'You\'re not too old — what older adults can actually expect from rehab',
+    category: 'Older Adults & Active Aging',
+    priority: 'high',
+    keywords: ['older adult rehab', 'senior chiropractic', 'too old for PT', 'aging and recovery', 'elderly exercise'],
+    pnwNote: 'Hope\'s specialty — older patients are often dismissed and are surprisingly resilient; content that speaks to this demographic is rare',
+  },
+  {
+    topic: 'Balance, fall prevention, and rebuilding body awareness',
+    category: 'Older Adults & Active Aging',
+    priority: 'high',
+    keywords: ['balance training', 'fall prevention', 'proprioception', 'body awareness', 'stability older adult'],
+    pnwNote: 'Hope\'s focus — proprioception deficits in older adults are common and treatable; high-stakes topic for patients and their families',
+  },
+  {
+    topic: 'Golf after 70 — keeping your game without wrecking your body',
+    category: 'Older Adults & Active Aging',
+    priority: 'medium',
+    keywords: ['golf over 60', 'golf over 70', 'senior golfer', 'golf back pain', 'golf hip pain'],
+    pnwNote: 'Alek\'s 70–80 age group + golf community — powerful combination; very little chiro content targets senior golfers specifically',
+  },
+
+  // ── Young Athletes & Overtraining ─────────────────────────────────────────
+  {
+    topic: 'Youth sports overtraining — what parents and coaches need to know',
+    category: 'Young Athletes & Overtraining',
+    priority: 'medium',
+    keywords: ['youth overtraining', 'young athlete injury', 'sports specialization', 'overuse youth', 'football injury'],
+    pnwNote: 'Philip\'s focus — single-sport specialization is epidemic; parents are searching for answers and trust providers who address load management',
+  },
+  {
+    topic: 'Track and field injury prevention — what high school athletes need',
+    category: 'Young Athletes & Overtraining',
+    priority: 'low',
+    keywords: ['track injury', 'high school runner', 'sprint injury', 'track and field pain', 'teenage runner'],
+    pnwNote: 'Philip specialty — content that speaks to high school athletes and their parents is underrepresented in chiro',
+  },
+  {
+    topic: 'Football injuries — what young players and parents should know',
+    category: 'Young Athletes & Overtraining',
+    priority: 'low',
+    keywords: ['football injury', 'youth football', 'high school football', 'football back pain', 'tackle injury'],
+    pnwNote: 'Philip specialty — high school football parents are an anxious, engaged audience looking for conservative care options',
   },
 ]
 
