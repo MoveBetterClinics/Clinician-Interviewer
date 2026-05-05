@@ -123,6 +123,13 @@ STRENGTH & REHAB:
   // Hub email-copy header. Tracks the TrustDrivenCare master template.
   newsletterTemplateName: 'Move Better Newsletter - Master',
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Newsletter · Master',
+
+  // Per-brand product capabilities. Flip to true once the receiving end is
+  // wired up (per project_website_publish_animals.md, the human + equine
+  // website-publish integrations are planned but not yet shipped).
+  capabilities: {
+    websitePublish: false,
+  },
 }
 
 const EQUINE = {
@@ -218,6 +225,10 @@ BLOG POSTS:
   // the actual TDC template exists.
   newsletterTemplateName: 'Move Better Equine Newsletter - Master',
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Equine Newsletter · Master',
+
+  capabilities: {
+    websitePublish: false,
+  },
 }
 
 const ANIMALS = {
@@ -330,6 +341,10 @@ BLOG POSTS:
   // once the actual TDC template exists.
   newsletterTemplateName: 'Move Better Animal Newsletter - Master',
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Animal Newsletter · Master',
+
+  capabilities: {
+    websitePublish: true,
+  },
 }
 
 const BRANDS = {

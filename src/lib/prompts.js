@@ -1,9 +1,9 @@
 import { brand } from './brand'
 import { getToneModifier as getBrandToneModifier } from '@brand-overlay/toneModifiers'
+import { formatPNWContextForPrompt } from '@brand-overlay/interviewContext'
 
-// Tone-modifier prompt strings are paradigm content (per
-// feedback_brand_context_per_branch.md, 2026-05-04) and live under
-// brands/<brand>/toneModifiers.js, selected at build time via the
+// Paradigm content (tone-modifier strings, interview context per condition)
+// lives under brands/<brand>/ and is selected at build time via the
 // @brand-overlay Vite alias. The TONES list below is product surface (the UI
 // choices) and stays brand-agnostic on main.
 
@@ -61,7 +61,7 @@ Skip anything already covered in depth above unless ${clinicianName}'s answer cl
   }
 
   return `You are a content facilitator helping ${clinicianName} at ${brand.name} think out loud about how they treat ${condition}. Your job is to pull out their clinical perspective efficiently so it can be turned into patient-facing content branded for ${brand.name} as a whole.
-${pastContext}
+${formatPNWContextForPrompt(condition)}${pastContext}
 ${brand.name} context: ${brand.prompt.clinicContext}
 
 CONTENT YOU NEED TO COLLECT — ask about these in any order that flows naturally:
