@@ -78,11 +78,13 @@ export function fetchGBPLocations() {
   return apiFetch('/api/gbp/locations')
 }
 
-// ── Website publish (animals brand → movebetteranimal.co) ────────────────────
-// Throws an Error whose `.code` is one of: slug_taken, invalid_payload,
-// auth_failed, website_misconfigured, github_error, network_error,
-// not_configured, upstream_error. The UI keys off `.code` to render the right
-// message (slug-taken in particular needs to highlight the slug input).
+// ── Website publish (brand-agnostic; gated by brand.capabilities.websitePublish) ─
+// Server-side dispatcher in api/publish/website.js picks Astro or WordPress
+// mode from env vars. Throws an Error whose `.code` is one of: slug_taken,
+// invalid_payload, auth_failed, website_misconfigured, github_error,
+// media_upload_failed, tag_resolve_failed, network_error, not_configured,
+// upstream_error. The UI keys off `.code` to render the right message
+// (slug-taken in particular needs to highlight the slug input).
 export async function publishBlogToWebsite(post) {
   const res = await fetch('/api/publish/website', {
     method: 'POST',

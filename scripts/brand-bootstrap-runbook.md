@@ -194,7 +194,8 @@ come online):
 | `FACEBOOK_PAGE_ID`, `FACEBOOK_PAGE_TOKEN` | Facebook direct publishing |
 | `GBP_ACCOUNT_ID`, `GBP_LOCATION_IDS`, `GBP_LOCATION_NAMES` | Google Business Profile queue |
 | `GOOGLE_DRIVE_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_KEY` | Drive integration |
-| `NARRATERX_PUBLISH_SECRET`, `WEBSITE_PUBLISH_URL` | Direct website publishing (only if `capabilities.websitePublish` is `true` for the brand) |
+| `NARRATERX_PUBLISH_SECRET`, `WEBSITE_PUBLISH_URL` | Direct website publishing — Astro mode (animals: `https://www.movebetteranimal.co/api/publish`) |
+| `WORDPRESS_USER`, `WORDPRESS_APP_PASSWORD`, `WEBSITE_PUBLISH_URL` | Direct website publishing — WordPress mode (equine: `https://movebetterequine.com/wp-json/wp/v2/posts`). User generates the App Password from `WP Admin → Users → Application Passwords` |
 
 ### 3c. Trigger first deploy — **[CLI]**
 
@@ -277,9 +278,19 @@ Defer until Whitney / the brand owner is ready to use the feature.
 
 ### 5e. Website publish integration
 - Only applicable when the receiving website is ready. Set
-  `capabilities.websitePublish: true` in `src/lib/brand.js` and provide
-  `WEBSITE_PUBLISH_URL` + `NARRATERX_PUBLISH_SECRET`. Animals brand is the
-  reference (see `memory/project_website_publish_animals.md`).
+  `capabilities.websitePublish: true` in `src/lib/brand.js`, then add the
+  appropriate env-var set on the brand's Vercel project depending on the site's
+  platform:
+  - **Astro on Vercel + GitHub** (animals reference — see
+    `memory/project_website_publish_animals.md`): `NARRATERX_PUBLISH_SECRET` +
+    `WEBSITE_PUBLISH_URL` (the receiving site's `/api/publish` webhook).
+  - **WordPress** (equine reference, May 2026): `WORDPRESS_USER` +
+    `WORDPRESS_APP_PASSWORD` + `WEBSITE_PUBLISH_URL` pointed at
+    `<host>/wp-json/wp/v2/posts`. The App Password is generated from
+    `WP Admin → Users → (your user) → Application Passwords → New Application
+    Password` and pasted into the Vercel dashboard (sensitive — do not paste in
+    chat or commit). The serverless function auto-detects WP mode by the
+    presence of `WORDPRESS_USER` + `WORDPRESS_APP_PASSWORD`.
 
 ---
 

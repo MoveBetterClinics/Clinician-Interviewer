@@ -125,8 +125,8 @@ STRENGTH & REHAB:
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Newsletter · Master',
 
   // Per-brand product capabilities. Flip to true once the receiving end is
-  // wired up (per project_website_publish_animals.md, the human + equine
-  // website-publish integrations are planned but not yet shipped).
+  // wired up. people brand is still pending — movebetter.co is the only Move
+  // Better marketing site without a publish receiver yet.
   capabilities: {
     websitePublish: false,
   },
@@ -227,7 +227,7 @@ BLOG POSTS:
   newsletterCopyHeader: 'Copy into TrustDrivenCare — Move Better Equine Newsletter · Master',
 
   capabilities: {
-    websitePublish: false,
+    websitePublish: true,
   },
 }
 
