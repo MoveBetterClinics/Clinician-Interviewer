@@ -1,18 +1,16 @@
 import { brand } from './brand'
-<<<<<<< HEAD
-// PNW patient context lives ON THE PEOPLE BRANCH ONLY — main has no equivalent.
-// See feedback memory `feedback_brand_context_per_branch.md`. Equine and
-// animals branches author their own overlays; do not move this back to main.
-import { formatPNWContextForPrompt } from './pnwQuestions'
-=======
 import { getToneModifier as getBrandToneModifier } from '@brand-overlay/toneModifiers'
+import { formatPNWContextForPrompt } from './pnwQuestions'
 
-// Tone-modifier prompt strings are paradigm content (per
-// feedback_brand_context_per_branch.md, 2026-05-04) and live under
+// Tone-modifier prompt strings are paradigm content and live under
 // brands/<brand>/toneModifiers.js, selected at build time via the
 // @brand-overlay Vite alias. The TONES list below is product surface (the UI
 // choices) and stays brand-agnostic on main.
->>>>>>> origin/main
+//
+// PNW patient context (formatPNWContextForPrompt) is people-paradigm and lives
+// only on the people branch in src/lib/pnwQuestions.js. Phase 2 PR B will
+// migrate it to brands/people/interviewContext.js so this branch-only import
+// can go away — see project_product_paradigm_separation.md.
 
 export const TONES = [
   {
