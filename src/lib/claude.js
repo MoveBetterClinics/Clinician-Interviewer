@@ -1,8 +1,8 @@
-export async function* streamMessage(messages, systemPrompt) {
+export async function* streamMessage(messages, systemPrompt, { model } = {}) {
   const response = await fetch('/api/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, systemPrompt }),
+    body: JSON.stringify({ messages, systemPrompt, model }),
   })
 
   if (!response.ok) {
@@ -36,11 +36,11 @@ export async function* streamMessage(messages, systemPrompt) {
   }
 }
 
-export async function generateContent(messages, systemPrompt) {
+export async function generateContent(messages, systemPrompt, { model } = {}) {
   const response = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, systemPrompt }),
+    body: JSON.stringify({ messages, systemPrompt, model }),
   })
 
   if (!response.ok) {
