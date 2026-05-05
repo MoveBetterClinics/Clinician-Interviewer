@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { fetchClinicians, fetchCampaign, updateCampaign } from '@/lib/api'
 import { CAMPAIGN_MODES } from '@/lib/campaigns'
-import { getSuggestedTopics } from '@/lib/topicSuggestions'
+import { getSuggestedTopics } from '@brand-overlay/topicSuggestions'
 import { getInitials, formatRelativeDate } from '@/lib/utils'
 import { brand } from '@/lib/brand'
 
