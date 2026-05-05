@@ -22,7 +22,7 @@ Brand-specific values (name, domain, location, social handles, prompt context, i
 - `BRAND` — read by Vercel serverless functions in `api/`. Set the same value alongside `VITE_BRAND`.
 - `BRAND_URL` — used by `api/publish/gbp.js` for the GBP "Book" call-to-action URL. Falls back to `https://www.movebetter.co` if unset.
 
-When adding a feature, never hardcode "Move Better," `movebetter.co`, "Portland," "patients/clinicians" terminology, or human-specific assumptions in `src/`. Read those values from `brand` instead. To add a new brand deployment (Phase 2: equine, Phase 3: animals), add a sibling entry to `BRANDS` in `brand.js` and set `VITE_BRAND` / `BRAND` on the new Vercel project.
+When adding a feature, never hardcode "Move Better," `movebetter.co`, "Portland," "patients/clinicians" terminology, or human-specific assumptions in `src/`. Read those values from `brand` instead. To add a new brand deployment, add a sibling entry to `BRANDS` in `brand.js` and set `VITE_BRAND` / `BRAND` on the new Vercel project.
 
 ## GitHub
 Use the GitHub CLI (`gh`) for GitHub-specific interactions — PRs, issues, releases, repo management. `gh` is configured as the git credential helper, so plain `git push` / `git fetch` are fine for ref operations (they authenticate through `gh` under the hood). Do not set up separate HTTPS basic auth or raw SSH credentials.
