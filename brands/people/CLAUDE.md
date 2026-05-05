@@ -18,7 +18,7 @@ The underlying app is called **NarrateRx** — a multi-brand SaaS product. Move 
 ### Brand config
 Brand-specific values (name, domain, location, social handles, prompt context, internal-link library, signature system, etc.) live in [src/lib/brand.js](src/lib/brand.js). Each deployment selects its brand via env vars:
 
-- `VITE_BRAND` — read by browser code (Vite replaces at build time). Set on the Vercel project, e.g. `VITE_BRAND=human`.
+- `VITE_BRAND` — read by browser code (Vite replaces at build time). Set on the Vercel project, e.g. `VITE_BRAND=people`. The people deployment currently relies on the codebase default and does not set this env var.
 - `BRAND` — read by Vercel serverless functions in `api/`. Set the same value alongside `VITE_BRAND`.
 - `BRAND_URL` — used by `api/publish/gbp.js` for the GBP "Book" call-to-action URL. Falls back to `https://www.movebetter.co` if unset.
 
