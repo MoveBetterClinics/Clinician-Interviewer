@@ -34,8 +34,40 @@ export const TONES = [
   },
 ]
 
+export const VOICE_MODES = [
+  {
+    id: 'practice',
+    label: 'Practice voice',
+    emoji: '🏥',
+    description: `Speaking for the clinic. The interview is about how ${brand.name} as a team approaches this — outputs use "we" and "our team."`,
+  },
+  {
+    id: 'personal',
+    label: 'Personal voice',
+    emoji: '🗣️',
+    description: 'Speaking for yourself. The interview is about your own lived experience or a specific patient moment — outputs preserve "I" and end with your signature.',
+  },
+]
+
 function getToneModifier(tone) {
   return getBrandToneModifier(tone, brand)
+}
+
+// Returns the framing-rule block injected into each generation prompt.
+// In practice mode: scrub first-person → clinic voice (existing behavior).
+// In personal mode: preserve first-person voice, append a brand-attribution signature.
+function getFramingRule({ voiceMode, clinicianName, assetType }) {
+  if (voiceMode === 'personal') {
+    return `CRITICAL FRAMING RULE — PERSONAL VOICE:
+This is a personal-voice piece. Preserve ${clinicianName}'s first-person voice ("I", "my", "me") throughout — do NOT convert to "we" or "our team." This is ${clinicianName}'s lived experience or perspective, told in their own words.
+Brand attribution still applies: end the piece with a signature line on its own — "— ${clinicianName}, ${brand.name}, ${brand.location}". Internal links, paradigm vocabulary, and links to ${brand.name} resources should still appear naturally.`
+  }
+  // Practice voice — current behavior, with explicit conversion guidance.
+  const clinicianMention = assetType === 'video'
+    ? `${clinicianName} is the on-camera clinician and expert, but the brand being promoted is ${brand.name}. Scripts should introduce ${clinicianName} as "our clinician" or "part of the ${brand.name} team." All CTAs, bookings, and references point to ${brand.name}, not to ${clinicianName} personally.`
+    : `The clinician's name may appear once or twice naturally (e.g., "one of our clinicians, ${clinicianName}, notes that…") but should never be in a headline, section header, or the main focus of a paragraph.`
+  return `CRITICAL FRAMING RULE:
+This content is branded for ${brand.name} as a clinic — NOT for the individual clinician. The subject is always "we at ${brand.name}" or "our team" or "our approach." Even if the clinician used "I" or "me" in the interview, convert it to clinic voice in the output (e.g., "I see this in patients" → "We see this in patients at ${brand.name}"). ${clinicianMention}`
 }
 
 export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = []) {
@@ -88,11 +120,11 @@ ENDING THE INTERVIEW:
 Start immediately with your first question. No greeting, no introduction.`
 }
 
-export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart') {
+export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart', voiceMode = 'practice') {
+  const isPersonal = voiceMode === 'personal'
   return `You are a content writer for ${brand.name} in ${brand.location}. Based on the interview transcript below with ${clinicianName} about treating ${condition}, write an engaging, on-brand blog post targeted at ${brand.region} readers.
 
-CRITICAL FRAMING RULE:
-This content is branded for ${brand.name} as a clinic — NOT for the individual clinician. The clinician's insights and expertise drive the content, but the subject is always "we at ${brand.name}" or "our team" or "our approach." Do not make the post about the clinician personally. The clinician's name may appear once or twice naturally (e.g., "one of our clinicians, ${clinicianName}, notes that...") but should never be in a headline, section header, or the main focus of a paragraph.
+${getFramingRule({ voiceMode, clinicianName, assetType: 'blog' })}
 
 ${brand.name.toUpperCase()} BRAND VOICE:
 ${brand.prompt.brandVoice}
@@ -119,37 +151,43 @@ LINKING RULES:
 
 BLOG POST FORMAT (write in Markdown):
 
-# [Headline: compelling, specific, hopeful — about the condition and ${brand.name}'s approach. Never include the clinician's name in the headline.]
+# [Headline: compelling, specific, hopeful — about the condition${isPersonal ? '' : ` and ${brand.name}'s approach`}. Never include the clinician's name in the headline.]
 
-[Hook paragraph: open with the patient's lived experience or a relatable question. 2–3 sentences that make the reader feel seen.]
+[Hook paragraph: open with ${isPersonal ? 'a moment from my own practice or a patient I remember' : "the patient's lived experience or a relatable question"}. 2–3 sentences that make the reader feel seen.]
 
 ## What's Really Going On With ${condition}
 [Explain the condition in plain language from a clinical perspective — what's actually happening in the body and why standard approaches often fall short. Include 1–2 links here: one internal to a related ${brand.name} post, one external to an authoritative source.]
 
-## The ${brand.name} Approach to ${condition}
-[${brand.name}'s specific treatment approach — what makes it different, what the process looks like. Use "we" and "our team." Make it concrete and specific to what was shared in the interview.${brand.prompt.signatureSystemName ? ` Link to ${brand.prompt.signatureSystemName} (${brand.prompt.signatureSystemUrl}) if relevant.` : ''}]
+## ${isPersonal ? `My Approach to ${condition}` : `The ${brand.name} Approach to ${condition}`}
+[${isPersonal
+  ? `Describe my specific approach in first person — what makes my method different, what the process looks like in my own work. Concrete and specific to what was shared in the interview.`
+  : `${brand.name}'s specific treatment approach — what makes it different, what the process looks like. Use "we" and "our team." Make it concrete and specific to what was shared in the interview.`}${brand.prompt.signatureSystemName ? ` Link to ${brand.prompt.signatureSystemName} (${brand.prompt.signatureSystemUrl}) if relevant.` : ''}]
 
-## What Our Patients Experience
-[Walk through the patient journey from first visit onward — what happens, what changes, realistic timeline. Cite any success stories from the interview (anonymized). Use "our patients" language. Link to a relevant ${brand.name} post if it fits naturally.]
+## ${isPersonal ? 'What I See in My Patients' : 'What Our Patients Experience'}
+[${isPersonal
+  ? `Walk through the patient journey from first visit onward in first person — what I do, what changes, realistic timeline. Cite any success stories from the interview (anonymized). Link to a relevant ${brand.name} post if it fits naturally.`
+  : `Walk through the patient journey from first visit onward — what happens, what changes, realistic timeline. Cite any success stories from the interview (anonymized). Use "our patients" language. Link to a relevant ${brand.name} post if it fits naturally.`}]
 
 ## The Insight Most People With ${condition} Are Missing
-[The key clinical observation from the interview — framed as ${brand.name}'s team perspective. This makes the post human and builds trust. The clinician's name may appear here once naturally if it adds credibility, e.g. "As our clinician ${clinicianName} puts it…"]
+[${isPersonal
+  ? `The key clinical observation from the interview — in my own voice. This is the moment that makes the post human and builds trust.`
+  : `The key clinical observation from the interview — framed as ${brand.name}'s team perspective. This makes the post human and builds trust. The clinician's name may appear here once naturally if it adds credibility, e.g. "As our clinician ${clinicianName} puts it…"`}]
 
 ## Ready to Move Better?
 [Warm, encouraging CTA — 3–4 sentences. Reinforce movement as the solution. Invite them to book at [${brand.name}](${brand.prompt.bookingUrl}). Keep it conversational, not salesy.]
-
+${isPersonal ? '' : `
 ---
 *${brand.name} · ${brand.location}*
-
+`}
 TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about helping people move better — not like a content marketing checklist.
 ${getToneModifier(tone)}`
 }
 
-export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
+export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', voiceMode = 'practice') {
+  const isPersonal = voiceMode === 'personal'
   return `Based on the blog post provided, generate social media content for ${brand.name}. The post is about ${condition}.
 
-CRITICAL FRAMING RULE:
-All content is branded for ${brand.name} as a clinic. Write from the perspective of "we at ${brand.name}" or "our team." The clinician who provided the expertise may be referenced once for credibility (e.g., "one of our clinicians shares…") but should never be the main subject or featured by name in headlines or hooks.
+${getFramingRule({ voiceMode, clinicianName, assetType: 'social' })}
 
 ${brand.name}'s audience: ${brand.prompt.audienceDescription}
 
@@ -158,16 +196,16 @@ Output each section separated by the exact markers below. Include the marker lin
 ---INSTAGRAM---
 - 150–200 words
 - Open with a scroll-stopping hook (relatable question, bold statement, or surprising fact about ${condition})
-- Share the single most compelling insight from the blog as ${brand.name}'s team perspective
-- Use "we" and "our team" language — not a single clinician's voice
+- Share the single most compelling insight from the blog ${isPersonal ? 'in my own first-person voice' : `as ${brand.name}'s team perspective`}
+${isPersonal ? `- Write in first person — this is my voice, my experience` : `- Use "we" and "our team" language — not a single clinician's voice`}
 - Close with: "Full article at the link in bio 👆" or "Read the full post — link in bio"
 - Do NOT include any URLs in the caption body itself
 - Skip a line, then add 8–10 hashtags: condition-specific, movement, ${brand.prompt.locationKeyword}/${brand.regionShort}, and brand tags
 
 ---FACEBOOK---
 - 100–150 words
-- Written as ${brand.name} the clinic sharing with the local ${brand.prompt.locationKeyword} community
-- Story-driven and personal — but always "our team" not an individual
+${isPersonal ? `- Written in my own first-person voice — sharing with the local ${brand.prompt.locationKeyword} community from a personal angle` : `- Written as ${brand.name} the clinic sharing with the local ${brand.prompt.locationKeyword} community`}
+${isPersonal ? `- Story-driven and personal — written as me, the clinician, in my own voice` : `- Story-driven and personal — but always "our team" not an individual`}
 - Include the full URL ${brand.website} on its own line near the end for rich link preview
 - End with an engagement question to spark comments
 - 1–2 hashtags max
@@ -176,18 +214,22 @@ Output each section separated by the exact markers below. Include the marker lin
 Google Business Profile post:
 - 150–250 words
 - Start with one compelling insight or question about ${condition}
-- Share ${brand.name}'s key perspective — what makes the approach different
-- Use "we" and "our team" throughout
+- Share ${isPersonal ? 'my key perspective' : `${brand.name}'s key perspective`} — what makes the approach different
+${isPersonal ? `- Write in first person ("I", "my")` : `- Use "we" and "our team" throughout`}
 - Include 1 anonymized patient result if available from the blog
 - Close with: "Book your assessment at ${brand.name} — link in profile"
 - Conversational, no hashtags
 
 ---LINKEDIN---
 - 150–250 words
-- Written from ${brand.name}'s company voice — for other clinicians, coaches, employers, and referring providers
+${isPersonal
+  ? `- Written in my first-person professional voice — for other clinicians, coaches, employers, and referring providers
+- Frame as my clinical perspective: "I approach ${condition} differently than most…"
+- Include what my approach gets right that others miss`
+  : `- Written from ${brand.name}'s company voice — for other clinicians, coaches, employers, and referring providers
 - Frame as clinical perspective: "At ${brand.name}, we approach ${condition} differently…"
 - Include what ${brand.name}'s approach gets right that others miss
-- May reference that this comes from a conversation with one of the clinical team
+- May reference that this comes from a conversation with one of the clinical team`}
 - Close with: "Happy to connect with colleagues or coaches working with patients dealing with ${condition}."
 - Include URL ${brand.website} at end
 - No hashtags
@@ -200,12 +242,12 @@ BOARD: (${brand.prompt.pinterestBoards})${campaignContext}
 ${getToneModifier(tone)}`
 }
 
-export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
+export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', voiceMode = 'practice') {
   const firstName = clinicianName.split(' ')[0]
+  const isPersonal = voiceMode === 'personal'
   return `Based on the blog post provided, write two video scripts for ${brand.name} about ${condition}.
 
-CRITICAL FRAMING RULE:
-The videos are branded for ${brand.name} as a clinic. ${firstName} is the on-camera clinician and expert, but the brand being promoted is ${brand.name}. Scripts should introduce ${firstName} as "our clinician" or "part of the ${brand.name} team." All CTAs, bookings, and references point to ${brand.name}, not to ${firstName} personally.
+${getFramingRule({ voiceMode, clinicianName, assetType: 'video' })}
 
 ${brand.name}'s audience: ${brand.prompt.audienceShort}
 
@@ -218,16 +260,18 @@ Write a 5–8 minute video script (~700–1000 words spoken at conversational pa
 A direct, specific statement that stops a viewer from scrolling. Lead with the most surprising or counterintuitive thing about ${condition}. Not "today we're going to talk about…"
 
 [INTRO — 30 seconds]
-${firstName} introduces themselves naturally: name, role at ${brand.name}, one sentence on ${brand.name}'s movement-first philosophy.
+${firstName} introduces themselves naturally: name, role at ${brand.name}, one sentence on ${isPersonal ? 'their movement-first philosophy' : `${brand.name}'s movement-first philosophy`}.
 
 [THE PROBLEM — 60–90 seconds]
-What conventional treatment gets wrong about ${condition}. Specific, not generic. Framed as ${brand.name}'s clinical perspective.
+What conventional treatment gets wrong about ${condition}. Specific, not generic. Framed as ${isPersonal ? `${firstName}'s clinical perspective in first person` : `${brand.name}'s clinical perspective`}.
 
-[THE ${brand.name.toUpperCase()} APPROACH — 2–3 minutes]
-${brand.name}'s actual assessment and treatment process for ${condition}. Patient-friendly language. Use "we" and "our team." Add [B-ROLL: ...] notes in brackets where relevant footage would help.
+[${isPersonal ? 'MY APPROACH' : `THE ${brand.name.toUpperCase()} APPROACH`} — 2–3 minutes]
+${isPersonal
+  ? `${firstName}'s actual assessment and treatment process for ${condition}, in first person. Patient-friendly language. Use "I" and "my approach." Add [B-ROLL: ...] notes in brackets where relevant footage would help.`
+  : `${brand.name}'s actual assessment and treatment process for ${condition}. Patient-friendly language. Use "we" and "our team." Add [B-ROLL: ...] notes in brackets where relevant footage would help.`}
 
 [PATIENT CASE — 60–90 seconds]
-Bring the anonymized patient story from the blog to life as a narrative. What changed, how fast, what they can do now. Reference it as a ${brand.name} patient.
+Bring the anonymized patient story from the blog to life as a narrative. What changed, how fast, what they can do now. ${isPersonal ? `Reference it as one of ${firstName}'s patients, in first person.` : `Reference it as a ${brand.name} patient.`}
 
 [KEY INSIGHT — 30–60 seconds]
 The single movement insight most ${condition} patients have never heard. Make it memorable and specific.
@@ -249,7 +293,7 @@ Write a 45–60 second TikTok / Instagram Reels script (~120–150 words).
 One punchy sentence that stops the scroll. Lead with tension or a counterintuitive claim. Example: "Most people with ${condition} are doing this wrong — and it's making it worse."
 
 [BODY — 30–40 seconds]
-3–4 short punchy points from ${brand.name}'s clinical perspective. 1–2 sentences each. Plain language, no jargon. Add [ON SCREEN TEXT: ...] for any text overlays.
+3–4 short punchy points from ${isPersonal ? `${firstName}'s clinical perspective in first person` : `${brand.name}'s clinical perspective`}. 1–2 sentences each. Plain language, no jargon. Add [ON SCREEN TEXT: ...] for any text overlays.
 
 [CLOSE — 10 seconds]
 Soft CTA: "If you're dealing with ${condition} in ${brand.prompt.locationKeyword}, follow for more — link in bio to book at ${brand.name}."

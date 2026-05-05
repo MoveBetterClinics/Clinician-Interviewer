@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { getOrCreateClinician, createInterview, fetchClinicians } from '@/lib/api'
 import { getSuggestedTopics } from '@/lib/topicSuggestions'
-import { TONES } from '@/lib/prompts'
+import { TONES, VOICE_MODES } from '@/lib/prompts'
 
 export default function NewInterview() {
   const navigate = useNavigate()
@@ -22,6 +22,7 @@ export default function NewInterview() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [tone, setTone] = useState('smart')
+  const [voiceMode, setVoiceMode] = useState('practice')
   const [suggestions, setSuggestions] = useState([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(true)
 
@@ -59,6 +60,7 @@ export default function NewInterview() {
         ownerId: user.id,
         ownerEmail: user.primaryEmailAddress?.emailAddress,
         tone,
+        voiceMode,
       })
       navigate(`/interview/${clinician.id}/${interview.id}`)
     } catch (e) {
@@ -145,6 +147,36 @@ export default function NewInterview() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Voice mode selector */}
+            <div className="space-y-2">
+              <Label className="text-sm">Voice</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {VOICE_MODES.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setVoiceMode(v.id)}
+                    className={`flex items-start gap-2 rounded-lg border p-3 text-left transition-all ${
+                      voiceMode === v.id
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                        : 'border-input hover:border-primary/40 hover:bg-accent/30'
+                    }`}
+                  >
+                    <span className="text-base shrink-0 mt-0.5">{v.emoji}</span>
+                    <div>
+                      <p className="text-xs font-semibold leading-tight">{v.label}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{v.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {voiceMode === 'personal' && (
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Personal interviews skip ad-style outputs (Instagram Ads, Google Ads, landing page, email newsletter).
+                </p>
+              )}
+            </div>
+
             {/* Tone selector */}
             <div className="space-y-2">
               <Label className="text-sm">Content tone</Label>

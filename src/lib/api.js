@@ -43,11 +43,11 @@ export function fetchSimilarInterviews(topic, excludeId) {
   return apiFetch(`/api/db/interviews?${params}`)
 }
 
-export function createInterview({ clinicianId, topic, ownerId, ownerEmail, tone }) {
+export function createInterview({ clinicianId, topic, ownerId, ownerEmail, tone, voiceMode }) {
   return apiFetch('/api/db/interviews', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ clinicianId, topic, ownerId, ownerEmail, tone }),
+    body: JSON.stringify({ clinicianId, topic, ownerId, ownerEmail, tone, voiceMode }),
   })
 }
 

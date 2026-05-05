@@ -305,9 +305,10 @@ export default function InterviewSession() {
     try {
       const apiMessages = messages.map((m) => ({ role: m.role, content: m.content }))
       const tone = interview.tone || 'smart'
+      const voiceMode = interview.voice_mode || 'practice'
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        getBlogPostSystemPrompt(clinician.name, interview.topic, tone),
+        getBlogPostSystemPrompt(clinician.name, interview.topic, tone, voiceMode),
         { model: 'claude-opus-4-7' }
       )
       const outputs = { blogPost, generatedAt: new Date().toISOString() }
