@@ -521,13 +521,15 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
   const defaultTitle = h1Title || fallbackTitle || ''
   const defaultDescription = useMemo(() => deriveDescription(bodyWithoutH1), [bodyWithoutH1])
 
-  const [title, setTitle]             = useState(defaultTitle)
-  const [slug, setSlug]               = useState(slugify(defaultTitle))
-  const [slugEdited, setSlugEdited]   = useState(false)
-  const [description, setDescription] = useState(defaultDescription)
-  const [tagsInput, setTagsInput]     = useState('')
-  const [draft, setDraft]             = useState(false)
-  const [pubDate, setPubDate]         = useState(todayIso())
+  const [title, setTitle]                 = useState(defaultTitle)
+  const [slug, setSlug]                   = useState(slugify(defaultTitle))
+  const [slugEdited, setSlugEdited]       = useState(false)
+  const [description, setDescription]     = useState(defaultDescription)
+  const [heroImage, setHeroImage]         = useState('')
+  const [heroImageAlt, setHeroImageAlt]   = useState('')
+  const [tagsInput, setTagsInput]         = useState('')
+  const [draft, setDraft]                 = useState(false)
+  const [pubDate, setPubDate]             = useState(todayIso())
 
   const [status, setStatus] = useState('idle') // 'idle' | 'publishing' | 'success' | 'error'
   const [result, setResult] = useState(null)   // { postUrl, commitUrl, slug } on success
@@ -563,6 +565,8 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
         markdown: bodyWithoutH1 || markdown,
         tags,
         draft,
+        heroImage:    heroImage.trim()    || undefined,
+        heroImageAlt: heroImageAlt.trim() || undefined,
       })
       setResult(res)
       setStatus('success')
@@ -578,9 +582,9 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
         <div className="flex items-start gap-3">
           <Check className="h-5 w-5 text-green-700 mt-0.5 shrink-0" />
           <div className="space-y-1">
-            <p className="font-medium text-sm text-green-900">Published to movebetteranimal.co</p>
+            <p className="font-medium text-sm text-green-900">Published to {brand.websiteHostname}</p>
             <p className="text-xs text-green-800">
-              The website is rebuilding now — the post will be live in about 30–60 seconds. The link below will 404 until then; that's expected.
+              The post is live (or queued as a draft if you ticked the box). The link below opens it on the website.
             </p>
           </div>
         </div>
@@ -616,13 +620,13 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
         <div>
           <p className="font-medium text-sm flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" />
-            Publish to movebetteranimal.co
+            Publish to {brand.websiteHostname}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Commits a markdown file to the site repo. Build takes ~30–60 seconds after publish.
+            Sends the post to the marketing site. Live in seconds (or saved as a draft if you tick the box).
           </p>
         </div>
-        <Badge variant="outline" className="text-xs">Animals</Badge>
+        <Badge variant="outline" className="text-xs capitalize">{brand.id}</Badge>
       </div>
 
       <div className="p-5 space-y-4">
@@ -671,6 +675,31 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
           <p className="text-xs text-muted-foreground">{description.length}/500 — used on the blog index, meta description, and social previews.</p>
         </div>
 
+        <div className="space-y-1.5">
+          <Label htmlFor="publish-hero-image" className="text-xs">
+            Featured image URL <span className="text-muted-foreground font-normal">(optional)</span>
+          </Label>
+          <Input
+            id="publish-hero-image"
+            type="url"
+            value={heroImage}
+            onChange={(e) => setHeroImage(e.target.value)}
+            disabled={isPublishing}
+            placeholder="https://…/photo.jpg"
+          />
+          {heroImage.trim() && (
+            <Input
+              id="publish-hero-image-alt"
+              value={heroImageAlt}
+              onChange={(e) => setHeroImageAlt(e.target.value)}
+              disabled={isPublishing}
+              placeholder="Alt text — describe the image for screen readers and SEO"
+              maxLength={250}
+              className="mt-1.5"
+            />
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="publish-pubdate" className="text-xs">Publish date</Label>
@@ -702,7 +731,7 @@ function WebsitePublishPanel({ markdown, fallbackTitle }) {
             disabled={isPublishing}
             className="h-3.5 w-3.5"
           />
-          Save as draft (commits the file but hides it from listings until you flip the field in the repo)
+          Save as draft (the post is created but hidden from the public site until you publish it from the website's admin)
         </label>
 
         {error && !slugTaken && (
