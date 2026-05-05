@@ -353,25 +353,16 @@ const BRANDS = {
   animals: ANIMALS,
 }
 
-// Legacy: pre-rename, the people deployment used VITE_BRAND/BRAND=human and
-// no env var was set on Vercel (deployment relied on the codebase default).
-// The shim normalizes the legacy 'human' value if anything still emits it
-// — safe to remove once we've confirmed no consumer (env vars, scripts,
-// docs) sets 'human' anymore.
-function normalizeBrandId(id) {
-  return id === 'human' ? 'people' : id
-}
-
 function readBrandId() {
   // Vite replaces import.meta.env.VITE_BRAND at build time. Wrapped in
   // try/catch so this file is also safe to import from Node ESM (where
   // import.meta exists but import.meta.env does not).
   let viteBrand
   try { viteBrand = import.meta.env.VITE_BRAND } catch {}
-  if (viteBrand) return normalizeBrandId(String(viteBrand).toLowerCase())
+  if (viteBrand) return String(viteBrand).toLowerCase()
 
   if (typeof process !== 'undefined' && process.env && process.env.BRAND) {
-    return normalizeBrandId(String(process.env.BRAND).toLowerCase())
+    return String(process.env.BRAND).toLowerCase()
   }
   return 'people'
 }
@@ -379,4 +370,4 @@ function readBrandId() {
 const activeId = readBrandId()
 export const brand = BRANDS[activeId] || PEOPLE
 export function getBrand() { return brand }
-export function getBrandById(id) { return BRANDS[normalizeBrandId(id)] || PEOPLE }
+export function getBrandById(id) { return BRANDS[id] || PEOPLE }
