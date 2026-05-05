@@ -1,7 +1,7 @@
-// Brand registry. NarrateRx is one codebase deployed three times — each
+// Brand registry. NarrateRx is one codebase deployed once per brand — each
 // deployment sets BRAND (server) / VITE_BRAND (client) and the active brand
-// object is selected here. Add equine and animals as sibling entries when
-// those deployments come online (Phase 2 / Phase 3).
+// object is selected here. Add a new brand by appending a sibling entry to
+// BRANDS below and registering its Vercel project with matching env vars.
 
 const PEOPLE = {
   id: 'people',
