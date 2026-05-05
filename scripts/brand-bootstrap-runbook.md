@@ -229,7 +229,7 @@ auto-domain — that's the standard for this product, not a workaround.
 
 | Brand | Admin URL |
 |---|---|
-| people | `clinician-interviewer.vercel.app` |
+| people | `narraterxpeople.vercel.app` |
 | animals | `narraterx-animals.vercel.app` |
 | equine | `narraterx-equine.vercel.app` |
 
