@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getOrCreateClinician, createInterview, fetchClinicians } from '@/lib/api'
-import { getSuggestedTopics } from '@/lib/topicSuggestions'
+import { getSuggestedTopics } from '@brand-overlay/topicSuggestions'
 import { TONES, VOICE_MODES } from '@/lib/prompts'
 
 export default function NewInterview() {
