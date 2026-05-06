@@ -7,6 +7,6 @@ export const PATIENT_PROTOTYPES = []
 export const PRIOR_PROVIDER_PAIN_POINTS = []
 export const STAFF_PROFILES = []
 
-export function getPatientContextForPrompt() {
+export function getPatientContextForPrompt(_selectedPrototypeId) {
   return ''
 }

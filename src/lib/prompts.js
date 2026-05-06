@@ -1,7 +1,7 @@
 import { brand } from './brand'
 import { getToneModifier as getBrandToneModifier } from '@brand-overlay/toneModifiers'
 import { formatPNWContextForPrompt } from '@brand-overlay/interviewContext'
-import { getPatientContextForPrompt } from '@brand-overlay/patientContext'
+import { PATIENT_PROTOTYPES, getPatientContextForPrompt } from '@brand-overlay/patientContext'
 
 // Paradigm content (tone-modifier strings, interview context per condition)
 // lives under brands/<brand>/ and is selected at build time via the
@@ -50,6 +50,25 @@ export const VOICE_MODES = [
   },
 ]
 
+// Patient prototype selector — driven by brand overlay data.
+// First entry (id: null) is the "all patients" default.
+// Equine/animals brands return an empty PATIENT_PROTOTYPES array, so the selector
+// will only show the first entry and the selector is effectively hidden.
+export const PATIENT_PROTOTYPES_UI = [
+  {
+    id: null,
+    label: 'All patients',
+    emoji: '✨',
+    description: 'No specific archetype — AI draws on the full patient base',
+  },
+  ...PATIENT_PROTOTYPES.map((p) => ({
+    id: p.id,
+    label: p.shortLabel || p.label,
+    emoji: p.emoji || '',
+    description: p.coreDesire,
+  })),
+]
+
 function getToneModifier(tone) {
   return getBrandToneModifier(tone, brand)
 }
@@ -71,7 +90,7 @@ Brand attribution still applies: end the piece with a signature line on its own 
 This content is branded for ${brand.name} as a clinic — NOT for the individual clinician. The subject is always "we at ${brand.name}" or "our team" or "our approach." Even if the clinician used "I" or "me" in the interview, convert it to clinic voice in the output (e.g., "I see this in patients" → "We see this in patients at ${brand.name}"). ${clinicianMention}`
 }
 
-export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = []) {
+export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = [], prototypeId = null) {
   let pastContext = ''
   if (pastInterviews.length > 0) {
     const formatted = pastInterviews.map((pi) => {
@@ -97,7 +116,7 @@ Skip anything already covered in depth above unless ${clinicianName}'s answer cl
 ${formatPNWContextForPrompt(condition)}${pastContext}
 ${brand.name} context: ${brand.prompt.clinicContext}
 
-${getPatientContextForPrompt()}
+${getPatientContextForPrompt(prototypeId)}
 
 CONTENT YOU NEED TO COLLECT — ask about these in any order that flows naturally:
 1. Their actual assessment and treatment process for ${condition}
@@ -123,7 +142,7 @@ ENDING THE INTERVIEW:
 Start immediately with your first question. No greeting, no introduction.`
 }
 
-export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart', voiceMode = 'practice') {
+export function getBlogPostSystemPrompt(clinicianName, condition, tone = 'smart', voiceMode = 'practice', prototypeId = null) {
   const isPersonal = voiceMode === 'personal'
   return `You are a content writer for ${brand.name} in ${brand.location}. Based on the interview transcript below with ${clinicianName} about treating ${condition}, write an engaging, on-brand blog post targeted at ${brand.region} readers.
 
@@ -132,7 +151,7 @@ ${getFramingRule({ voiceMode, clinicianName, assetType: 'blog' })}
 ${brand.name.toUpperCase()} BRAND VOICE:
 ${brand.prompt.brandVoice}
 
-${getPatientContextForPrompt()}
+${getPatientContextForPrompt(prototypeId)}
 
 LINK BUILDING — this is required, not optional:
 

@@ -162,7 +162,7 @@ export default function InterviewSession() {
     setStreamingText('')
     setError('')
 
-    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current)
+    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current, interviewRef.current?.prototype_id)
     let apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
     // Claude API requires at least one message — inject a silent starter for new interviews
     if (apiMessages.length === 0) {
@@ -308,7 +308,7 @@ export default function InterviewSession() {
       const voiceMode = interview.voice_mode || 'practice'
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        getBlogPostSystemPrompt(clinician.name, interview.topic, tone, voiceMode),
+        getBlogPostSystemPrompt(clinician.name, interview.topic, tone, voiceMode, interview.prototype_id),
         { model: 'claude-opus-4-7' }
       )
       const outputs = { blogPost, generatedAt: new Date().toISOString() }

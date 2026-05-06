@@ -53,6 +53,8 @@ export const PATIENT_PROTOTYPES = [
   {
     id: 'reconnect',
     label: 'Recover — "Reconnect"',
+    shortLabel: 'Reconnect',
+    emoji: '🔄',
     summary:
       'This patient was once active and engaged in something they loved, but life got in the way — through childbirth, surgery, an old injury, or chronic pain. Their core desire is to get back to the activities and identity they\'ve lost. They may carry frustration, grief, or fear around movement, and often feel like their body has failed them.',
     coreDesire: 'Get back to doing what they love',
@@ -69,6 +71,8 @@ export const PATIENT_PROTOTYPES = [
   {
     id: 'retain',
     label: 'Longevity — "Continue"',
+    shortLabel: 'Continue',
+    emoji: '⚡',
     summary:
       'This patient is currently active and wants to stay that way. They\'re not chasing a new peak — they want to protect what they have. They\'re proactive about their health, understand the value of investing in their body now, and are motivated by the idea of compounding small gains over time.',
     coreDesire: 'Keep doing what they love as they age',
@@ -85,6 +89,8 @@ export const PATIENT_PROTOTYPES = [
   {
     id: 'excel',
     label: 'Performance — "Excel"',
+    shortLabel: 'Excel',
+    emoji: '🎯',
     summary:
       'This patient has a specific goal they\'re working toward — a competition, a personal record, or simply being the best version of themselves in their sport or activity. They\'re driven, results-oriented, and respond well to data and measurable progress.',
     coreDesire: 'Perform at a higher level without breaking down',
@@ -197,19 +203,46 @@ export const STAFF_PROFILES = [
 
 /**
  * Returns a compact description of the patient context for prompt injection.
- * Used by prompts.js to orient the AI toward who Move Better's content serves.
+ * Pass selectedPrototypeId to sharpen context toward a specific archetype.
  */
-export function getPatientContextForPrompt() {
-  const prototypeLines = PATIENT_PROTOTYPES.map(
-    (p) => `  • ${p.label}: ${p.coreDesire}. ${p.whatTheyNeed}`
-  ).join('\n')
-
+export function getPatientContextForPrompt(selectedPrototypeId) {
   const painPointLines = PRIOR_PROVIDER_PAIN_POINTS.slice(0, 6)
     .map((pp) => `  • ${pp}`)
     .join('\n')
 
+  const base = `Move Better's primary patient is "The Frustrated Active Adult" — ages 30–55, active or formerly active, family-oriented, college-educated. They've seen other providers and left feeling unheard, rushed, or handed a generic plan. They don't want surgery or medication. They want someone who sees them as an individual and gives them a real plan.`
+
+  const selected = selectedPrototypeId
+    ? PATIENT_PROTOTYPES.find((p) => p.id === selectedPrototypeId)
+    : null
+
+  if (selected) {
+    const angleLines = selected.contentAngles.map((a) => `  • ${a}`).join('\n')
+    const triggerList = selected.triggers.join(', ')
+    return `PATIENT CONTEXT — WHO THIS CONTENT SERVES:
+${base}
+
+FOCUS FOR THIS INTERVIEW: ${selected.shortLabel} patients ${selected.emoji}
+This interview is targeting the "${selected.shortLabel}" archetype — ${selected.summary}
+
+Core desire: ${selected.coreDesire}
+What they need: ${selected.whatTheyNeed}
+
+Sharpen your questions and content toward these angles:
+${angleLines}
+
+Common triggers for this archetype: ${triggerList}
+
+Common frustrations with prior providers (address indirectly):
+${painPointLines}`
+  }
+
+  const prototypeLines = PATIENT_PROTOTYPES.map(
+    (p) => `  • ${p.emoji} ${p.label}: ${p.coreDesire}. ${p.whatTheyNeed}`
+  ).join('\n')
+
   return `PATIENT CONTEXT — WHO THIS CONTENT SERVES:
-Move Better's primary patient is "The Frustrated Active Adult" — ages 30–55, active or formerly active, family-oriented, college-educated. They've seen other providers and left feeling unheard, rushed, or handed a generic plan. They don't want surgery or medication. They want someone who sees them as an individual and gives them a real plan.
+${base}
 
 Three archetypes define this patient base:
 ${prototypeLines}
