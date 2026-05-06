@@ -237,11 +237,11 @@ export default function ReviewPost() {
         if (!blogPost) throw new Error('The blog post for this interview must be generated first before regenerating other content.')
         inputMessages = [{ role: 'user', content: blogPost }]
         if (['instagram', 'facebook', 'gbp', 'linkedin'].includes(platform)) {
-          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone, voiceMode)
+          systemPrompt = getSocialBatchSystemPrompt(clinicianName, condition, '', tone, voiceMode, prototypeId)
         } else if (['youtube', 'tiktok'].includes(platform)) {
-          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone, voiceMode)
+          systemPrompt = getVideoScriptBatchSystemPrompt(clinicianName, condition, '', tone, voiceMode, prototypeId)
         } else {
-          systemPrompt = getMarketingBatchSystemPrompt(clinicianName, condition, '', tone)
+          systemPrompt = getMarketingBatchSystemPrompt(clinicianName, condition, '', tone, prototypeId)
         }
       }
 

@@ -207,12 +207,13 @@ TARGET LENGTH: 700–950 words. Write like a human who genuinely cares about hel
 ${getToneModifier(tone)}`
 }
 
-export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', voiceMode = 'practice') {
+export function getSocialBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', voiceMode = 'practice', prototypeId = null) {
   const isPersonal = voiceMode === 'personal'
+  const patientContext = getPatientContextForPrompt(prototypeId)
   return `Based on the blog post provided, generate social media content for ${brand.name}. The post is about ${condition}.
 
 ${getFramingRule({ voiceMode, clinicianName, assetType: 'social' })}
-
+${patientContext ? `\n${patientContext}\n` : ''}
 ${brand.name}'s audience: ${brand.prompt.audienceDescription}
 
 Output each section separated by the exact markers below. Include the marker line itself.
@@ -266,13 +267,14 @@ BOARD: (${brand.prompt.pinterestBoards})${campaignContext}
 ${getToneModifier(tone)}`
 }
 
-export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', voiceMode = 'practice') {
+export function getVideoScriptBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', voiceMode = 'practice', prototypeId = null) {
   const firstName = clinicianName.split(' ')[0]
   const isPersonal = voiceMode === 'personal'
+  const patientContext = getPatientContextForPrompt(prototypeId)
   return `Based on the blog post provided, write two video scripts for ${brand.name} about ${condition}.
 
 ${getFramingRule({ voiceMode, clinicianName, assetType: 'video' })}
-
+${patientContext ? `\n${patientContext}\n` : ''}
 ${brand.name}'s audience: ${brand.prompt.audienceShort}
 
 Output each section separated by the exact markers below.
@@ -327,11 +329,12 @@ CAPTION:
 ${getToneModifier(tone)}`
 }
 
-export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart') {
+export function getMarketingBatchSystemPrompt(clinicianName, condition, campaignContext = '', tone = 'smart', prototypeId = null) {
   const firstName = clinicianName.split(' ')[0]
   const conditionSlug = condition.toLowerCase().replace(/\s+/g, '-').slice(0, 20)
+  const patientContext = getPatientContextForPrompt(prototypeId)
   return `Based on the blog post provided, generate three marketing assets for ${brand.name} about ${condition}. Use the blog post as your source of truth.
-
+${patientContext ? `\n${patientContext}\n` : ''}
 CRITICAL FRAMING RULE:
 All assets are branded for ${brand.name} as a clinic. The clinician's expertise informs the content but ${brand.name} is always the subject. Use "we," "our team," and "${brand.name}" throughout. The clinician's name (${firstName}) may appear once in the email as a credibility signal but should not appear in headlines, page titles, or ad copy.
 
