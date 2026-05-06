@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import { ArrowLeft, ArrowRight, Stethoscope, User, Loader2, TrendingUp, Sparkles } from 'lucide-react'
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { getOrCreateClinician, createInterview, fetchClinicians } from '@/lib/api'
 import { getSuggestedTopics } from '@brand-overlay/topicSuggestions'
+import { PATIENT_PROTOTYPES } from '@brand-overlay/patientContext'
 import { TONES, VOICE_MODES } from '@/lib/prompts'
 
 export default function NewInterview() {
@@ -23,20 +24,25 @@ export default function NewInterview() {
   const [error, setError] = useState('')
   const [tone, setTone] = useState('smart')
   const [voiceMode, setVoiceMode] = useState('practice')
-  const [suggestions, setSuggestions] = useState([])
+  const [existingTopics, setExistingTopics] = useState([])
+  const [selectedPrototype, setSelectedPrototype] = useState(null)
   const [suggestionsLoading, setSuggestionsLoading] = useState(true)
 
   useEffect(() => {
     fetchClinicians()
       .then((clinicians) => {
-        const existingTopics = clinicians.flatMap((c) =>
+        setExistingTopics(clinicians.flatMap((c) =>
           (c.interviews || []).map((i) => i.topic)
-        )
-        setSuggestions(getSuggestedTopics(existingTopics))
+        ))
       })
-      .catch(() => setSuggestions(getSuggestedTopics([])))
+      .catch(() => setExistingTopics([]))
       .finally(() => setSuggestionsLoading(false))
   }, [])
+
+  const suggestions = useMemo(
+    () => getSuggestedTopics(existingTopics, { prototype: selectedPrototype }),
+    [existingTopics, selectedPrototype]
+  )
 
   function handleNext() {
     if (step === 1 && clinicianName.trim()) setStep(2)
@@ -213,6 +219,36 @@ export default function NewInterview() {
                 autoFocus
               />
             </div>
+
+            {/* Prototype filter */}
+            {!suggestionsLoading && (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground">Filter by patient type:</p>
+                <div className="flex flex-wrap gap-2">
+                  {PATIENT_PROTOTYPES.map((p) => {
+                    const isActive = selectedPrototype === p.id
+                    const shortLabel = p.label.split(' — ')[0]
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPrototype(isActive ? null : p.id)}
+                        className={`flex flex-col items-start text-left text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
+                          isActive
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-input hover:border-primary/50 hover:bg-accent/30'
+                        }`}
+                      >
+                        <span className="font-medium">{shortLabel}</span>
+                        {isActive && (
+                          <span className="text-[10px] opacity-80 leading-tight">{p.coreDesire}</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {suggestionsLoading ? (
               <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
