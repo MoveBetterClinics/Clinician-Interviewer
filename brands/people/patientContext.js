@@ -196,6 +196,24 @@ export const STAFF_PROFILES = [
 ]
 
 /**
+ * Returns a focused prototype context block for prompt injection when a
+ * specific patient archetype has been selected for an interview.
+ * Returns an empty string when prototypeId is null/undefined (no-op).
+ */
+export function getPrototypeContextForPrompt(prototypeId) {
+  if (!prototypeId) return ''
+  const p = PATIENT_PROTOTYPES.find((x) => x.id === prototypeId)
+  if (!p) return ''
+  return `
+PATIENT PROTOTYPE FOCUS — orient this interview toward the "${p.label}" archetype:
+Core desire: ${p.coreDesire}
+What this patient needs: ${p.whatTheyNeed}
+Content angles that resonate with this archetype:
+${p.contentAngles.map((a) => `  • ${a}`).join('\n')}
+Draw out clinical insights that will land specifically with a patient who wants to ${p.coreDesire.toLowerCase()}. When you have a choice between two follow-up directions, choose the one that fits this archetype.`
+}
+
+/**
  * Returns a compact description of the patient context for prompt injection.
  * Used by prompts.js to orient the AI toward who Move Better's content serves.
  */

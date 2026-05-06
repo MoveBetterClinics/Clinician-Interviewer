@@ -10,3 +10,7 @@ export const STAFF_PROFILES = []
 export function getPatientContextForPrompt() {
   return ''
 }
+
+export function getPrototypeContextForPrompt(_prototypeId) {
+  return ''
+}

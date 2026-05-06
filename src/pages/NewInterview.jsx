@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { getOrCreateClinician, createInterview, fetchClinicians } from '@/lib/api'
 import { getSuggestedTopics } from '@brand-overlay/topicSuggestions'
+import { PATIENT_PROTOTYPES } from '@brand-overlay/patientContext'
 import { TONES, VOICE_MODES } from '@/lib/prompts'
 
 export default function NewInterview() {
@@ -23,6 +24,7 @@ export default function NewInterview() {
   const [error, setError] = useState('')
   const [tone, setTone] = useState('smart')
   const [voiceMode, setVoiceMode] = useState('practice')
+  const [selectedPrototype, setSelectedPrototype] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(true)
 
@@ -61,6 +63,7 @@ export default function NewInterview() {
         ownerEmail: user.primaryEmailAddress?.emailAddress,
         tone,
         voiceMode,
+        prototype: selectedPrototype,
       })
       navigate(`/interview/${clinician.id}/${interview.id}`)
     } catch (e) {
@@ -147,6 +150,40 @@ export default function NewInterview() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Patient prototype selector */}
+            {PATIENT_PROTOTYPES.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm">
+                  Patient focus{' '}
+                  <span className="text-muted-foreground font-normal">(optional)</span>
+                </Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {PATIENT_PROTOTYPES.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedPrototype(selectedPrototype === p.id ? null : p.id)}
+                      className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
+                        selectedPrototype === p.id
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'border-input hover:border-primary/40 hover:bg-accent/30'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold leading-tight">{p.label}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{p.coreDesire}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {selectedPrototype && (
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Interview questions will be oriented toward this patient archetype. Click again to deselect.
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Voice mode selector */}
             <div className="space-y-2">
               <Label className="text-sm">Voice</Label>

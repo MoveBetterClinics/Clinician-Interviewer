@@ -1,7 +1,7 @@
 import { brand } from './brand'
 import { getToneModifier as getBrandToneModifier } from '@brand-overlay/toneModifiers'
 import { formatPNWContextForPrompt } from '@brand-overlay/interviewContext'
-import { getPatientContextForPrompt } from '@brand-overlay/patientContext'
+import { getPatientContextForPrompt, getPrototypeContextForPrompt } from '@brand-overlay/patientContext'
 
 // Paradigm content (tone-modifier strings, interview context per condition)
 // lives under brands/<brand>/ and is selected at build time via the
@@ -71,7 +71,7 @@ Brand attribution still applies: end the piece with a signature line on its own 
 This content is branded for ${brand.name} as a clinic — NOT for the individual clinician. The subject is always "we at ${brand.name}" or "our team" or "our approach." Even if the clinician used "I" or "me" in the interview, convert it to clinic voice in the output (e.g., "I see this in patients" → "We see this in patients at ${brand.name}"). ${clinicianMention}`
 }
 
-export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = []) {
+export function getInterviewSystemPrompt(clinicianName, condition, pastInterviews = [], prototype = null) {
   let pastContext = ''
   if (pastInterviews.length > 0) {
     const formatted = pastInterviews.map((pi) => {
@@ -93,12 +93,13 @@ Skip anything already covered in depth above unless ${clinicianName}'s answer cl
 `
   }
 
+  const protoContext = getPrototypeContextForPrompt(prototype)
+
   return `You are a content facilitator helping ${clinicianName} at ${brand.name} think out loud about how they treat ${condition}. Your job is to pull out their clinical perspective efficiently so it can be turned into patient-facing content branded for ${brand.name} as a whole.
 ${formatPNWContextForPrompt(condition)}${pastContext}
 ${brand.name} context: ${brand.prompt.clinicContext}
 
-${getPatientContextForPrompt()}
-
+${getPatientContextForPrompt()}${protoContext ? `\n${protoContext}\n` : ''}
 CONTENT YOU NEED TO COLLECT — ask about these in any order that flows naturally:
 1. Their actual assessment and treatment process for ${condition}
 2. What conventional treatment usually gets wrong

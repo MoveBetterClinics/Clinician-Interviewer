@@ -162,7 +162,12 @@ export default function InterviewSession() {
     setStreamingText('')
     setError('')
 
-    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current)
+    const systemPrompt = getInterviewSystemPrompt(
+      clinician.name,
+      interviewRef.current.topic,
+      pastInterviewsRef.current,
+      interviewRef.current.prototype ?? null,
+    )
     let apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
     // Claude API requires at least one message — inject a silent starter for new interviews
     if (apiMessages.length === 0) {
