@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { getOrCreateClinician, createInterview, fetchClinicians } from '@/lib/api'
 import { getSuggestedTopics } from '@brand-overlay/topicSuggestions'
-import { TONES, VOICE_MODES } from '@/lib/prompts'
+import { TONES, VOICE_MODES, PATIENT_PROTOTYPES_UI } from '@/lib/prompts'
 
 export default function NewInterview() {
   const navigate = useNavigate()
@@ -23,6 +23,7 @@ export default function NewInterview() {
   const [error, setError] = useState('')
   const [tone, setTone] = useState('smart')
   const [voiceMode, setVoiceMode] = useState('practice')
+  const [prototype, setPrototype] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(true)
 
@@ -61,6 +62,7 @@ export default function NewInterview() {
         ownerEmail: user.primaryEmailAddress?.emailAddress,
         tone,
         voiceMode,
+        prototypeId: prototype,
       })
       navigate(`/interview/${clinician.id}/${interview.id}`)
     } catch (e) {
@@ -147,6 +149,33 @@ export default function NewInterview() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Patient prototype selector — only rendered when the brand has archetypes */}
+            {PATIENT_PROTOTYPES_UI.length > 1 && (
+              <div className="space-y-2">
+                <Label className="text-sm">Patient archetype</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {PATIENT_PROTOTYPES_UI.map((p) => (
+                    <button
+                      key={String(p.id)}
+                      type="button"
+                      onClick={() => setPrototype(p.id)}
+                      className={`flex items-start gap-2 rounded-lg border p-3 text-left transition-all ${
+                        prototype === p.id
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'border-input hover:border-primary/40 hover:bg-accent/30'
+                      }`}
+                    >
+                      <span className="text-base shrink-0 mt-0.5">{p.emoji}</span>
+                      <div>
+                        <p className="text-xs font-semibold leading-tight">{p.label}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{p.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Voice mode selector */}
             <div className="space-y-2">
               <Label className="text-sm">Voice</Label>

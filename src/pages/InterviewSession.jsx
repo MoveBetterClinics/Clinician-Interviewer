@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { fetchClinician, fetchInterview, fetchSimilarInterviews, updateInterview } from '@/lib/api'
 import { streamMessage, generateContent } from '@/lib/claude'
-import { getInterviewSystemPrompt, getBlogPostSystemPrompt } from '@/lib/prompts'
+import { getInterviewSystemPrompt, getBlogPostSystemPrompt, TONES, VOICE_MODES, PATIENT_PROTOTYPES_UI } from '@/lib/prompts'
 import { getInitials } from '@/lib/utils'
 import { brand } from '@/lib/brand'
 
@@ -162,7 +162,7 @@ export default function InterviewSession() {
     setStreamingText('')
     setError('')
 
-    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current)
+    const systemPrompt = getInterviewSystemPrompt(clinician.name, interviewRef.current.topic, pastInterviewsRef.current, interviewRef.current?.prototype_id)
     let apiMessages = currentMessages.map((m) => ({ role: m.role, content: m.content }))
     // Claude API requires at least one message — inject a silent starter for new interviews
     if (apiMessages.length === 0) {
@@ -308,7 +308,7 @@ export default function InterviewSession() {
       const voiceMode = interview.voice_mode || 'practice'
       const blogPost = await generateContent(
         [...apiMessages, { role: 'user', content: 'Please write the blog post now based on our interview.' }],
-        getBlogPostSystemPrompt(clinician.name, interview.topic, tone, voiceMode),
+        getBlogPostSystemPrompt(clinician.name, interview.topic, tone, voiceMode, interview.prototype_id),
         { model: 'claude-opus-4-7' }
       )
       const outputs = { blogPost, generatedAt: new Date().toISOString() }
@@ -391,6 +391,12 @@ export default function InterviewSession() {
   const displayMessages = messages.filter((m) => !m.content?.includes(COMPLETE_TOKEN))
   const firstNameOnly = clinician.name.split(' ')[0]
 
+  const toneObj = TONES.find((t) => t.id === interview.tone) ?? TONES[0]
+  const voiceObj = VOICE_MODES.find((v) => v.id === interview.voice_mode) ?? VOICE_MODES[0]
+  const prototypeObj = interview.prototype_id
+    ? PATIENT_PROTOTYPES_UI.find((p) => p.id === interview.prototype_id)
+    : null
+
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-7rem)]">
       <div className="flex items-center gap-3 pb-4 shrink-0">
@@ -428,6 +434,18 @@ export default function InterviewSession() {
             </div>
           )
         }
+      </div>
+
+      <div className="flex items-center gap-1.5 pb-3 -mt-1 shrink-0">
+        <span className="text-[11px] text-muted-foreground">{toneObj.emoji} {toneObj.label}</span>
+        <span className="text-[11px] text-muted-foreground/40">·</span>
+        <span className="text-[11px] text-muted-foreground">{voiceObj.emoji} {voiceObj.label}</span>
+        {prototypeObj && (
+          <>
+            <span className="text-[11px] text-muted-foreground/40">·</span>
+            <span className="text-[11px] text-muted-foreground">{prototypeObj.emoji} {prototypeObj.label}</span>
+          </>
+        )}
       </div>
 
       <ScrollArea className="flex-1 pr-4 -mr-4">
